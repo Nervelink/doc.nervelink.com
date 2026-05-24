@@ -1,32 +1,43 @@
-# Hello World (/docs)
+# Inicio (/docs/nucleo/v2)
 
 
 
-Welcome to the docs! You can start writing documents in `/content/docs`.
+# Núcleo v2 (Preview) [#núcleo-v2-preview]
 
-## What is Next? [#what-is-next]
-
-<Cards>
-  <Card title="Learn more about Next.js" href="https://nextjs.org/docs" />
-
-  <Card title="Learn more about Fumadocs" href="https://fumadocs.dev" />
-</Cards>
+Esta versión está en desarrollo.
 
 
-# Components (/docs/test)
+# Nucleo - Nerve Docs (/docs/nucleo/v1)
 
 
 
-## Code Block [#code-block]
+# Núcleo [#núcleo]
 
-```js
-console.log('Hello World');
-```
+Texto aquí.
 
-## Cards [#cards]
 
-<Cards>
-  <Card title="Learn more about Next.js" href="https://nextjs.org/docs" />
+# Sistemas V1 (/docs/nucleo/v1/sistemas)
 
-  <Card title="Learn more about Fumadocs" href="https://fumadocs.dev" />
-</Cards>
+
+
+# Núcleo [#núcleo]
+
+Texto aquí.
+
+
+# Red - Nerve Docs (/docs/red/v1)
+
+
+
+# Núcleo [#núcleo]
+
+Texto aquí.
+
+
+# UI - Nerve Docs (/docs/ui/v1)
+
+
+
+# Núcleo [#núcleo]
+
+Texto aquí.
