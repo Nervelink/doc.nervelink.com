@@ -2,8 +2,14 @@
 
 - Nucleo
   - Nucleo
-    - [Nucleo - Nerve Docs](/docs/nucleo/v1): Sistemas principales
-    - [Sistemas V1](/docs/nucleo/v1/sistemas): Sistemas principales
+
+    - **Introduccion**
+    - [Inicio Rápido](/docs/nucleo/v1): Aprende lo básico de los Sistemas principales
+
+    - **Contenido**
+    - [Sistemas](/docs/nucleo/v1/sistemas): Alexandria, la Biblioteca Primordial — es el sistema que despierta y coordina el nacimiento de los grandes pilares del motor.
+    - Sistemas
+      - [Alexandria](/docs/nucleo/v1/sistemas/alexandria): Sistema de bootstrap y orquestación de sistemas del motor Pandora
   - Nucleo: SDK Core — Preview
     - [Inicio](/docs/nucleo/v2)
 - Red

@@ -1,7 +1,7 @@
-# Sistemas V1 (/docs/nucleo/v1/sistemas)
+# Sistemas (/docs/nucleo/v1/sistemas)
 
 
 
-# Núcleo [#núcleo]
+# sadsad [#sadsad]
 
-Texto aquí.
+asdsd
