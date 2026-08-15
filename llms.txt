@@ -32,6 +32,7 @@
 
     - **Comunicación**
     - [Comunicación](/docs/red/v1/comunicacion): Cómo Eco representa, dirige y procesa la comunicación entre objetos, componentes, clientes y servidor.
+    - [Sincronización](/docs/red/v1/sincronizacion): Cómo Eco mantiene el estado de los objetos coherente entre clientes y servidor.
 - Ui
   - UI
     - [UI - Nerve Docs](/docs/ui/v1): Sistemas principales
