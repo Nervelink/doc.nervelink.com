@@ -17,31 +17,32 @@
 
     - **Introducción**
     - [Red · Eco v1](/docs/red/v1): Arquitectura y uso de la capa de red Eco basada en TNet 3.
-
-    - **Arquitectura**
-    - [Arquitectura](/docs/red/v1/arquitectura): Cómo se organiza Eco y cómo fluye la información entre cliente, servidor y objetos de red.
-
-    - **Conceptos**
-    - [Conceptos fundamentales](/docs/red/v1/conceptos): Las piezas que forman el modelo de red de Eco y cómo se relacionan entre sí.
-
-    - **Canales**
-    - [Canales](/docs/red/v1/canales): Ámbitos de estado compartido en Eco y gestión de la pertenencia de los jugadores.
-
-    - **Objetos**
-    - [Objetos](/docs/red/v1/objetos): Identidad, ciclo de vida y propiedad de los objetos de red de Eco.
-
-    - **Comunicación**
-    - [Comunicación](/docs/red/v1/comunicacion): Cómo Eco representa, dirige y procesa la comunicación entre objetos, componentes, clientes y servidor.
-
-    - **Sincronización**
-    - [Sincronización](/docs/red/v1/sincronizacion): Cómo Eco mantiene el estado de los objetos coherente entre clientes y servidor.
-
-    - **Serialización**
-    - [Serialización](/docs/red/v1/serializacion): Cómo Eco representa datos, construye buffers y codifica los paquetes que circulan por la red.
-
-    - **Cliente**
-    - [Cliente](/docs/red/v1/cliente): Ciclo de vida del cliente de Eco, conexión, transporte y gestión de la sesión de red.
-    - [Servidor](/docs/red/v1/servidor)
+    - Fundamentos
+      - [Fundamentos](/docs/red/v1/fundamentos): Los conceptos que definen la arquitectura y el modelo mental de Eco.
+      - [Conceptos](/docs/red/v1/fundamentos/conceptos): Las piezas que forman el modelo de red de Eco y cómo se relacionan entre sí.
+      - [Arquitectura](/docs/red/v1/fundamentos/arquitectura): Cómo se organiza Eco y cómo fluye la información entre sus capas.
+    - Modelo de red
+      - [Modelo de red](/docs/red/v1/modelo): Las entidades que forman el estado de red y sus relaciones.
+      - [Canales](/docs/red/v1/modelo/canales): Ámbitos de estado compartido en Eco y gestión de la pertenencia de los jugadores.
+      - [Objetos](/docs/red/v1/modelo/objetos): Identidad, ciclo de vida y propiedad de los objetos de red de Eco.
+    - Comunicación
+      - [Comunicación](/docs/red/v1/comunicacion): Cómo Eco envía acciones, mantiene estado y dirige mensajes a sus destinatarios.
+      - [Destinatarios](/docs/red/v1/comunicacion/destinatarios): Cómo Eco determina quién recibe un mensaje dentro de un canal.
+      - [RFC](/docs/red/v1/comunicacion/rfc): Llamadas de funciones remotas en Eco.
+      - [Sincronización](/docs/red/v1/comunicacion/sincronizacion): Cómo Eco mantiene el estado de los objetos coherente entre clientes y servidor.
+    - Transporte
+      - [Transporte](/docs/red/v1/transporte): Cómo Eco empaqueta, serializa y transporta datos entre clientes y servidor.
+      - [Paquetes](/docs/red/v1/transporte/paquetes): Los mensajes que forman el protocolo de comunicación de Eco.
+      - [Buffers](/docs/red/v1/transporte/buffers): El contenedor binario que Eco utiliza para leer y escribir datos de red.
+      - [Serialización](/docs/red/v1/transporte/serializacion): Cómo Eco convierte datos entre representaciones estructuradas y binarias.
+      - [TCP y UDP](/docs/red/v1/transporte/tcp-udp): Cómo Eco combina transporte fiable y transporte de baja latencia.
+    - Runtime
+      - [Runtime](/docs/red/v1/runtime): Los componentes que mantienen Eco en ejecución en el cliente y el servidor.
+      - [Cliente](/docs/red/v1/runtime/cliente): Ciclo de vida del cliente de Eco, conexión, transporte y gestión de la sesión.
+      - [Servidor local](/docs/red/v1/runtime/servidor-local)
+      - [Servidor](/docs/red/v1/runtime/servidor): Estado autoritativo, jugadores, canales y procesamiento del lado servidor.
+    - Referencia
+      - [Referencia](/docs/red/v1/referencia): Fuentes, equivalencias y material de consulta para trabajar con Eco.
 - Ui
   - UI
     - [UI - Nerve Docs](/docs/ui/v1): Sistemas principales

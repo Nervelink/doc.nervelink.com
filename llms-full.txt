@@ -64,1051 +64,6 @@ asdsd
 Esta versión está en desarrollo.
 
 
-# UI - Nerve Docs (/docs/ui/v1)
-
-
-
-# Núcleo [#núcleo]
-
-Texto aquí.
-
-
-# Arquitectura (/docs/red/v1/arquitectura)
-
-
-
-# Arquitectura de Eco [#arquitectura-de-eco]
-
-Eco es la capa de red utilizada por Pandora. Su implementación procede de TNet 3, pero expone una nomenclatura y una organización propias de Nervelink.
-
-La documentación de Eco describe el comportamiento del código actual de `Nervelink/eco`. Las equivalencias con TNet se utilizan como referencia, no como contrato de la API.
-
-<Callout title="Idea principal" type="info">
-  Eco no debe entenderse como una colección de RPC aislados. Su arquitectura gira alrededor de conexiones, canales, jugadores, objetos de red, componentes, mensajes y sincronización de estado.
-</Callout>
-
-## Vista general [#vista-general]
-
-```text
-                              Eco
-                               │
-              ┌────────────────┼────────────────┐
-              │                │                │
-           Cliente          Servidor        Común
-              │                │                │
-       ┌──────┼──────┐         │        ┌───────┼────────┐
-       │      │      │         │        │       │        │
-   Conexión  Canal  Objetos   Canales  Paquetes  Buffer  Serialización
-              │      │
-              │      ├── Objeto
-              │      │     └── Componente
-              │      │
-              └──────┴── Jugadores
-```
-
-## Capas principales [#capas-principales]
-
-### Cliente [#cliente]
-
-La capa cliente contiene la lógica que conecta una instancia del juego con un servidor, procesa el tráfico recibido y mantiene la representación local de los canales y objetos de red.
-
-Dentro de `Core/Red/Cliente` se encuentran, entre otros, componentes como `ActualizadorRed`, `AutoCrear`, `AutoSincronizar`, `AutoUnirse` y `ClienteJuego`.
-
-### Servidor [#servidor]
-
-El servidor mantiene el estado compartido, administra canales y jugadores y procesa las operaciones que deben existir fuera de una instancia concreta del juego.
-
-### Común [#común]
-
-La capa común contiene los tipos que necesitan compartir cliente y servidor: paquetes, buffers, identificadores, serialización y estructuras utilizadas para representar el protocolo.
-
-## Objetos de red [#objetos-de-red]
-
-Un objeto de red representa una entidad que Eco puede identificar y sincronizar dentro de un canal.
-
-Conceptualmente:
-
-```text
-Objeto
-├── Identidad
-├── Propietario
-├── Canal(es)
-├── Estado
-└── Componentes
-```
-
-Los `Componente` proporcionan el comportamiento de red asociado al `Objeto`. Esta separación permite que un objeto represente la identidad de red mientras sus componentes implementan funciones concretas.
-
-## Canales [#canales]
-
-El `Canal` delimita el ámbito en el que se comparte estado entre jugadores. No debe confundirse con una conexión de transporte: una conexión puede participar en uno o varios canales.
-
-La gestión detallada de canales, incluyendo su ciclo de vida y la participación simultánea en varios canales, se documentará en la sección dedicada a canales.
-
-## Flujo conceptual de un mensaje [#flujo-conceptual-de-un-mensaje]
-
-```text
-Juego
-  ↓
-Objeto / Componente
-  ↓
-Eco
-  ↓
-Paquete
-  ↓
-Transporte
-  ↓
-Servidor
-  ↓
-Canal / destinatarios
-  ↓
-Paquete
-  ↓
-Cliente remoto
-  ↓
-Objeto / Componente
-```
-
-El transporte mueve los datos, pero el significado del mensaje pertenece a las capas superiores de Eco.
-
-## Relación con TNet [#relación-con-tnet]
-
-Eco conserva la arquitectura conceptual de TNet 3. Algunas equivalencias importantes son:
-
-| TNet                    | Eco          |
-| ----------------------- | ------------ |
-| `TNManager`             | `Eco`        |
-| `TNObject`              | `Objeto`     |
-| `TNBehaviour`           | `Componente` |
-| `TNChannel` / `Channel` | `Canal`      |
-| `TNPacket` / `Packet`   | `Paquete`    |
-| `TNBuffer`              | `Buffer`     |
-| `Player`                | `Jugador`    |
-
-Estas correspondencias son una ayuda para migrar conocimientos de TNet, pero no implican que las APIs deban seguir siendo idénticas.
-
-## Fuente del comportamiento [#fuente-del-comportamiento]
-
-El código de referencia de Eco se encuentra en el repositorio `Nervelink/eco`, principalmente bajo:
-
-```text
-src/Assets/Pandora/Logica/Nucleo/Core/Red/
-```
-
-La implementación de cliente ya contiene, entre otros elementos, actualización de red, creación automática, sincronización automática, unión automática y el cliente de juego.
-
-## Referencias [#referencias]
-
-<Card title="Repositorio Eco" href="https://github.com/Nervelink/eco">
-  Código fuente de la implementación de Eco.
-</Card>
-
-<Card title="TNet" href="https://github.com/tasharen/tnet">
-  Repositorio original del que procede la base de Eco.
-</Card>
-
-<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
-  Documentación generada sobre el repositorio actual de TNet, útil para contrastar arquitectura y evolución upstream.
-</Card>
-
-
-# Canales (/docs/red/v1/canales)
-
-
-
-# Canales [#canales]
-
-Un `Canal` define un ámbito de estado compartido dentro del servidor de Eco. Los jugadores que forman parte de un canal pueden recibir la información que ese canal distribuye, incluyendo mensajes y estado asociado a sus objetos.
-
-<Callout title="Punto importante" type="info">
-  Una conexión no está limitada a un único canal. Eco mantiene una colección de canales activos por cliente, por lo que un mismo jugador puede participar simultáneamente en varios ámbitos de red.
-</Callout>
-
-## Modelo [#modelo]
-
-```text
-Servidor
-│
-├── Canal 10
-│   ├── Jugador A
-│   └── Jugador B
-│
-├── Canal 20
-│   ├── Jugador B
-│   └── Jugador C
-│
-└── Canal 30
-    └── Jugador A
-```
-
-El mismo jugador puede aparecer en varios canales. En el cliente, esta pertenencia se representa mediante una colección interna de `Canal` mantenida por `ClienteJuego`. La API expone esa colección mediante `channels`. citeeco-client-game
-
-## Estado de un canal [#estado-de-un-canal]
-
-`Canal` mantiene información suficiente para representar tanto su configuración como su estado de red. Entre sus propiedades se encuentran:
-
-| Propiedad      | Función                                                         |
-| -------------- | --------------------------------------------------------------- |
-| `id`           | Identificador del canal.                                        |
-| `password`     | Contraseña del canal.                                           |
-| `level`        | Nivel asociado al canal.                                        |
-| `isPersistent` | Indica si el canal debe conservarse cuando queda sin jugadores. |
-| `isClosed`     | Impide nuevas incorporaciones al canal.                         |
-| `isLeaving`    | Indica que el cliente está saliendo del canal.                  |
-| `playerLimit`  | Límite máximo de jugadores.                                     |
-| `jugadores`    | Jugadores presentes en el canal.                                |
-| `rfcs`         | Llamadas remotas almacenadas para el estado del canal.          |
-| `created`      | Objetos dinámicos creados dentro del canal.                     |
-| `destroyed`    | Identificadores de objetos destruidos.                          |
-| `host`         | Jugador que actúa como host del canal.                          |
-
-La implementación también mantiene estructuras internas para localizar objetos dinámicos rápidamente y para cargar datos del canal de forma diferida. citeeco-canal
-
-## Unirse a un canal [#unirse-a-un-canal]
-
-El cliente utiliza `ClienteJuego.JoinChannel` para solicitar la entrada en un canal. La solicitud incluye:
-
-* identificador del canal;
-* contraseña, si existe;
-* nivel que debe cargarse;
-* si el canal es persistente;
-* límite de jugadores.
-
-El método no permite solicitar de nuevo un canal en el que el cliente ya está presente. Una vez enviada la solicitud, Eco registra el canal como pendiente de unión hasta recibir la respuesta del servidor. citeeco-join-channel
-
-```csharp
-cliente.JoinChannel(
-    channelID: 10,
-    levelName: "Arena",
-    persistent: false,
-    playerLimit: 4,
-    password: ""
-);
-```
-
-Durante el proceso de unión, Eco bloquea temporalmente el envío de determinados paquetes para evitar que mensajes pertenecientes a la escena anterior se procesen después de solicitar el cambio de nivel. El propio código documenta esta protección como parte del flujo de `JoinChannel`. citeeco-join-channel
-
-## Múltiples canales simultáneos [#múltiples-canales-simultáneos]
-
-La pertenencia a canales es acumulativa. Un cliente puede unirse a un segundo canal sin abandonar el primero:
-
-```csharp
-cliente.JoinChannel(10, "Mundo", true, 100, "");
-cliente.JoinChannel(20, "Partida", false, 4, "");
-```
-
-Después de completar ambas operaciones, `ClienteJuego.channels` contiene los dos canales. `IsInChannel(id)` permite comprobar la pertenencia a uno concreto, mientras que `GetChannel(id)` obtiene la instancia local del canal. citeeco-cliente-canales
-
-Esto permite utilizar los canales como ámbitos independientes. Un diseño de juego podría, por ejemplo, utilizar un canal persistente para un mundo y otros canales temporales para partidas, eventos o actividades aisladas.
-
-<Callout title="No confundir canal y transporte" type="warn">
-  Dos canales distintos no implican dos conexiones de socket distintas. La conexión y el transporte se gestionan en una capa inferior; los canales delimitan el estado y los destinatarios dentro de esa conexión.
-</Callout>
-
-## Consultar canales [#consultar-canales]
-
-Eco proporciona varias operaciones para inspeccionar la pertenencia del cliente:
-
-```csharp
-// ¿Estoy en algún canal?
-bool cualquiera = cliente.isInChannel;
-
-// ¿Estoy en un canal concreto?
-bool estaDentro = cliente.IsInChannel(20);
-
-// ¿Estoy intentando entrar?
-bool uniendose = cliente.IsJoiningChannel(20);
-
-// Obtener el canal local.
-Canal canal = cliente.GetChannel(20);
-```
-
-`isJoiningChannel` representa cualquier unión pendiente, mientras que `IsJoiningChannel(id)` permite consultar una unión concreta. citeeco-cliente-canales
-
-## Salir de un canal [#salir-de-un-canal]
-
-Para abandonar un canal concreto se utiliza `LeaveChannel(id)`. La operación marca primero el canal como `isLeaving` para evitar solicitudes duplicadas y envía la petición al servidor. citeeco-leave-channel
-
-```csharp
-cliente.LeaveChannel(20);
-```
-
-También existe `LeaveAllChannels()`, que recorre los canales actuales y solicita la salida de cada uno de ellos. citeeco-leave-all
-
-Salir de un canal no equivale a desconectarse del servidor. El cliente puede permanecer conectado mientras abandona uno o varios canales y continúa participando en otros.
-
-## Persistencia [#persistencia]
-
-Un canal puede marcarse como persistente mediante `isPersistent`. Esta propiedad afecta a su ciclo de vida cuando queda sin jugadores.
-
-En la implementación de `Canal`, cuando el último jugador abandona:
-
-* los objetos no persistentes asociados a ese jugador pueden destruirse;
-* otros objetos pueden transferir su propietario a otro jugador;
-* un canal no persistente puede cerrarse y reiniciarse cuando queda vacío.
-
-El comportamiento concreto está implementado en `Canal.RemovePlayer`. citeeco-canal-remove
-
-En otras palabras, la persistencia del canal y la persistencia de un objeto son conceptos relacionados, pero no equivalentes.
-
-## Límite de jugadores [#límite-de-jugadores]
-
-Cada canal tiene un `playerLimit`. El valor por defecto de la implementación es `65535` y `JoinChannel` normaliza cualquier valor superior a ese máximo antes de enviar la solicitud. citeeco-canal citeeco-join-channel
-
-El límite puede modificarse posteriormente con:
-
-```csharp
-cliente.SetPlayerLimit(channelID, max);
-```
-
-La operación sólo se envía cuando el cliente está conectado y pertenece al canal indicado. citeeco-set-player-limit
-
-## Cierre y eliminación [#cierre-y-eliminación]
-
-Cerrar un canal evita que nuevos jugadores puedan incorporarse y es una operación irreversible para ese canal. La API expone `CloseChannel(channelID)` para solicitar este cambio. citeeco-close-channel
-
-Eliminar un canal es una operación diferente y se solicita mediante `DeleteChannel(id, disconnect)`. El segundo parámetro permite indicar si la operación debe producir además una desconexión. citeeco-delete-channel
-
-## Nivel asociado al canal [#nivel-asociado-al-canal]
-
-Cada canal puede tener asociado un `level`. Eco permite cambiar el nivel de un canal mediante:
-
-```csharp
-cliente.LoadLevel(channelID, "Arena");
-```
-
-La operación se restringe a canales en los que el cliente ya está presente. citeeco-load-level
-
-Esto es importante en juegos donde el cambio de escena forma parte del estado compartido del canal: la carga del nivel no es simplemente una operación local de Unity, sino una operación coordinada por la infraestructura de red.
-
-## Host del canal [#host-del-canal]
-
-Cada canal mantiene un `host`. En el cliente, `GetHost(channelID)` devuelve el jugador que actualmente actúa como host del canal, siempre que el cliente pertenezca a ese canal. citeeco-host
-
-La implementación del canal también contempla qué ocurre cuando el host abandona: primero se limpia la referencia y el servidor puede reasignar el papel dentro del flujo de salida. citeeco-canal-remove
-
-## Objetos dentro del canal [#objetos-dentro-del-canal]
-
-Los canales almacenan información sobre los objetos dinámicos creados dentro de ellos. `Canal` mantiene:
-
-```text
-Canal
-├── rfcs
-├── created
-├── destroyed
-└── datos del canal
-```
-
-Los objetos creados dinámicamente tienen identificadores únicos y el canal conserva su información de creación para poder exportarlos, importarlos o reconstruir su estado cuando corresponde. citeeco-canal-objects
-
-Los identificadores dinámicos comienzan por encima de `32767`; el rango inferior está reservado para objetos existentes en la escena. citeeco-canal
-
-## Propiedad de objetos al salir [#propiedad-de-objetos-al-salir]
-
-Cuando un jugador abandona un canal, Eco revisa los objetos dinámicos creados por ese jugador.
-
-Los objetos marcados para destruirse al abandonar se eliminan y sus RFC asociados se limpian. Los objetos que deben sobrevivir pueden transferir su propietario a otro jugador del canal. citeeco-canal-remove
-
-Este mecanismo hace que la salida de un jugador sea también una operación de mantenimiento del estado del canal.
-
-## Flujo recomendado [#flujo-recomendado]
-
-```text
-Conectar al servidor
-        ↓
-Solicitar Canal A
-        ↓
-Respuesta de unión
-        ↓
-Participar en Canal A
-        │
-        ├── Solicitar Canal B
-        │       ↓
-        │   Participar también en B
-        │
-        └── Salir de A
-                ↓
-          Continuar en B
-                ↓
-         Desconectar del servidor
-```
-
-La ventaja del modelo es que la vida del cliente, la conexión y la pertenencia a canales son estados independientes.
-
-## Correspondencia con TNet [#correspondencia-con-tnet]
-
-Eco mantiene prácticamente el mismo modelo de canales de TNet, pero utiliza sus propios nombres:
-
-| TNet                         | Eco                             |
-| ---------------------------- | ------------------------------- |
-| `TNChannel` / `Channel`      | `Canal`                         |
-| `TNManager.JoinChannel`      | `ClienteJuego.JoinChannel`      |
-| `TNManager.LeaveChannel`     | `ClienteJuego.LeaveChannel`     |
-| `TNManager.LeaveAllChannels` | `ClienteJuego.LeaveAllChannels` |
-| `TNManager.IsInChannel`      | `ClienteJuego.IsInChannel`      |
-| `TNManager.GetChannel`       | `ClienteJuego.GetChannel`       |
-
-La implementación documentada aquí corresponde al código de `eco`, no a la API histórica de TNet.
-
-## Referencias upstream [#referencias-upstream]
-
-<Card title="Canales en Eco" href="https://github.com/Nervelink/eco/tree/main/src/Assets/Pandora/Logica/Nucleo/Core/Red">
-  Código fuente de `Canal` y gestión de canales en Eco.
-</Card>
-
-<Card title="TNet en GitHub" href="https://github.com/tasharen/tnet">
-  Repositorio upstream del que procede esta arquitectura.
-</Card>
-
-<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
-  Documentación generada sobre el repositorio actual de TNet para contrastar conceptos y evolución.
-</Card>
-
-
-# Cliente (/docs/red/v1/cliente)
-
-
-
-# Cliente [#cliente]
-
-El cliente es la parte de Eco que mantiene la conexión con el servidor, procesa los paquetes entrantes, envía solicitudes y conserva el estado de la sesión local.
-
-<Callout title="API frente a implementación" type="info">
-  En el uso habitual de Eco se trabaja con su fachada pública. Internamente, el procesamiento de red está concentrado en `ClienteJuego` y en los protocolos de transporte que utiliza.
-</Callout>
-
-## Flujo general [#flujo-general]
-
-```text
-Juego
-  │
-  ▼
-Eco
-  │
-  ▼
-ClienteJuego
-  │
-  ├── Protocolo TCP
-  ├── Protocolo UDP
-  └── IConnection
-       │
-       ▼
-    Servidor
-```
-
-`ClienteJuego` mantiene el protocolo TCP como transporte principal y puede habilitar UDP para tráfico apropiado para datagramas. También permite proporcionar una conexión personalizada mediante `IConnection`. fileciteturn80file0
-
-## Estado de conexión [#estado-de-conexión]
-
-El cliente expone varios estados que conviene distinguir:
-
-| Estado              | Significado                                                       |
-| ------------------- | ----------------------------------------------------------------- |
-| `isConnected`       | Existe una conexión funcional con el servidor o un servidor local |
-| `isTryingToConnect` | Se está intentando establecer la conexión                         |
-| `isJoiningChannel`  | Hay una o más operaciones de entrada a canales pendientes         |
-| `isInChannel`       | El cliente pertenece actualmente a uno o más canales              |
-| `stage`             | Fase actual del protocolo TCP                                     |
-
-La implementación mantiene además una colección explícita de canales y otra de canales pendientes de entrada. Esto es importante porque un cliente de Eco no se modela como miembro de un único canal. fileciteturn80file0
-
-## Conexión TCP [#conexión-tcp]
-
-TCP es el transporte principal de `ClienteJuego`.
-
-```csharp
-ClienteJuego cliente = ...;
-cliente.Connect(endpoint);
-```
-
-La instancia mantiene un `ProtocoloTcp` interno y expone el protocolo mediante `protocol`. También puede asignarse una implementación de `IConnection` como transporte personalizado. fileciteturn80file0
-
-La conexión puede establecerse contra un servidor remoto o contra un `ServidorJuego` local sin utilizar sockets. Este segundo modo es especialmente útil para pruebas, ejecución local y escenarios en los que el cliente y el servidor viven dentro del mismo proceso.
-
-```csharp
-cliente.Connect(servidorLocal);
-```
-
-## UDP [#udp]
-
-UDP es opcional y se utiliza para tráfico que puede beneficiarse de menor latencia o de un modelo no fiable.
-
-El cliente expone:
-
-```text
-StartUDP()
-StopUDP()
-canUseUDP
-listeningPort
-```
-
-La implementación comprueba que exista un endpoint UDP del servidor y que el listener local esté activo antes de considerar que UDP puede utilizarse. fileciteturn80file0
-
-El envío de paquetes distingue entre comunicaciones fiables y no fiables. Cuando el paquete requiere fiabilidad, `ClienteJuego` utiliza TCP; cuando no la requiere y UDP está disponible, puede enviarlo por UDP. fileciteturn26file0
-
-## Procesamiento de paquetes [#procesamiento-de-paquetes]
-
-El cliente procesa los paquetes entrantes en `ProcessPackets()`.
-
-De forma simplificada:
-
-```text
-ProcessPackets
-    │
-    ├── recibe UDP
-    │
-    ├── procesa UDP
-    │
-    ├── recibe TCP
-    │
-    ├── procesa TCP
-    │
-    └── actualiza contadores / estado
-```
-
-Durante el procesamiento, Eco identifica el tipo mediante `Paquete` y delega el tratamiento correspondiente. El cliente mantiene también contadores de paquetes y bytes enviados y recibidos. fileciteturn39file0
-
-El tiempo de procesamiento puede limitarse mediante la configuración de `USE_MAX_PACKET_TIME`, especialmente durante procesos como la entrada a un canal. Esto permite evitar que una gran cantidad de paquetes bloquee un frame completo. fileciteturn80file0
-
-## Handshake y tiempo del servidor [#handshake-y-tiempo-del-servidor]
-
-La conexión comienza con una fase de verificación del protocolo.
-
-```text
-Cliente
-  │ RequestID
-  ▼
-Servidor
-  │ ResponseID
-  ▼
-Cliente conectado
-```
-
-Cuando se recibe `ResponseID`, el cliente obtiene el identificador de jugador y sincroniza su reloj con el servidor. `serverTime` y `serverUptime` se calculan a partir de esa diferencia temporal. fileciteturn39file0
-
-## Ping y supervisión [#ping-y-supervisión]
-
-El cliente envía periódicamente solicitudes de ping al servidor. El ping sirve tanto para medir latencia como para mantener viva la conexión y confirmar que el servidor sigue siendo accesible.
-
-La propiedad `ping` devuelve la latencia actual cuando existe una conexión. fileciteturn39file0
-
-## Canales desde el cliente [#canales-desde-el-cliente]
-
-El cliente conserva una lista de los canales en los que participa:
-
-```csharp
-cliente.channels
-```
-
-Y permite comprobar un canal concreto:
-
-```csharp
-cliente.IsInChannel(id);
-cliente.IsJoiningChannel(id);
-cliente.GetChannel(id);
-```
-
-También dispone de operaciones para:
-
-```text
-JoinChannel
-LeaveChannel
-LeaveAllChannels
-CloseChannel
-DeleteChannel
-SetPlayerLimit
-LoadLevel
-SetHost
-```
-
-Estas operaciones generan paquetes de protocolo; el cliente no modifica unilateralmente el estado del servidor. fileciteturn27file0
-
-## Protección durante la entrada a un canal [#protección-durante-la-entrada-a-un-canal]
-
-`JoinChannel` añade el canal a una colección de entradas pendientes antes de que llegue la respuesta del servidor.
-
-Esto tiene una finalidad importante: impedir que se envíen paquetes entre la orden de cambiar de escena o canal y la confirmación correspondiente. El código documenta explícitamente que esta protección evita que llamadas de la escena anterior terminen ejecutándose cuando la nueva escena ya está cargada. fileciteturn27file0
-
-```text
-JoinChannel()
-    │
-    ├── enviar solicitud
-    ├── marcar canal como pendiente
-    │
-    ▼
-Respuesta
-    │
-    └── finalizar entrada
-```
-
-## Jugador local [#jugador-local]
-
-El jugador local del cliente está asociado al protocolo TCP y se expone mediante la información de jugador de `ClienteJuego`.
-
-La implementación permite trabajar con:
-
-```text
-playerID
-playerName
-playerData
-channels
-serverTime
-serverData
-```
-
-El cliente puede actualizar sus datos de jugador mediante `SetPlayerData()` y sincronizar explícitamente el árbol completo mediante `SyncPlayerData()`. fileciteturn80file0
-
-## Datos del servidor [#datos-del-servidor]
-
-El cliente conserva un `Nodo` con la configuración asociada al servidor conectado.
-
-```csharp
-cliente.serverData
-```
-
-La modificación de esos datos está restringida al estado administrativo del cliente; al cambiarse se genera una solicitud específica hacia el servidor. fileciteturn80file0
-
-## Desconexión [#desconexión]
-
-`Disconnect()` finaliza la conexión y limpia el estado de sesión asociado. En el modo de servidor local también detiene el servidor embebido.
-
-Durante la desconexión se vacían los canales, jugadores conocidos, operaciones pendientes, callbacks y recursos UDP asociados a la sesión. fileciteturn26file0
-
-## Cliente local sin sockets [#cliente-local-sin-sockets]
-
-Eco permite ejecutar un `ServidorJuego` y un `ClienteJuego` dentro del mismo proceso.
-
-```text
-┌─────────────────────────────┐
-│          Unity              │
-│                             │
-│  ClienteJuego ─── ServidorJuego
-│       sin sockets            │
-└─────────────────────────────┘
-```
-
-Este modo conserva el flujo lógico de cliente/servidor y resulta útil para pruebas y entornos locales. `ClienteJuego.Connect(ServidorJuego)` establece esta conexión local. fileciteturn26file0
-
-## Referencia a TNet [#referencia-a-tnet]
-
-La arquitectura de esta capa procede de `GameClient` de TNet 3 y conserva su separación entre cliente, TCP, UDP, canales y servidor local.
-
-| Eco            | TNet                    |
-| -------------- | ----------------------- |
-| `ClienteJuego` | `GameClient`            |
-| `ProtocoloTcp` | `TcpProtocol`           |
-| `ProtocoloUdp` | `UdpProtocol`           |
-| `Paquete`      | `Packet` / `TNPacket`   |
-| `Canal`        | `Channel` / `TNChannel` |
-| `Jugador`      | `Player`                |
-
-La nomenclatura y las APIs documentadas aquí corresponden al repositorio `Nervelink/eco`.
-
-## Referencias [#referencias]
-
-<Card title="Eco" href="https://github.com/Nervelink/eco">
-  Código fuente de la implementación actual.
-</Card>
-
-<Card title="TNet" href="https://github.com/tasharen/tnet">
-  Repositorio upstream de la arquitectura heredada.
-</Card>
-
-<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
-  Referencia generada para explorar la arquitectura actual de TNet.
-</Card>
-
-
-# Comunicación (/docs/red/v1/comunicacion)
-
-
-
-# Comunicación [#comunicación]
-
-La comunicación de Eco se apoya en dos niveles que conviene mantener separados: el protocolo de red, representado por `Paquete` y `Buffer`, y la comunicación de alto nivel asociada a `Objeto` y `Componente`.
-
-<Callout title="Idea principal" type="info">
-  Un `Paquete` transporta datos. Un `Objeto` da contexto de red a esos datos. Los mecanismos de llamadas remotas y sincronización determinan qué comportamiento se ejecuta y quién debe recibirlo.
-</Callout>
-
-## Capas de comunicación [#capas-de-comunicación]
-
-```text
-Componente / gameplay
-        │
-        ▼
-      Objeto
-        │
-   RFC / datos
-        │
-        ▼
-     Paquete
-        │
-     Buffer
-        │
-        ▼
-   Transporte
-        │
-        ▼
-      Canal
-        │
-        ▼
-   Destinatarios
-```
-
-Estas capas no son intercambiables. El protocolo puede transportar mensajes sin conocer la lógica del juego, mientras que un objeto puede utilizar distintos tipos de mensajes para expresar acciones o cambios de estado.
-
-## RFC [#rfc]
-
-Eco conserva el concepto de **Remote Function Call** de TNet. Una RFC identifica una función asociada a un objeto y contiene los datos necesarios para ejecutarla remotamente.
-
-En `Canal`, las RFC se almacenan con:
-
-```text
-RFC
-├── uid
-├── functionName
-└── data
-```
-
-El `uid` contiene el identificador del objeto y el identificador compacto de la función. Cuando la función no utiliza un identificador numérico, se almacena también su nombre. El canal puede reconstruir el paquete correspondiente a partir de estos datos. fileciteturn63file0
-
-## Destinatarios [#destinatarios]
-
-Una llamada remota no implica necesariamente "enviar a todos". El sistema de objetos de Eco permite expresar distintos destinatarios y, en el caso de los datos persistentes, utilizar un recorrido diferente al de una comunicación efímera.
-
-En la implementación de `Objeto`, por ejemplo, los cambios de datos pueden enviarse a `Objetivo.Otros`, al propietario del objeto o mediante objetivos persistentes según el caso. fileciteturn54file0
-
-La documentación específica de `Objetivo` y de cada modo de RFC se desarrollará en las páginas de referencia de esta sección.
-
-## RFC persistentes [#rfc-persistentes]
-
-Una característica importante del modelo de Eco es que algunas comunicaciones pueden quedar asociadas al estado persistente del objeto o del canal.
-
-`Canal` conserva las RFC asociadas a objetos dinámicos y puede exportarlas junto con los datos de creación del objeto. Al importar un objeto, el canal restaura sus datos y vuelve a distribuir las RFC guardadas. fileciteturn63file0
-
-Esto significa que una RFC persistente no debe entenderse simplemente como un mensaje que llega más tarde. Puede formar parte del estado necesario para reconstruir el estado de red de un objeto.
-
-## Comunicación a través de `Componente` [#comunicación-a-través-de-componente]
-
-La clase `Componente` está diseñada para que un comportamiento de Unity pueda trabajar con su `Objeto` asociado sin tener que resolverlo manualmente cada vez.
-
-```csharp
-public class MiUnidad : Componente
-{
-    public void Atacar()
-    {
-        ero.Send("Atacar", Objetivo.Otros);
-    }
-}
-```
-
-El patrón es:
-
-```text
-Componente
-   ↓
-ero
-Objeto
-   ↓
-Send / RFC
-   ↓
-Paquete
-```
-
-`Componente` también proporciona `Instantiate`, `DestroySelf`, `Get` y `Set` como accesos de conveniencia sobre el objeto de red. fileciteturn60file0
-
-## El canal como contexto [#el-canal-como-contexto]
-
-Las RFC almacenadas por Eco pertenecen al canal. Una entrada de RFC incluye el identificador del objeto, y el paquete que la representa incluye también el identificador del canal. fileciteturn62file0
-
-Esto evita tratar una función remota como un mensaje global independiente del estado de sesión:
-
-```text
-Canal A
- ├── Objeto 10
- │    └── RFC
- └── Objeto 20
-      └── RFC
-
-Canal B
- └── Objeto 10
-      └── RFC diferente
-```
-
-El mismo identificador de objeto puede tener sentido dentro del contexto de un canal diferente, por lo que el contexto del canal forma parte de la dirección efectiva del mensaje.
-
-## Paquetes y buffers [#paquetes-y-buffers]
-
-`ClienteJuego` crea los paquetes mediante `CrearPaquete` y los finaliza mediante `EnviarPaquete`. Según el tipo de comunicación, el envío puede utilizar TCP o UDP; la selección de transporte se realiza por debajo de esta capa. fileciteturn26file0
-
-```text
-CrearPaquete
-    ↓
-Escribir datos
-    ↓
-EnviarPaquete
-    ↓
-TCP / UDP
-```
-
-Esto permite que la capa de gameplay trabaje con objetos y comandos sin tener que construir directamente las estructuras de sockets.
-
-## Cliente y servidor [#cliente-y-servidor]
-
-En el cliente, `ClienteJuego` mantiene la cola y el procesamiento de paquetes y conoce los canales en los que participa. En el servidor, `ServidorJuego` mantiene los jugadores y canales activos y procesa las operaciones de red. fileciteturn23file0 fileciteturn36file0
-
-El flujo conceptual es:
-
-```text
-Cliente
-  │
-  │ Paquete
-  ▼
-Servidor
-  │
-  ├── valida / procesa
-  ├── determina canal
-  └── determina destinatarios
-       │
-       ▼
-   otros clientes
-```
-
-## Comunicación y estado [#comunicación-y-estado]
-
-No todo lo que viaja por la red debe modelarse como una RFC.
-
-Una forma útil de separar conceptos es:
-
-| Necesidad                                | Mecanismo conceptual                 |
-| ---------------------------------------- | ------------------------------------ |
-| Ejecutar comportamiento remoto           | RFC                                  |
-| Restaurar comportamiento/estado guardado | RFC persistente / estado del canal   |
-| Actualizar datos de un objeto            | `Set` / datos del objeto             |
-| Mover datos binarios de protocolo        | `Paquete` + `Buffer`                 |
-| Sincronizar un estado continuamente      | Sistema de sincronización específico |
-
-La elección concreta entre RFC, datos y sincronización debe hacerse según la semántica del dato, no simplemente porque RFC sea el mecanismo más visible.
-
-## Referencia a TNet [#referencia-a-tnet]
-
-Eco mantiene aquí la arquitectura heredada de TNet, pero la nomenclatura pública se ha adaptado:
-
-| TNet          | Eco          |
-| ------------- | ------------ |
-| `TNObject`    | `Objeto`     |
-| `TNBehaviour` | `Componente` |
-| `TNPacket`    | `Paquete`    |
-| `TNBuffer`    | `Buffer`     |
-| `TNChannel`   | `Canal`      |
-| RFC           | RFC          |
-
-La documentación de TNet es útil para entender el diseño original y localizar conceptos equivalentes, pero la referencia normativa para Eco es el repositorio `Nervelink/eco`.
-
-## Referencias [#referencias]
-
-<Card title="Eco" href="https://github.com/Nervelink/eco">
-  Código fuente de la implementación actual de Eco.
-</Card>
-
-<Card title="TNet" href="https://github.com/tasharen/tnet">
-  Repositorio upstream del que procede la base de Eco.
-</Card>
-
-<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
-  Documentación generada del repositorio actual de TNet para contrastar arquitectura y evolución upstream.
-</Card>
-
-
-# Conceptos fundamentales (/docs/red/v1/conceptos)
-
-
-
-# Conceptos fundamentales [#conceptos-fundamentales]
-
-Antes de trabajar con Eco conviene entender unas pocas piezas que aparecen constantemente en su API. Eco hereda el modelo conceptual de TNet, pero la documentación utiliza siempre los nombres de Eco.
-
-<Callout title="Regla general" type="info">
-  Una conexión representa la comunicación con el servidor; un jugador representa a quién pertenece esa conexión; un canal define un ámbito de estado compartido; un objeto representa una entidad de red; y sus componentes implementan el comportamiento.
-</Callout>
-
-## Conexión [#conexión]
-
-La conexión representa el vínculo de transporte entre una instancia del juego y el servidor. Es responsable de llevar y recibir los datos, pero no define por sí sola qué objetos o estado debe conocer el cliente.
-
-```text
-Cliente
-  │
-  └── Conexión ─────── Servidor
-```
-
-Por eso una conexión no debe confundirse con un canal. La misma conexión puede participar en diferentes canales según el estado de la sesión.
-
-## Jugador [#jugador]
-
-Un `Jugador` representa a un participante de la sesión dentro de la infraestructura de red. El jugador está asociado a una conexión y sirve para identificar al participante cuando Eco necesita expresar propiedad, destinatarios o presencia dentro de un canal.
-
-```text
-Conexión
-   │
-   └── Jugador
-```
-
-El jugador no es necesariamente la entidad jugable que existe en el mundo del juego. Esa entidad puede estar representada por un `Objeto` independiente.
-
-## Canal [#canal]
-
-Un `Canal` define un ámbito de estado compartido. Los jugadores pueden entrar y salir de canales y el servidor utiliza el canal como contexto para gestionar objetos, mensajes y persistencia.
-
-```text
-Servidor
-  │
-  ├── Canal A
-  │    ├── Jugador 1
-  │    └── Jugador 2
-  │
-  └── Canal B
-       ├── Jugador 2
-       └── Jugador 3
-```
-
-La participación en varios canales es una capacidad importante de Eco. No debe modelarse como si el cliente sólo pudiera tener un canal activo.
-
-## Objeto [#objeto]
-
-Un `Objeto` es una identidad de red que Eco puede registrar, localizar, sincronizar y destruir.
-
-Un objeto puede entenderse como la unidad sobre la que se construye el estado de una entidad dentro de la red:
-
-```text
-Objeto
-├── ID de red
-├── Propietario
-├── Estado
-├── Canal(es)
-└── Componentes
-```
-
-El objeto no representa por sí mismo toda la lógica de gameplay. Su función es proporcionar la identidad y el contexto de red sobre el que trabajan sus componentes.
-
-## Componente [#componente]
-
-Un `Componente` contiene comportamiento de red asociado a un `Objeto`. Es el equivalente conceptual del componente de comportamiento de TNet y permite separar la identidad de red de la funcionalidad concreta.
-
-```text
-Objeto
-├── Componente A
-├── Componente B
-└── Componente C
-```
-
-Esta separación es especialmente útil cuando una misma entidad necesita varias responsabilidades de red: sincronización, llamadas remotas, lógica de propiedad, etc.
-
-## Propietario [#propietario]
-
-Eco mantiene información de propiedad sobre los objetos de red. El propietario identifica al participante que tiene autoridad sobre determinadas operaciones del objeto.
-
-```text
-Objeto
-  │
-  └── Propietario → Jugador
-```
-
-La propiedad no equivale necesariamente a que el objeto sólo exista para ese jugador. El objeto puede ser visible para otros participantes mientras uno de ellos mantiene su autoridad.
-
-La semántica exacta de `isMine`, propietarios y transferencia de propiedad se documentará en la sección específica de objetos.
-
-## Paquete [#paquete]
-
-Un `Paquete` representa una unidad de datos del protocolo de Eco. Los paquetes transportan comandos, eventos y datos entre clientes y servidor.
-
-Conceptualmente:
-
-```text
-Objeto / Componente
-        ↓
-     Paquete
-        ↓
-   Transporte
-```
-
-El paquete pertenece a la capa de protocolo. No es equivalente a un evento de gameplay: un evento de juego puede terminar representándose mediante uno o varios tipos de mensaje de red.
-
-## Buffer [#buffer]
-
-Un `Buffer` proporciona las operaciones de lectura y escritura utilizadas para serializar los datos que Eco intercambia.
-
-```text
-Dato
- ↓
-Buffer
- ↓
-Paquete
- ↓
-Transporte
-```
-
-El buffer es deliberadamente una capa inferior a los objetos y componentes. Normalmente una característica de gameplay no debería manipularlo directamente salvo que esté implementando serialización o un protocolo específico.
-
-## Estado [#estado]
-
-Eco diferencia conceptualmente entre enviar una acción y mantener un estado de red. Una llamada remota puede comunicar que algo ocurrió, mientras que la sincronización de estado permite que un cliente conozca el valor actual de una propiedad o conjunto de datos.
-
-Esta distinción será importante al documentar `RFC`, sincronización automática, sincronización personalizada y los mecanismos basados en datos.
-
-## Relación entre conceptos [#relación-entre-conceptos]
-
-```text
-                         Servidor
-                            │
-              ┌─────────────┴─────────────┐
-              │                           │
-          Conexiones                  Canales
-              │                           │
-           Jugadores              ┌──────┴──────┐
-              │                    │             │
-              └──────────────┬─────┘             │
-                             │                   │
-                          Objetos ◄──────────────┘
-                             │
-                        Componentes
-                             │
-                    RFC / Sync / Datos
-                             │
-                          Paquetes
-                             │
-                         Transporte
-```
-
-La idea clave es que estas piezas no son alternativas entre sí. Forman capas distintas del modelo de red.
-
-## Correspondencia con TNet [#correspondencia-con-tnet]
-
-| Concepto Eco | TNet histórico          | Función                                 |
-| ------------ | ----------------------- | --------------------------------------- |
-| `Eco`        | `TNManager`             | Entrada y gestión principal del cliente |
-| `Conexión`   | Conexiones de TNet      | Transporte entre cliente y servidor     |
-| `Jugador`    | `Player`                | Participante de la sesión               |
-| `Canal`      | `Channel` / `TNChannel` | Ámbito de estado compartido             |
-| `Objeto`     | `TNObject`              | Identidad de red                        |
-| `Componente` | `TNBehaviour`           | Comportamiento asociado al objeto       |
-| `Paquete`    | `Packet` / `TNPacket`   | Mensaje del protocolo                   |
-| `Buffer`     | `TNBuffer`              | Serialización binaria                   |
-
-La tabla sirve para orientarse al consultar documentación o código de TNet. Para implementar Eco debe utilizarse la API y el comportamiento del repositorio `Nervelink/eco`.
-
-## Referencias upstream [#referencias-upstream]
-
-<Card title="TNet en GitHub" href="https://github.com/tasharen/tnet">
-  Repositorio original y fuente principal de referencia de la implementación heredada.
-</Card>
-
-<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
-  Vista generada de la arquitectura del repositorio actual de TNet. Útil para localizar subsistemas y contrastar su evolución.
-</Card>
-
-
 # Red · Eco v1 (/docs/red/v1)
 
 
@@ -1166,974 +121,13 @@ Esta documentación distingue entre tres cosas:
 Cuando una página describe una API concreta, la fuente de referencia es el código de `eco` y no un tutorial antiguo de TNet.
 
 
-# Objetos (/docs/red/v1/objetos)
+# UI - Nerve Docs (/docs/ui/v1)
 
 
 
-# Objetos [#objetos]
+# Núcleo [#núcleo]
 
-Un `Objeto` es la identidad de red asociada a un `GameObject` de Unity. Es el punto de referencia que permite a Eco localizar una entidad, conocer su canal, determinar su propietario y asociar los `Componente` que implementan su comportamiento de red.
-
-<Callout title="Idea principal" type="info">
-  Un objeto no es simplemente un contenedor para RPC. Es la identidad de red sobre la que Eco construye direccionamiento, propiedad, estado y ciclo de vida.
-</Callout>
-
-## Estructura [#estructura]
-
-Conceptualmente, un objeto reúne:
-
-```text
-Objeto
-├── ID de red
-├── Canal
-├── Propietario
-├── Estado / datos
-└── Componentes
-```
-
-En `eco`, `Objeto` deriva de `MonoBehaviour` y mantiene estructuras estáticas para registrar y localizar objetos por canal e identificador. [https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/Objeto.cs](https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/Objeto.cs)
-
-## Identidad de red [#identidad-de-red]
-
-Cada objeto tiene un `id` que Eco utiliza para dirigir mensajes al destino correcto.
-
-Los identificadores se dividen en dos rangos:
-
-| Tipo     | Rango              | Uso                                 |
-| -------- | ------------------ | ----------------------------------- |
-| Estático | `1`–`32767`        | Objetos que ya existen en la escena |
-| Dinámico | `32768`–`16777215` | Objetos creados durante la sesión   |
-
-El objeto también expone `uid`, que combina el identificador del canal con el identificador del objeto:
-
-```text
-UID = Canal << 32 | ID
-```
-
-Esto permite distinguir el mismo identificador de objeto en diferentes canales. [https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/Objeto.cs](https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/Objeto.cs)
-
-<Callout title="Objetos estáticos y dinámicos" type="warn">
-  Los objetos estáticos y dinámicos no tienen exactamente el mismo ciclo de vida. Entre otras diferencias, los objetos estáticos no permiten cambiar su propietario mediante `ownerID`, mientras que los dinámicos sí.
-</Callout>
-
-## Canal [#canal]
-
-Cada objeto tiene asociado un `channelID`. La asociación al canal define el contexto de red en el que ese objeto puede ser localizado y en el que se evalúan operaciones como propiedad, envío y transferencia.
-
-```text
-Canal 12
-├── Objeto 101
-├── Objeto 102
-└── Objeto 103
-```
-
-El código de Eco mantiene tablas de objetos indexadas por canal para permitir tanto iteración como búsqueda rápida. [https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/Objeto.cs](https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/Objeto.cs)
-
-## Registro [#registro]
-
-El objeto distingue entre haber sido registrado y estar todavía en proceso de creación.
-
-`hasBeenRegistered` indica que la creación ha terminado y que el objeto ya tiene asignado su identificador de red correspondiente. `hasBeenDestroyed` marca el objeto inmediatamente cuando comienza su destrucción para impedir que se sigan enviando mensajes durante el intervalo entre la solicitud y la confirmación del servidor. [https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/Objeto.cs](https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/Objeto.cs)
-
-El estado útil para razonar sobre un objeto es, por tanto:
-
-```text
-Creación
-   ↓
-Registro
-   ↓
-Activo
-   ↓
-Destrucción solicitada
-   ↓
-Destruido
-```
-
-La creación y destrucción concretas, incluida la instanciación dinámica, se documentarán en su propio apartado cuando entremos en el ciclo de vida completo.
-
-## Capacidad de envío [#capacidad-de-envío]
-
-`PuedeEnviar` indica si el objeto puede enviar mensajes en el estado actual.
-
-En una aplicación desconectada, el objeto no queda bloqueado por la capa de red. Una vez conectada la aplicación, el envío requiere que:
-
-* el objeto tenga un identificador válido;
-* no esté destruido;
-* el cliente pertenezca al canal del objeto;
-* el cliente no esté todavía completando la entrada en ese canal.
-
-Esto es especialmente relevante durante cambios de escena o uniones a canales, donde un objeto puede existir localmente antes de que la conexión esté preparada para enviar sus mensajes. [https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/Objeto.cs](https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/Objeto.cs)
-
-## Propiedad [#propiedad]
-
-La propiedad determina qué `Jugador` controla un objeto dinámico para las operaciones que requieren autoridad.
-
-Las propiedades principales son:
-
-```csharp
-objeto.isMine
-objeto.owner
-objeto.ownerID
-```
-
-`isMine` permite comprobar si el propietario es el jugador local. `owner` devuelve el objeto `Jugador` asociado y `ownerID` expone su identificador.
-
-```text
-Objeto
-   │
-   └── ownerID → Jugador
-                    │
-                    └── id
-```
-
-Cuando se cambia `ownerID`, Eco actualiza primero el estado local y después envía `RequestSetOwner` al servidor. El nuevo propietario debe ser el jugador local, un jugador válido del canal o `0`. [https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/Objeto.cs](https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/Objeto.cs)
-
-<Callout title="Autoridad" type="info">
-  Ser visible para un jugador no significa ser suyo. Un objeto puede existir en varios clientes mientras uno de ellos mantiene la propiedad utilizada para determinadas operaciones de red.
-</Callout>
-
-## Componentes [#componentes]
-
-Los `Componente` se asocian a un `Objeto` y contienen la lógica de red especializada.
-
-Un `Componente` busca automáticamente un `Objeto` en su jerarquía de Unity durante `Awake`/`OnStart`. Si no encuentra uno y `ignoreMissingTNO` está desactivado, Eco puede crear un `Objeto` local para que el componente funcione, aunque el código advierte que esto por sí solo no garantiza una comunicación de red válida. [https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/Componente.cs](https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/Componente.cs)
-
-```text
-GameObject
-├── Objeto
-├── Componente A
-├── Componente B
-└── Componente C
-```
-
-Esta relación es importante: `Objeto` proporciona la identidad de red y los `Componente` proporcionan el comportamiento.
-
-## Datos asociados [#datos-asociados]
-
-Cada objeto puede mantener un `Nodo` de datos accesible mediante `Get`, `Get<T>`, `Set` y `nodo`.
-
-```csharp
-objeto.Set("vida", 100);
-int vida = objeto.Get<int>("vida");
-```
-
-El setter de datos modifica inmediatamente el estado local. Cuando la sincronización está activa, Eco decide cómo propagar el cambio en función de si el cliente actual es el propietario y de si el objeto puede enviar en ese momento. Los cambios pueden quedar en cola hasta que el objeto vuelva a estar preparado para enviar. [https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/Objeto.cs](https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/Objeto.cs)
-
-La sincronización de estos datos se explica con detalle en la sección de sincronización.
-
-## Eventos del ciclo de vida [#eventos-del-ciclo-de-vida]
-
-`Objeto` expone callbacks específicos para dos transiciones relevantes:
-
-```text
-onDestroy
-onTransfer
-```
-
-`onDestroy` se ejecuta antes de las notificaciones normales de `OnDestroy` de Unity. `onTransfer` permite reaccionar cuando el objeto se traslada a otro canal. [https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/Objeto.cs](https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/Objeto.cs)
-
-Esto permite separar el ciclo de vida de red del ciclo de vida del `GameObject` de Unity.
-
-## Relación con Eco [#relación-con-eco]
-
-Aunque el objeto encapsula gran parte del estado de red, la gestión global pertenece a `Eco`. Por ejemplo, la pertenencia a canales y la conexión se consultan a través de Eco, mientras que el objeto decide si su propio estado permite enviar.
-
-```text
-                Eco
-                 │
-       ┌─────────┼─────────┐
-       │         │         │
-   Conexión    Canales   Jugadores
-                 │
-                 ▼
-               Objeto
-                 │
-            ┌────┴────┐
-            │         │
-       Propiedad    Datos
-            │
-       Componentes
-```
-
-## Correspondencia con TNet [#correspondencia-con-tnet]
-
-| Eco          | TNet          | Función                         |
-| ------------ | ------------- | ------------------------------- |
-| `Objeto`     | `TNObject`    | Identidad y estado de red       |
-| `Componente` | `TNBehaviour` | Comportamiento asociado         |
-| `owner`      | `owner`       | Jugador propietario             |
-| `ownerID`    | `ownerID`     | Identificador del propietario   |
-| `isMine`     | `isMine`      | Comprueba propiedad local       |
-| `uid`        | `uid`         | Canal + identificador de objeto |
-
-La implementación de Eco conserva el modelo fundamental de TNet, pero no debe asumirse que futuras refactorizaciones mantendrán exactamente los mismos nombres o detalles internos.
-
-## Referencias [#referencias]
-
-<Card title="Objeto.cs · Eco" href="https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/Objeto.cs">
-  Implementación actual de `Objeto`.
-</Card>
-
-<Card title="Componente.cs · Eco" href="https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/Componente.cs">
-  Implementación de los componentes asociados a un objeto de red.
-</Card>
-
-<Card title="TNet · TNObject" href="https://github.com/tasharen/tnet/blob/master/Assets/TNet/Client/TNObject.cs">
-  Implementación upstream utilizada como referencia histórica.
-</Card>
-
-<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
-  Documentación generada del repositorio actual de TNet para contrastar arquitectura y evolución.
-</Card>
-
-
-# Serialización (/docs/red/v1/serializacion)
-
-
-
-# Serialización [#serialización]
-
-La serialización es la capa que convierte los datos utilizados por Eco en una representación binaria que puede viajar por la red, y permite reconstruirlos al recibirlos.
-
-<Callout title="Tres capas distintas" type="info">
-  `Nodo` representa datos estructurados, `Buffer` representa bytes en memoria y `Paquete` identifica el significado de un mensaje del protocolo. No son tres nombres para la misma cosa.
-</Callout>
-
-## Modelo general [#modelo-general]
-
-```text
-Dato / estado
-    │
-    ├── Nodo
-    │     └── estructura jerárquica
-    │
-    └── objeto binario
-           │
-           ▼
-        Buffer
-           │
-           ▼
-        Paquete
-           │
-           ▼
-      TCP / UDP
-```
-
-La capa superior decide qué información debe enviarse. La serialización decide cómo representarla. El transporte se ocupa después de mover los bytes.
-
-## `Nodo` [#nodo]
-
-`Nodo` es la estructura de datos jerárquica de Eco. Cada nodo tiene un nombre, un valor opcional y una colección de nodos hijos.
-
-```text
-Nodo
-├── name
-├── value
-└── children
-    ├── Nodo
-    ├── Nodo
-    └── ...
-```
-
-Esto permite representar datos simples:
-
-```csharp
-var nodo = new Nodo("Jugador", "Nineplus");
-```
-
-y estructuras más profundas:
-
-```text
-Jugador
-├── Nombre
-├── Estadisticas
-│   ├── Vida
-│   └── Defensa
-└── Configuracion
-    └── Calidad
-```
-
-`Nodo` también soporta acceso jerárquico mediante rutas como `Estadisticas/Vida`, además de conversión de tipos mediante `Get<T>()`. fileciteturn71file0
-
-## `Nodo` como estado compartido [#nodo-como-estado-compartido]
-
-Los objetos de Eco utilizan `Nodo` para almacenar datos que pueden sincronizarse:
-
-```csharp
-objeto.Set("Vida", 100);
-int vida = objeto.Get<int>("Vida");
-```
-
-En este contexto el nodo representa el estado, mientras que la capa de comunicación decide cómo se propaga ese cambio.
-
-La documentación de sincronización explica la diferencia entre modificar un `Nodo` localmente y sincronizarlo con otros clientes.
-
-## Serialización binaria [#serialización-binaria]
-
-Eco utiliza `BinaryReader` y `BinaryWriter` a través de la clase `Buffer`. Además existe la interfaz `IBinarySerializable` para tipos que necesitan controlar explícitamente su representación binaria.
-
-```csharp
-public interface IBinarySerializable
-{
-    void Serialize(BinaryWriter writer);
-    void Deserialize(BinaryReader reader);
-}
-```
-
-Implementar esta interfaz permite elegir exactamente qué bytes se escriben y leen y puede resultar útil para reducir el tamaño de mensajes frecuentes. La propia implementación de `Serializacion` señala este patrón como la vía adecuada cuando se desea una serialización más eficiente. fileciteturn74file0
-
-## `Buffer` [#buffer]
-
-`Buffer` combina las funciones de lectura y escritura binarias y utiliza un `MemoryStream` como almacenamiento interno. Eco puede crear un buffer, escribir los datos y después volver a leerlos desde el principio.
-
-```csharp
-var buffer = Buffer.Create();
-var writer = buffer.BeginWriting();
-writer.Write(123);
-writer.Write("Hola");
-buffer.EndWriting();
-
-var reader = buffer.BeginReading();
-int id = reader.ReadInt32();
-string texto = reader.ReadString();
-```
-
-El buffer también expone su posición, tamaño, stream subyacente y acceso al almacenamiento binario. fileciteturn72file0
-
-## Ciclo de escritura y lectura [#ciclo-de-escritura-y-lectura]
-
-El flujo normal es:
-
-```text
-Buffer.Create()
-     ↓
-BeginWriting()
-     ↓
-Write(...)
-     ↓
-EndWriting()
-     ↓
-[transporte / almacenamiento]
-     ↓
-BeginReading()
-     ↓
-Read(...)
-```
-
-No se debe leer un buffer que todavía esté en modo de escritura. `EndWriting()` finaliza la escritura y prepara el stream para ser leído.
-
-## Reutilización de buffers [#reutilización-de-buffers]
-
-La implementación incorpora un sistema de pool que puede reciclar buffers cuando `RECYCLE_BUFFERS` está habilitado. `Create()` puede recuperar una instancia ya existente y `Recycle()` devuelve el objeto al pool. fileciteturn72file0
-
-Esto está pensado para reducir asignaciones temporales producidas por el tráfico de red.
-
-```text
-Crear
- ↓
-Usar
- ↓
-Enviar / procesar
- ↓
-Recycle
- ↓
-Pool
- ↓
-Reutilizar
-```
-
-Cuando se reutilizan buffers, la propiedad del buffer debe respetarse estrictamente: después de `Recycle()` no debe seguir utilizándose.
-
-## `Paquete` [#paquete]
-
-`Paquete` es un `enum` que identifica el significado de un mensaje dentro del protocolo.
-
-Por ejemplo:
-
-```text
-RequestID
-ResponseID
-RequestJoinChannel
-ResponseJoinChannel
-RequestCreateObject
-ResponseCreateObject
-ForwardToOthers
-...
-```
-
-El paquete no contiene por sí solo todos los datos del mensaje. Identifica el tipo y el resto de la información se codifica dentro del `Buffer`. fileciteturn73file0
-
-Por eso el modelo es:
-
-```text
-Paquete = qué significa
-Buffer   = qué bytes contiene
-```
-
-## Construcción de un paquete [#construcción-de-un-paquete]
-
-`ClienteJuego` expone `CrearPaquete` para inicializar un `Buffer` con el tipo de paquete correspondiente.
-
-```csharp
-var buffer = Eco.CrearPaquete(Paquete.RequestPing);
-Eco.EnviarPaquete(buffer);
-```
-
-Cuando existen datos adicionales:
-
-```csharp
-var buffer = Eco.CrearPaquete(Paquete.RequestSetPlayerData);
-var writer = buffer.writer;
-writer.Write(playerID);
-writer.Write("Vida");
-writer.WriteObject(100);
-Eco.EnviarPaquete(buffer);
-```
-
-El uso de `CrearPaquete` mantiene la construcción del mensaje alineada con el protocolo de Eco. fileciteturn26file0
-
-## Serialización de objetos [#serialización-de-objetos]
-
-La clase `Serializacion` proporciona métodos para escribir y leer tipos básicos y tipos conocidos por Unity, además de estructuras de Eco como `Nodo`. También puede resolver tipos a partir de nombres serializados y convertir valores a tipos compatibles. fileciteturn74file0
-
-Para clases personalizadas existe una diferencia importante:
-
-| Necesidad                                | Enfoque                 |
-| ---------------------------------------- | ----------------------- |
-| Serialización binaria genérica           | `Serializacion`         |
-| Controlar exactamente el formato binario | `IBinarySerializable`   |
-| Datos estructurados jerárquicos          | `Nodo`                  |
-| Datos jerárquicos personalizados         | `IDataNodeSerializable` |
-| Mensaje del protocolo                    | `Paquete` + `Buffer`    |
-
-## `IDataNodeSerializable` [#idatanodeserializable]
-
-Cuando un tipo necesita controlar cómo se representa dentro de `Nodo`, puede implementar `IDataNodeSerializable`:
-
-```csharp
-public interface IDataNodeSerializable
-{
-    void Serialize(Nodo nodo);
-    void Deserialize(Nodo nodo);
-}
-```
-
-Esto permite definir una representación estructurada sin depender de una reflexión genérica para cada campo. fileciteturn71file0
-
-## Datos y protocolo [#datos-y-protocolo]
-
-Es importante no confundir serialización de datos con serialización de protocolo.
-
-```text
-Objeto
-  │
-  ├── estado → Nodo
-  │
-  └── acción → RFC / datos
-                │
-                ▼
-             Paquete
-                │
-                ▼
-              Buffer
-```
-
-Un `Nodo` puede contener datos de gameplay, mientras que `Paquete` describe una operación de red como entrar en un canal, crear un objeto o enviar una llamada remota.
-
-## Rendimiento [#rendimiento]
-
-Las estructuras de serialización están diseñadas para evitar trabajo innecesario en el camino crítico de red. `Buffer` evita crear un `BinaryWriter` y `BinaryReader` separados por mensaje, y el pool opcional permite reutilizar buffers. `IBinarySerializable` permite evitar formatos más pesados cuando una estructura necesita una codificación compacta. fileciteturn72file0 fileciteturn74file0
-
-En mensajes frecuentes, la serialización debe tratarse como parte del coste de red: no basta con que el código sea correcto; el tamaño del mensaje y las asignaciones también importan.
-
-## Referencia a TNet [#referencia-a-tnet]
-
-La arquitectura de serialización de Eco procede directamente de la familia de tipos de TNet y mantiene el mismo modelo general:
-
-| TNet                    | Eco                     |
-| ----------------------- | ----------------------- |
-| `DataNode`              | `Nodo`                  |
-| `TNBuffer` / `Buffer`   | `Buffer`                |
-| `TNPacket` / `Packet`   | `Paquete`               |
-| `IBinarySerializable`   | `IBinarySerializable`   |
-| `IDataNodeSerializable` | `IDataNodeSerializable` |
-| `TNet.Serialization`    | `Serializacion`         |
-
-La correspondencia sirve para consultar el código upstream. Para implementar Eco debe tomarse como referencia el código de `Nervelink/eco`.
-
-## Referencias [#referencias]
-
-<Card title="Eco" href="https://github.com/Nervelink/eco">
-  Implementación actual de las capas de datos, serialización y protocolo.
-</Card>
-
-<Card title="TNet" href="https://github.com/tasharen/tnet">
-  Repositorio upstream del que procede esta arquitectura.
-</Card>
-
-<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
-  Documentación generada sobre el repositorio actual de TNet para contrastar arquitectura y evolución.
-</Card>
-
-
-# Servidor (/docs/red/v1/servidor)
-
-
-
-# Servidor [#servidor]
-
-`ServidorJuego` es el núcleo que mantiene el estado autoritativo de Eco del lado servidor. Gestiona conexiones, jugadores, canales, objetos dinámicos, procesamiento de paquetes, persistencia y comunicación con servicios auxiliares como el lobby. fileciteturn82file0
-
-<Callout title="Idea principal" type="info">
-  El cliente solicita operaciones; el servidor mantiene el estado de la sesión y decide cómo se aplican, a qué canal pertenecen y qué jugadores deben recibir sus efectos.
-</Callout>
-
-## Arquitectura del servidor [#arquitectura-del-servidor]
-
-```text
-                    ServidorJuego
-                          │
-        ┌─────────────────┼─────────────────┐
-        │                 │                 │
-    Jugadores          Canales          Transporte
-        │                 │                 │
-    Entidad          Canal.cs       TCP / UDP
-        │                 │
-        └──────────┬──────┘
-                   │
-              Objetos / RFC
-                   │
-              Persistencia
-```
-
-`ServidorJuego` mantiene una lista secuencial de jugadores para recorrerlos y diccionarios para búsquedas rápidas por ID y por endpoint. También mantiene una lista y un diccionario de canales activos. fileciteturn82file0
-
-## Ciclo de vida [#ciclo-de-vida]
-
-El servidor se inicia mediante `Start`, que detiene una instancia previa, prepara la configuración, carga listas de ban y administración, configura TCP y opcionalmente UDP, activa el servidor e inicia el procesamiento de red. fileciteturn82file0
-
-```csharp
-var servidor = new ServidorJuego();
-servidor.Start(5127, 5128);
-```
-
-El puerto TCP es la vía principal de conexión. UDP puede habilitarse adicionalmente para tráfico no fiable y comunicaciones frecuentes. fileciteturn82file0
-
-## Escucha TCP [#escucha-tcp]
-
-`Listen(int port)` crea el `TcpListener` del servidor. Eco mantiene una única escucha TCP activa y sustituye la anterior si se cambia el puerto. El estado se expone mediante `isListening` y `tcpPort`. fileciteturn82file0
-
-```text
-Listen(port)
-    ↓
-TcpListener
-    ↓
-Aceptación de conexiones
-    ↓
-Entidad / Jugador
-```
-
-## UDP [#udp]
-
-UDP es opcional. `Start` puede abrir un puerto UDP independiente y Eco expone el estado mediante `udpPort`. En el lado servidor se utiliza para el transporte que no necesita las garantías de TCP. fileciteturn82file0
-
-No debe asumirse que todo mensaje utiliza UDP: el protocolo decide cuándo una transmisión puede ser no fiable y cuándo debe permanecer sobre TCP.
-
-## Jugadores [#jugadores]
-
-El servidor representa las conexiones autenticadas mediante `Entidad`, mientras que `Jugador` proporciona la información común del participante. El servidor mantiene:
-
-```text
-mPlayerLista
-mPlayerDict
-mDictionaryEP
-```
-
-La primera estructura permite iteración; las otras aceleran las búsquedas por identificador y endpoint. fileciteturn82file0
-
-El número de participantes puede consultarse mediante `playerCount` y la colección mediante `players`. fileciteturn82file0
-
-## Canales [#canales]
-
-El servidor mantiene todos los canales activos en `mChannelLista` y `mChannelDict`. Cada `Canal` contiene jugadores, objetos creados, RFC persistentes, objetos destruidos y sus datos asociados. fileciteturn82file0 fileciteturn62file0
-
-```text
-ServidorJuego
-├── Canal 1
-│   ├── Jugadores
-│   ├── Objetos
-│   └── RFC persistentes
-│
-├── Canal 2
-│   └── ...
-└── Canal N
-```
-
-Esto es la base del modelo multi-canal de Eco: los canales son estados independientes dentro del mismo servidor.
-
-## Persistencia [#persistencia]
-
-El servidor mantiene datos asociados al mundo mediante `Nodo` y utiliza funciones configurables de lectura y escritura para cargar y guardar esos datos. El archivo por defecto del estado del servidor es `world.dat`, aunque la implementación permite sustituir los callbacks de almacenamiento. fileciteturn82file0
-
-También existe el concepto de `Sleep`/`Wake` para reducir el uso de memoria de canales sin jugadores. El servidor puede poner los canales inactivos en reposo y restaurarlos posteriormente. fileciteturn82file0
-
-## Conexión local sin sockets [#conexión-local-sin-sockets]
-
-Dentro de Unity, Eco puede conectar un `ClienteJuego` directamente a un `ServidorJuego` mediante `localClient`. En este modo se intercambian colas internas en lugar de utilizar sockets de red. fileciteturn82file0
-
-```text
-ClienteJuego
-    │
-    │ Queue<Buffer>
-    ▼
-ServidorJuego
-```
-
-Esto es útil para ejecutar un servidor local, pruebas y escenarios donde no se desea depender de una conexión TCP real.
-
-## Administración [#administración]
-
-`ServidorJuego` mantiene una lista de administradores, cargada y guardada mediante `LoadAdminList` y `SaveAdminList`. La ruta por defecto es `ServerConfig/admin.txt`. fileciteturn82file0
-
-El servidor también dispone de `gameID`, un identificador utilizado para distinguir la instancia de juego al integrarse con un lobby. fileciteturn82file0
-
-## Lobby [#lobby]
-
-La propiedad `enlaceLobbyLink` permite asociar el servidor a un servicio de lobby. Al iniciar o detener la escucha, el servidor puede iniciar o detener dicho enlace y enviar una actualización de su estado. fileciteturn82file0
-
-El lobby no sustituye al servidor de juego: sirve para anunciar y descubrir servidores.
-
-## Procesamiento de paquetes [#procesamiento-de-paquetes]
-
-El servidor recibe paquetes desde TCP y UDP, los interpreta y ejecuta la operación correspondiente. Los paquetes que no son manejados por la lógica interna pueden llegar a `onCustomPacket`, permitiendo extender el protocolo sin modificar el núcleo. fileciteturn82file0
-
-```text
-Red
- ↓
-Paquete
- ↓
-ServidorJuego
- ├── protocolo interno
- └── onCustomPacket
-```
-
-## Eventos del servidor [#eventos-del-servidor]
-
-La API expone callbacks para integrar la lógica del juego:
-
-| Evento               | Uso                   |
-| -------------------- | --------------------- |
-| `onPlayerConnect`    | Jugador autenticado   |
-| `onPlayerDisconnect` | Jugador desconectado  |
-| `onShutdown`         | Apagado del servidor  |
-| `onReceivePackets`   | Recepción de paquetes |
-| `onCustomPacket`     | Paquetes propios      |
-
-Estas extensiones permiten integrar la lógica específica del juego sin acoplarla al procesamiento base del protocolo. fileciteturn82file0
-
-## Servidor multihilo [#servidor-multihilo]
-
-Eco puede ejecutar el procesamiento del servidor en un hilo independiente. `ServidorJuego` expone `isMultiThreaded` y, cuando el modo multihilo está activo, inicia un hilo dedicado al procesamiento. Con `SINGLE_THREADED` definido, `Update()` puede ejecutar el procesamiento desde el hilo principal. fileciteturn82file0
-
-```text
-Multihilo
-ServidorJuego
-    ↓
-Thread de red
-
-Monohilo
-ServidorJuego
-    ↓
-Update()
-```
-
-La elección afecta especialmente a cómo se integra el servidor con Unity y a qué código puede ejecutarse directamente desde callbacks de red.
-
-## Relación con el cliente [#relación-con-el-cliente]
-
-El cliente mantiene la conexión y las peticiones; el servidor mantiene el estado autoritativo:
-
-```text
-ClienteJuego
-   │
-   │ RequestJoinChannel
-   │ RequestCreateObject
-   │ RFC / datos
-   ▼
-ServidorJuego
-   │
-   ├── valida
-   ├── modifica estado
-   ├── actualiza Canal
-   └── responde / reenvía
-        │
-        ▼
-   otros clientes
-```
-
-Este modelo es especialmente importante para entender propiedad, persistencia y transferencia de objetos.
-
-## Referencia a TNet [#referencia-a-tnet]
-
-`ServidorJuego` conserva la arquitectura de `GameServer` de TNet. Eco ha adaptado nombres y tipos, pero el modelo de servidor sigue siendo esencialmente el mismo en esta capa. fileciteturn82file0
-
-| TNet         | Eco                   |
-| ------------ | --------------------- |
-| `GameServer` | `ServidorJuego`       |
-| `Player`     | `Jugador` / `Entidad` |
-| `TNChannel`  | `Canal`               |
-| `TNBuffer`   | `Buffer`              |
-| `TNPacket`   | `Paquete`             |
-
-## Referencias [#referencias]
-
-<Card title="Eco" href="https://github.com/Nervelink/eco">
-  Código fuente de la implementación de Eco.
-</Card>
-
-<Card title="TNet" href="https://github.com/tasharen/tnet">
-  Repositorio upstream de la arquitectura en la que se basa Eco.
-</Card>
-
-<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
-  Documentación generada para explorar la arquitectura actual de TNet upstream.
-</Card>
-
-
-# Sincronización (/docs/red/v1/sincronizacion)
-
-
-
-# Sincronización [#sincronización]
-
-La sincronización tiene un objetivo diferente al de una llamada remota: no pretende simplemente comunicar que ocurrió una acción, sino mantener un estado coherente entre las instancias de un objeto.
-
-<Callout title="Idea principal" type="info">
-  Una RFC comunica comportamiento. La sincronización comunica estado. Cuando un valor representa el estado actual de una entidad, normalmente debe pensarse primero como dato sincronizable y no como una sucesión de órdenes remotas.
-</Callout>
-
-## Estado de un objeto [#estado-de-un-objeto]
-
-`Objeto` mantiene un `Nodo` asociado que puede utilizarse para almacenar datos de red.
-
-```text
-Objeto
- └── Nodo
-      ├── propiedad A
-      ├── propiedad B
-      └── propiedad C
-```
-
-El objeto expone `Get` y `Set` para trabajar con esos datos. El `Set` actualiza primero el estado local y, cuando procede, solicita su sincronización a través de la red. fileciteturn54file0
-
-## `Get` y `Set` [#get-y-set]
-
-El acceso básico es:
-
-```csharp
-var vida = objeto.Get<int>("vida");
-objeto.Set("vida", 75);
-```
-
-También pueden utilizarse rutas jerárquicas:
-
-```csharp
-objeto.Set("estadisticas/vida", 75);
-var vida = objeto.Get<int>("estadisticas/vida");
-```
-
-El almacenamiento jerárquico pertenece a `Nodo`; el objeto de red aporta el contexto y la sincronización.
-
-## Propietario y autoridad [#propietario-y-autoridad]
-
-Eco intenta que los cambios de datos pasen por el propietario del objeto. `Objeto.Set` actualiza el valor local y, cuando puede enviar, distingue entre el propietario y un participante que no es propietario. El propietario puede distribuir el cambio y actualizar el estado persistente del objeto; un cliente que no es propietario solicita el cambio al propietario. fileciteturn54file0
-
-```text
-                    Objeto
-                       │
-                ¿Quién es propietario?
-                  /             \
-                sí               no
-                │                 │
-         distribuye cambio   solicita al propietario
-```
-
-Esto evita que cada cliente se convierta en una fuente independiente de verdad para el mismo dato.
-
-## Cambios cuando todavía no se puede enviar [#cambios-cuando-todavía-no-se-puede-enviar]
-
-Un objeto puede encontrarse temporalmente sin capacidad para enviar: por ejemplo, durante la conexión o mientras se está entrando en un canal. En ese caso, `Objeto.Set` puede mantener cambios pendientes en una cola y enviarlos cuando `PuedeEnviar` vuelva a ser verdadero. fileciteturn54file0
-
-El patrón es:
-
-```text
-Set()
-  ↓
-actualización local
-  ↓
-¿Puede enviar?
-  ├── sí → sincronizar
-  └── no → encolar
-              ↓
-         esperar disponibilidad
-              ↓
-          sincronizar
-```
-
-Esto es especialmente relevante durante cambios de escena o entrada a canales.
-
-## Persistencia del estado [#persistencia-del-estado]
-
-El sistema puede actualizar el estado persistente asociado al objeto. En el caso del propietario, `Set` no sólo informa a los demás participantes, sino que también envía el árbol completo para que el servidor pueda conservar el estado para futuros participantes. fileciteturn54file0
-
-Por eso debemos distinguir:
-
-```text
-Cambio temporal
-    ↓
-informar a otros clientes
-
-Cambio persistente
-    ↓
-informar a otros clientes
-    +
-actualizar estado almacenado
-```
-
-## `AutoSincronizar` [#autosincronizar]
-
-Eco incluye `AutoSincronizar` como componente de conveniencia para sincronizar automáticamente campos o propiedades de Unity. El propio código deja claro que está pensado principalmente para prototipos rápidos y que los sistemas personalizados pueden ofrecer mejor rendimiento. fileciteturn66file0
-
-```text
-AutoSincronizar
-├── entries
-├── updatesPerSecond
-├── isSavedOnServer
-├── isImportant
-└── onlyOwnerCanSync
-```
-
-Cada entrada referencia un `Component` y el nombre de un campo o propiedad. Durante la inicialización se resuelve mediante reflexión y se conserva su último valor conocido. fileciteturn66file0
-
-## Frecuencia de actualización [#frecuencia-de-actualización]
-
-`updatesPerSecond` limita la frecuencia máxima de comprobación y envío. Si el valor no cambia, no se genera una actualización nueva.
-
-Por ejemplo:
-
-```text
-updatesPerSecond = 10
-
-máximo: 10 comprobaciones por segundo
-cambios: sólo se envía si el estado cambia
-```
-
-Si se establece en `0`, `AutoSincronizar` no realiza sincronización periódica; su comportamiento sigue orientado a proporcionar el estado a nuevos jugadores. fileciteturn66file0
-
-## Transporte de la sincronización automática [#transporte-de-la-sincronización-automática]
-
-`AutoSincronizar` permite decidir si el mensaje es importante. Cuando es importante utiliza el envío normal; cuando no lo es puede utilizar `SendQuickly`, dejando que Eco emplee el camino rápido apropiado. fileciteturn66file0
-
-```text
-Estado cambia
-    ↓
-AutoSincronizar.Sync()
-    ├── importante → Send()
-    └── no importante → SendQuickly()
-```
-
-La elección debe depender del significado del dato: una transformación que se actualiza constantemente puede tolerar pérdida intermedia; un estado crítico puede requerir transporte fiable.
-
-## Propietario de la sincronización automática [#propietario-de-la-sincronización-automática]
-
-Por defecto `onlyOwnerCanSync` está activado. Eso significa que el componente comprueba que `ero.isMine` sea verdadero antes de producir actualizaciones periódicas. fileciteturn66file0
-
-Esto encaja con el modelo de autoridad de `Objeto`: un único participante produce el estado y los demás lo consumen.
-
-## Estado inicial para nuevos jugadores [#estado-inicial-para-nuevos-jugadores]
-
-Cuando `isSavedOnServer` está activado, el estado sincronizado puede formar parte del estado conservado en servidor y volver a estar disponible para participantes posteriores.
-
-Cuando está desactivado, `AutoSincronizar` se suscribe al evento de entrada de jugadores y envía explícitamente los valores al nuevo participante. fileciteturn66file0
-
-```text
-isSavedOnServer = true
-    ↓
-servidor conserva estado
-    ↓
-nuevo jugador recibe estado
-
-isSavedOnServer = false
-    ↓
-propietario detecta nuevo jugador
-    ↓
-envía estado actual directamente
-```
-
-## `Componente` como acceso de conveniencia [#componente-como-acceso-de-conveniencia]
-
-`Componente` expone `Get` y `Set` delegando en su `Objeto` asociado y tiene `immediateSync` para controlar si un `Set` realizado desde el componente debe solicitar sincronización inmediata. fileciteturn60file0
-
-```csharp
-public class MiUnidad : Componente
-{
-    public void CambiarVida(int valor)
-    {
-        Set("vida", valor);
-    }
-}
-```
-
-El componente, por tanto, puede encapsular la lógica de gameplay sin gestionar directamente paquetes o buffers.
-
-## Sincronización frente a RFC [#sincronización-frente-a-rfc]
-
-Una regla práctica:
-
-| Necesidad                                       | Mecanismo preferente                         |
-| ----------------------------------------------- | -------------------------------------------- |
-| Ejecutar una acción                             | RFC                                          |
-| Comunicar una orden puntual                     | RFC                                          |
-| Mantener una propiedad actualizada              | `Set` / estado                               |
-| Sincronizar valores periódicos de un componente | sincronización específica                    |
-| Prototipar rápidamente campos de Unity          | `AutoSincronizar`                            |
-| Reconstruir estado al entrar un jugador         | datos persistentes / sincronización guardada |
-
-No es recomendable convertir cada cambio de estado en una RFC de tipo `CambiarVida(75)`, `CambiarVida(74)`, `CambiarVida(73)` si lo que realmente existe es una propiedad `vida`.
-
-## Recomendación para producción [#recomendación-para-producción]
-
-`AutoSincronizar` es útil para validar rápidamente una idea, pero su implementación usa reflexión, comprueba valores periódicamente y empaqueta los valores seleccionados como un grupo. El código del propio componente recomienda crear sistemas personalizados y específicos para obtener mejor rendimiento. fileciteturn66file0
-
-Para un sistema de producción conviene definir explícitamente:
-
-```text
-Estado
-├── qué propiedades existen
-├── quién tiene autoridad
-├── cuándo cambian
-├── con qué frecuencia se transmiten
-├── si deben persistir
-└── qué pérdida de paquetes es aceptable
-```
-
-## Referencia a TNet [#referencia-a-tnet]
-
-`AutoSincronizar` deriva conceptualmente de `TNAutoSync`, mientras que `Objeto.Set` y `Objeto.Get` corresponden al modelo de datos asociado al antiguo `TNObject`.
-
-Estas equivalencias sirven para migrar conocimientos, pero la fuente de verdad sigue siendo el comportamiento de `eco`.
-
-<Card title="Eco" href="https://github.com/Nervelink/eco">
-  Código fuente de la implementación actual.
-</Card>
-
-<Card title="TNet" href="https://github.com/tasharen/tnet">
-  Repositorio upstream del que procede la arquitectura heredada.
-</Card>
-
-<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
-  Referencia externa para contrastar el diseño y la evolución de TNet.
-</Card>
+Texto aquí.
 
 
 # Alexandria (/docs/nucleo/v1/sistemas/alexandria)
@@ -2175,3 +169,1558 @@ Define metadata del sistema.
 ```csharp
 [Sistema(int prioridad, string nombre)]
 ```
+
+
+# Destinatarios (/docs/red/v1/comunicacion/destinatarios)
+
+
+
+# Destinatarios [#destinatarios]
+
+Enviar un mensaje no significa necesariamente enviarlo a todos los participantes. Eco permite elegir el ámbito de destinatarios según el tipo de comunicación y el estado que se quiere mantener.
+
+<Callout title="El destinatario forma parte del contrato" type="info">
+  Antes de enviar un mensaje conviene decidir quién necesita conocerlo: el propietario, los demás jugadores, todo el canal o también los jugadores que entren posteriormente.
+</Callout>
+
+## Contexto de canal [#contexto-de-canal]
+
+Los mensajes asociados a objetos se interpretan dentro de un `Canal`. El canal determina qué jugadores forman parte del ámbito de difusión.
+
+```text
+Canal
+├── Jugador A
+├── Jugador B
+└── Jugador C
+```
+
+A partir de ese contexto, Eco puede excluir al emisor, incluirlo, conservar el mensaje para futuros participantes o dirigirlo a un participante concreto.
+
+## Objetivos habituales [#objetivos-habituales]
+
+| Objetivo conceptual | Uso                                                           |
+| ------------------- | ------------------------------------------------------------- |
+| `Todos`             | Todos los jugadores del canal.                                |
+| `Otros`             | Todos salvo el emisor.                                        |
+| Propietario         | El jugador que posee el objeto.                               |
+| Persistente         | También debe estar disponible para participantes posteriores. |
+| Jugador concreto    | Un único participante identificado.                           |
+
+Los nombres exactos disponibles dependen de la API de `Objetivo` y del método utilizado para enviar el mensaje.
+
+## Propietario frente a canal [#propietario-frente-a-canal]
+
+La propiedad y la visibilidad son conceptos diferentes:
+
+```text
+Objeto
+├── Propietario → Jugador A
+└── Visible para → A, B, C
+```
+
+Que un objeto tenga propietario no significa que únicamente ese jugador pueda recibir sus actualizaciones.
+
+## Comunicación persistente [#comunicación-persistente]
+
+Un mensaje marcado para persistir puede formar parte del estado que Eco mantiene asociado al canal u objeto. Esto resulta útil cuando el contenido debe estar disponible también para jugadores que todavía no estaban conectados cuando ocurrió la comunicación.
+
+No debe utilizarse persistencia sólo porque un mensaje se considere importante: debe existir una necesidad real de reconstruir ese estado posteriormente.
+
+## Elección práctica [#elección-práctica]
+
+```text
+¿Quién necesita el mensaje?
+        │
+        ├── Sólo un jugador ───────► jugador concreto
+        │
+        ├── Propietario ───────────► propietario
+        │
+        ├── Todos ahora ───────────► todos / otros
+        │
+        └── Ahora + futuros ───────► persistente
+```
+
+## Relación con TNet [#relación-con-tnet]
+
+Eco conserva el modelo de objetivos de TNet, pero utiliza la nomenclatura propia del proyecto. Las equivalencias deben comprobarse siempre contra la implementación actual de `Eco` y `Objeto`.
+
+## Referencias [#referencias]
+
+<Card title="Eco" href="https://github.com/Nervelink/eco">
+  Implementación actual.
+</Card>
+
+<Card title="TNet" href="https://github.com/tasharen/tnet">
+  Repositorio upstream.
+</Card>
+
+<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
+  Referencia generada para contrastar el diseño upstream.
+</Card>
+
+
+# Comunicación (/docs/red/v1/comunicacion)
+
+
+
+# Comunicación [#comunicación]
+
+Esta sección reúne los mecanismos mediante los que los objetos de Eco se comunican a través de la red.
+
+<Card title="Comunicación" href="/docs/red/v1/comunicacion/comunicacion">
+  Modelo general de mensajes, RFC, destinatarios y flujo cliente-servidor.
+</Card>
+
+<Card title="Sincronización" href="/docs/red/v1/comunicacion/sincronizacion">
+  Sincronización de estado, `Set`, `Nodo` y actualización automática.
+</Card>
+
+
+# RFC (/docs/red/v1/comunicacion/rfc)
+
+
+
+# RFC [#rfc]
+
+Una RFC (*Remote Function Call*) representa una llamada a una función asociada a un `Objeto` que debe ejecutarse remotamente.
+
+<Callout title="Acción, no estado" type="info">
+  Una RFC es adecuada para comunicar que debe ocurrir algo. Para representar el valor actual de una propiedad conviene utilizar los mecanismos de estado y sincronización.
+</Callout>
+
+## Estructura [#estructura]
+
+Eco conserva las RFC dentro del contexto del `Canal`. Cada entrada contiene, conceptualmente:
+
+```text
+RFC
+├── uid
+├── functionName
+└── data
+```
+
+El identificador permite localizar el objeto y la función. Cuando la llamada no utiliza un identificador numérico, se conserva el nombre de la función.
+
+## Flujo [#flujo]
+
+```text
+Componente
+   ↓
+Objeto
+   ↓
+RFC
+   ↓
+Paquete
+   ↓
+Servidor
+   ↓
+Destinatarios
+   ↓
+Objeto remoto
+```
+
+El canal forma parte del contexto de la comunicación, por lo que una RFC no debe entenderse como un mensaje global independiente de la sesión.
+
+## RFC identificadas por nombre o ID [#rfc-identificadas-por-nombre-o-id]
+
+Eco puede trabajar con funciones identificadas mediante un ID compacto o mediante nombre. El nombre se utiliza cuando el identificador de función es `0`.
+
+Esto permite mantener una comunicación más compacta cuando existe un identificador estable, dejando el nombre para los casos dinámicos o no registrados mediante ID.
+
+## Persistencia [#persistencia]
+
+Algunas RFC pueden conservarse como parte del estado de un objeto o canal. `Canal` almacena las RFC asociadas a objetos dinámicos y puede exportarlas junto con los datos de creación del objeto.
+
+Por tanto, una RFC persistente puede formar parte del estado necesario para reconstruir un objeto, no solamente de una cola temporal de mensajes.
+
+## RFC desde un `Componente` [#rfc-desde-un-componente]
+
+Los componentes trabajan normalmente a través del `Objeto` asociado:
+
+```csharp
+public class MiUnidad : Componente
+{
+    public void Atacar()
+    {
+        ero.Send("Atacar", Objetivo.Otros);
+    }
+}
+```
+
+`Componente` también proporciona acceso de conveniencia a la instanciación, destrucción y datos del objeto.
+
+## Cuándo utilizar una RFC [#cuándo-utilizar-una-rfc]
+
+Utiliza RFC cuando el mensaje representa una acción o evento puntual:
+
+| Situación                                    | RFC               |
+| -------------------------------------------- | ----------------- |
+| Solicitar un ataque                          | Sí                |
+| Reproducir una acción                        | Sí                |
+| Ejecutar una habilidad                       | Sí                |
+| Notificar un evento puntual                  | Sí                |
+| Mantener `vida = 75`                         | No necesariamente |
+| Sincronizar una transformación continuamente | No                |
+
+## Relación con TNet [#relación-con-tnet]
+
+| Eco          | TNet                    |
+| ------------ | ----------------------- |
+| RFC          | RFC                     |
+| `Objeto`     | `TNObject`              |
+| `Componente` | `TNBehaviour`           |
+| `Canal`      | `TNChannel` / `Channel` |
+
+La correspondencia sirve para trasladar conocimientos de TNet, pero la referencia normativa es el código de Eco.
+
+## Referencias [#referencias]
+
+<Card title="Eco" href="https://github.com/Nervelink/eco">
+  Implementación actual de Eco.
+</Card>
+
+<Card title="TNet" href="https://github.com/tasharen/tnet">
+  Repositorio upstream.
+</Card>
+
+<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
+  Referencia generada sobre el repositorio actual de TNet.
+</Card>
+
+
+# Sincronización (/docs/red/v1/comunicacion/sincronizacion)
+
+
+
+# Sincronización [#sincronización]
+
+La sincronización tiene un objetivo diferente al de una llamada remota: mantener un estado coherente entre las instancias de un objeto.
+
+<Callout title="Idea principal" type="info">
+  Una RFC comunica comportamiento. La sincronización comunica estado. Cuando un valor representa el estado actual de una entidad, normalmente debe pensarse primero como dato sincronizable y no como una sucesión de órdenes remotas.
+</Callout>
+
+## Estado de un objeto [#estado-de-un-objeto]
+
+`Objeto` mantiene un `Nodo` asociado que puede utilizarse para almacenar datos de red.
+
+```text
+Objeto
+ └── Nodo
+      ├── propiedad A
+      ├── propiedad B
+      └── propiedad C
+```
+
+El objeto expone `Get` y `Set` para trabajar con esos datos.
+
+## Propietario y autoridad [#propietario-y-autoridad]
+
+Eco intenta que los cambios de datos pasen por el propietario del objeto. El propietario puede distribuir el cambio y actualizar el estado persistente; un cliente que no es propietario puede solicitar el cambio al propietario.
+
+```text
+Objeto
+   │
+   └── ¿Quién es propietario?
+          ├── sí → distribuye
+          └── no → solicita al propietario
+```
+
+Esto evita que cada cliente se convierta en una fuente independiente de verdad para el mismo dato.
+
+## Cambios cuando todavía no se puede enviar [#cambios-cuando-todavía-no-se-puede-enviar]
+
+Un objeto puede encontrarse temporalmente sin capacidad para enviar, por ejemplo durante la conexión o mientras se entra en un canal. En ese caso los cambios pueden quedar pendientes hasta que el objeto vuelva a estar preparado.
+
+```text
+Set()
+  ↓
+actualización local
+  ↓
+¿Puede enviar?
+  ├── sí → sincronizar
+  └── no → encolar
+```
+
+## `AutoSincronizar` [#autosincronizar]
+
+Eco incluye `AutoSincronizar` como componente de conveniencia para sincronizar automáticamente campos o propiedades de Unity. Está pensado principalmente para prototipos rápidos; para producción pueden ser preferibles sistemas específicos y más eficientes.
+
+```text
+AutoSincronizar
+├── entries
+├── updatesPerSecond
+├── isSavedOnServer
+├── isImportant
+└── onlyOwnerCanSync
+```
+
+Cada entrada referencia un `Component` y el nombre de un campo o propiedad. Durante la inicialización se resuelve mediante reflexión.
+
+## Frecuencia de actualización [#frecuencia-de-actualización]
+
+`updatesPerSecond` limita la frecuencia máxima de actualización. Si los valores no cambian, no se genera una transmisión nueva.
+
+Con `0`, la sincronización periódica se desactiva.
+
+## Transporte [#transporte]
+
+`isImportant` permite distinguir entre actualizaciones que requieren el camino de envío normal y actualizaciones frecuentes en las que puede utilizarse `SendQuickly`.
+
+La elección depende de la semántica del dato: una transformación de alta frecuencia puede tolerar perder valores intermedios; un estado crítico puede requerir transporte fiable.
+
+## Estado para nuevos jugadores [#estado-para-nuevos-jugadores]
+
+Cuando el estado se guarda en servidor, puede formar parte del estado que recibe un participante posterior.
+
+Cuando `isSavedOnServer` está desactivado, `AutoSincronizar` puede enviar el estado actual al jugador que acaba de entrar.
+
+## Sincronización frente a RFC [#sincronización-frente-a-rfc]
+
+| Necesidad                          | Mecanismo                 |
+| ---------------------------------- | ------------------------- |
+| Ejecutar una acción                | RFC                       |
+| Comunicar una orden puntual        | RFC                       |
+| Mantener una propiedad actualizada | `Set` / estado            |
+| Sincronizar valores periódicos     | Sincronización específica |
+| Prototipar campos de Unity         | `AutoSincronizar`         |
+
+No es recomendable convertir cada cambio de estado en una RFC si lo que realmente existe es una propiedad persistente.
+
+## Producción [#producción]
+
+`AutoSincronizar` utiliza reflexión y comprobación periódica de propiedades. Para sistemas de producción conviene definir explícitamente qué estado existe, quién tiene autoridad, cuándo cambia, con qué frecuencia se transmite, si debe persistir y qué pérdida de paquetes es aceptable.
+
+## Relación con TNet [#relación-con-tnet]
+
+`AutoSincronizar` deriva conceptualmente de `TNAutoSync`, mientras que `Objeto.Set` y `Objeto.Get` corresponden al modelo de datos asociado al antiguo `TNObject`.
+
+La fuente de verdad para Eco sigue siendo `Nervelink/eco`.
+
+## Referencias [#referencias]
+
+<Card title="Eco" href="https://github.com/Nervelink/eco">
+  Código fuente de la implementación actual.
+</Card>
+
+<Card title="TNet" href="https://github.com/tasharen/tnet">
+  Repositorio upstream.
+</Card>
+
+<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
+  Referencia generada sobre el TNet actual.
+</Card>
+
+
+# Arquitectura (/docs/red/v1/fundamentos/arquitectura)
+
+
+
+# Arquitectura de Eco [#arquitectura-de-eco]
+
+Eco es la capa de red utilizada por Pandora. Su implementación procede de TNet 3, pero expone una nomenclatura y una organización propias de Nervelink.
+
+La documentación de Eco describe el comportamiento del código actual de `Nervelink/eco`. Las equivalencias con TNet se utilizan como referencia, no como contrato de la API.
+
+<Callout title="Idea principal" type="info">
+  Eco no debe entenderse como una colección de RPC aislados. Su arquitectura gira alrededor de conexiones, canales, jugadores, objetos de red, componentes, mensajes y sincronización de estado.
+</Callout>
+
+## Vista general [#vista-general]
+
+```text
+                              Eco
+                               │
+              ┌────────────────┼────────────────┐
+              │                │                │
+           Cliente          Servidor        Común
+              │                │                │
+       ┌──────┼──────┐         │        ┌───────┼────────┐
+       │      │      │         │        │       │        │
+   Conexión  Canal  Objetos   Canales  Paquetes  Buffer  Serialización
+              │      │
+              │      ├── Objeto
+              │      │     └── Componente
+              │      │
+              └──────┴── Jugadores
+```
+
+## Capas principales [#capas-principales]
+
+### Cliente [#cliente]
+
+La capa cliente contiene la lógica que conecta una instancia del juego con un servidor, procesa el tráfico recibido y mantiene la representación local de los canales y objetos de red.
+
+### Servidor [#servidor]
+
+El servidor mantiene el estado compartido, administra canales y jugadores y procesa las operaciones que deben existir fuera de una instancia concreta del juego.
+
+### Común [#común]
+
+La capa común contiene los tipos que necesitan compartir cliente y servidor: paquetes, buffers, identificadores, serialización y estructuras utilizadas para representar el protocolo.
+
+## Objetos de red [#objetos-de-red]
+
+Un objeto de red representa una entidad que Eco puede identificar y sincronizar dentro de un canal.
+
+```text
+Objeto
+├── Identidad
+├── Propietario
+├── Canal(es)
+├── Estado
+└── Componentes
+```
+
+## Canales [#canales]
+
+El `Canal` delimita el ámbito en el que se comparte estado entre jugadores. Una conexión puede participar en uno o varios canales.
+
+## Flujo conceptual de un mensaje [#flujo-conceptual-de-un-mensaje]
+
+```text
+Juego
+  ↓
+Objeto / Componente
+  ↓
+Eco
+  ↓
+Paquete
+  ↓
+Transporte
+  ↓
+Servidor
+  ↓
+Canal / destinatarios
+  ↓
+Paquete
+  ↓
+Cliente remoto
+```
+
+## Relación con TNet [#relación-con-tnet]
+
+| TNet                    | Eco          |
+| ----------------------- | ------------ |
+| `TNManager`             | `Eco`        |
+| `TNObject`              | `Objeto`     |
+| `TNBehaviour`           | `Componente` |
+| `TNChannel` / `Channel` | `Canal`      |
+| `TNPacket` / `Packet`   | `Paquete`    |
+| `TNBuffer`              | `Buffer`     |
+| `Player`                | `Jugador`    |
+
+## Referencias [#referencias]
+
+<Card title="Repositorio Eco" href="https://github.com/Nervelink/eco">
+  Código fuente de la implementación de Eco.
+</Card>
+
+<Card title="TNet" href="https://github.com/tasharen/tnet">
+  Repositorio original del que procede la base de Eco.
+</Card>
+
+<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
+  Documentación generada sobre el repositorio actual de TNet.
+</Card>
+
+
+# Conceptos (/docs/red/v1/fundamentos/conceptos)
+
+
+
+# Conceptos [#conceptos]
+
+Eco organiza la red alrededor de unas pocas piezas fundamentales. Entender su relación evita confundir conexión, canal, jugador, objeto y componente.
+
+<Callout title="Regla general" type="info">
+  Una conexión representa la comunicación con el servidor; un jugador representa a un participante; un canal define un ámbito de estado compartido; un objeto representa una entidad de red; y sus componentes implementan el comportamiento.
+</Callout>
+
+## Conexión [#conexión]
+
+La conexión representa el vínculo de transporte entre una instancia del juego y el servidor. No define por sí sola qué objetos o estado debe conocer el cliente.
+
+## Jugador [#jugador]
+
+Un `Jugador` representa a un participante de la sesión dentro de la infraestructura de red. Sirve para identificar presencia, propiedad y destinatarios.
+
+## Canal [#canal]
+
+Un `Canal` define un ámbito de estado compartido. Un mismo jugador puede participar simultáneamente en varios canales.
+
+```text
+Servidor
+  ├── Canal A → Jugador 1, Jugador 2
+  └── Canal B → Jugador 2, Jugador 3
+```
+
+## Objeto [#objeto]
+
+Un `Objeto` es una identidad de red que Eco puede registrar, localizar, sincronizar y destruir.
+
+```text
+Objeto
+├── ID de red
+├── Propietario
+├── Estado
+├── Canal(es)
+└── Componentes
+```
+
+## Componente [#componente]
+
+Un `Componente` contiene comportamiento de red asociado a un `Objeto`. Esta separación permite mantener la identidad de red independiente de la funcionalidad concreta.
+
+## Propietario [#propietario]
+
+El propietario identifica al jugador que tiene autoridad sobre determinadas operaciones del objeto. La propiedad no implica que el objeto sea invisible para los demás participantes.
+
+## Paquete [#paquete]
+
+Un `Paquete` representa una unidad del protocolo de Eco. Transporta comandos, eventos y datos entre clientes y servidor.
+
+## Buffer [#buffer]
+
+Un `Buffer` proporciona las operaciones de lectura y escritura utilizadas para serializar los datos que Eco intercambia.
+
+## Estado [#estado]
+
+Eco distingue entre comunicar una acción y mantener un estado. Una RFC puede comunicar que algo ocurrió; un mecanismo de sincronización mantiene valores que deben converger entre participantes.
+
+## Relación entre conceptos [#relación-entre-conceptos]
+
+```text
+Servidor
+ │
+ ├── Conexiones
+ │     └── Jugadores
+ │
+ └── Canales
+       └── Objetos
+             └── Componentes
+                   ├── RFC
+                   ├── Sync
+                   └── Datos
+                         ↓
+                      Paquetes
+                         ↓
+                      Transporte
+```
+
+## Correspondencia con TNet [#correspondencia-con-tnet]
+
+| Eco          | TNet                    | Función                           |
+| ------------ | ----------------------- | --------------------------------- |
+| `Eco`        | `TNManager`             | Gestión principal del cliente     |
+| `Jugador`    | `Player`                | Participante de la sesión         |
+| `Canal`      | `Channel` / `TNChannel` | Ámbito de estado compartido       |
+| `Objeto`     | `TNObject`              | Identidad de red                  |
+| `Componente` | `TNBehaviour`           | Comportamiento asociado al objeto |
+| `Paquete`    | `Packet` / `TNPacket`   | Mensaje del protocolo             |
+| `Buffer`     | `TNBuffer`              | Serialización binaria             |
+
+## Referencias [#referencias]
+
+<Card title="TNet en GitHub" href="https://github.com/tasharen/tnet">
+  Repositorio upstream y fuente de referencia de la implementación heredada.
+</Card>
+
+<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
+  Vista generada de la arquitectura actual de TNet.
+</Card>
+
+
+# Fundamentos (/docs/red/v1/fundamentos)
+
+
+
+# Fundamentos [#fundamentos]
+
+Esta sección establece el modelo mental necesario para trabajar con Eco antes de entrar en sus mecanismos concretos.
+
+<Card title="Arquitectura" href="/docs/red/v1/fundamentos/arquitectura">
+  Cómo se organiza Eco y cómo fluye la información entre sus capas.
+</Card>
+
+<Card title="Conceptos" href="/docs/red/v1/fundamentos/conceptos">
+  Conexiones, jugadores, canales, objetos, componentes, estado y mensajes.
+</Card>
+
+
+# Cliente (/docs/red/v1/runtime/cliente)
+
+
+
+# Cliente [#cliente]
+
+El cliente mantiene la conexión, procesa paquetes y conserva el estado local de la sesión.
+
+> El uso habitual de Eco se apoya en su API pública; `ClienteJuego` contiene gran parte de la implementación interna.
+
+## Flujo [#flujo]
+
+```text
+Juego
+  ↓
+Eco
+  ↓
+ClienteJuego
+  ├── TCP
+  ├── UDP
+  └── IConnection
+       ↓
+    Servidor
+```
+
+## Estados [#estados]
+
+`isConnected`, `isTryingToConnect`, `isJoiningChannel`, `isInChannel` y `stage` representan estados distintos de la sesión. Eco mantiene además colecciones separadas de canales activos y de uniones pendientes.
+
+## Conexión [#conexión]
+
+TCP es el transporte principal. Eco puede utilizar UDP cuando está disponible y admite una conexión personalizada mediante `IConnection`.
+
+## Procesamiento [#procesamiento]
+
+Los paquetes entrantes se procesan identificando su `Paquete` y ejecutando la operación correspondiente. El cliente también mantiene estadísticas de bytes y paquetes y puede limitar el tiempo de procesamiento por frame.
+
+## Canales [#canales]
+
+El cliente puede participar en varios canales simultáneamente. `JoinChannel`, `LeaveChannel`, `LeaveAllChannels`, `IsInChannel`, `IsJoiningChannel` y `GetChannel` gestionan esta pertenencia.
+
+## Jugador local [#jugador-local]
+
+El cliente expone `playerID`, `playerName`, `playerData`, `serverTime`, `serverUptime` y el acceso a sus canales.
+
+## Servidor local [#servidor-local]
+
+Eco puede conectar un `ClienteJuego` directamente con un `ServidorJuego` dentro del mismo proceso, evitando sockets pero conservando el flujo lógico cliente-servidor.
+
+## Referencia a TNet [#referencia-a-tnet]
+
+| Eco            | TNet          |
+| -------------- | ------------- |
+| `ClienteJuego` | `GameClient`  |
+| `ProtocoloTcp` | `TcpProtocol` |
+| `ProtocoloUdp` | `UdpProtocol` |
+| `Jugador`      | `Player`      |
+
+<Card title="Eco" href="https://github.com/Nervelink/eco">
+  Código fuente de Eco.
+</Card>
+
+<Card title="TNet" href="https://github.com/tasharen/tnet">
+  Repositorio upstream.
+</Card>
+
+
+# Runtime (/docs/red/v1/runtime)
+
+
+
+# Runtime [#runtime]
+
+El runtime reúne los procesos que hacen funcionar Eco durante una sesión: el cliente, el servidor y la conexión local entre ambos.
+
+<Card title="Cliente" href="/docs/red/v1/runtime/cliente">
+  Conexión, procesamiento de paquetes y gestión de la sesión de red.
+</Card>
+
+<Card title="Servidor" href="/docs/red/v1/runtime/servidor">
+  Estado autoritativo, jugadores, canales y procesamiento del servidor.
+</Card>
+
+<Card title="Servidor local" href="/docs/red/v1/runtime/servidor-local">
+  Ejecutar cliente y servidor dentro del mismo proceso sin sockets.
+</Card>
+
+
+# Servidor local (/docs/red/v1/runtime/servidor-local)
+
+
+
+# Servidor local [#servidor-local]
+
+Eco permite ejecutar `ClienteJuego` y `ServidorJuego` dentro del mismo proceso. El flujo lógico de red se conserva, pero el transporte utiliza colas internas en lugar de sockets.
+
+```text
+ClienteJuego
+    │
+    │ Queue<Buffer>
+    ▼
+ServidorJuego
+```
+
+## Uso [#uso]
+
+Este modo resulta útil para pruebas, herramientas, partidas locales y escenarios donde no es necesario abrir puertos de red.
+
+```csharp
+cliente.Connect(servidor);
+```
+
+## Ventajas [#ventajas]
+
+El modo local permite probar el comportamiento cliente-servidor sin depender de una conexión TCP real y mantiene separadas las responsabilidades de ambos extremos.
+
+## Diferencia con una conexión remota [#diferencia-con-una-conexión-remota]
+
+| Local               | Remoto                         |
+| ------------------- | ------------------------------ |
+| Mismo proceso       | Procesos normalmente separados |
+| Colas internas      | TCP / UDP                      |
+| Sin sockets         | Sockets de red                 |
+| Mismo modelo lógico | Mismo modelo lógico            |
+
+
+# Servidor (/docs/red/v1/runtime/servidor)
+
+
+
+# Servidor [#servidor]
+
+`ServidorJuego` mantiene el estado autoritativo de Eco. Gestiona conexiones, jugadores, canales, objetos dinámicos, paquetes, persistencia y servicios auxiliares.
+
+<Callout title="Idea principal" type="info">
+  El cliente solicita operaciones; el servidor valida y aplica esas operaciones sobre el estado compartido.
+</Callout>
+
+## Arquitectura [#arquitectura]
+
+```text
+ServidorJuego
+├── Jugadores
+├── Canales
+├── TCP / UDP
+├── Objetos / RFC
+└── Persistencia
+```
+
+## Ciclo de vida [#ciclo-de-vida]
+
+`Start()` prepara la configuración, listas administrativas, TCP y UDP opcional, activa el servidor e inicia el procesamiento de red. `Listen()` controla la escucha TCP.
+
+## Jugadores [#jugadores]
+
+El servidor mantiene estructuras para recorrer jugadores y para resolverlos rápidamente por identificador o endpoint.
+
+## Canales [#canales]
+
+Los canales activos se mantienen en listas y diccionarios para iteración y acceso rápido. Cada `Canal` contiene su estado, jugadores, objetos dinámicos y datos persistentes.
+
+## Paquetes [#paquetes]
+
+Los paquetes recibidos se procesan según el protocolo. Las operaciones que no corresponden al núcleo pueden dirigirse a `onCustomPacket` para extender Eco.
+
+## Persistencia [#persistencia]
+
+El servidor puede conservar datos de mundo mediante `Nodo` y funciones configurables de lectura/escritura. También puede poner canales sin jugadores en reposo mediante `Sleep()` y restaurarlos con `Wake()`.
+
+## Administración y lobby [#administración-y-lobby]
+
+`LoadAdminList()` y `SaveAdminList()` gestionan administradores. `enlaceLobbyLink` permite anunciar el servidor a un servicio de lobby.
+
+## Multihilo [#multihilo]
+
+Eco puede ejecutar el procesamiento en un hilo dedicado. Con `SINGLE_THREADED`, el procesamiento puede ejecutarse desde `Update()`.
+
+## Servidor local [#servidor-local]
+
+`localClient` permite conectar un `ClienteJuego` al servidor dentro del mismo proceso, utilizando colas internas en lugar de sockets.
+
+## Referencia a TNet [#referencia-a-tnet]
+
+| Eco                   | TNet         |
+| --------------------- | ------------ |
+| `ServidorJuego`       | `GameServer` |
+| `Jugador` / `Entidad` | `Player`     |
+| `Canal`               | `TNChannel`  |
+| `Paquete`             | `TNPacket`   |
+
+<Card title="Eco" href="https://github.com/Nervelink/eco">
+  Código fuente de Eco.
+</Card>
+
+<Card title="TNet" href="https://github.com/tasharen/tnet">
+  Repositorio upstream.
+</Card>
+
+<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
+  Referencia externa para contrastar la arquitectura upstream.
+</Card>
+
+
+# Canales (/docs/red/v1/modelo/canales)
+
+
+
+# Canales [#canales]
+
+Un `Canal` define un ámbito de estado compartido dentro del servidor de Eco. Los jugadores que forman parte de un canal pueden recibir la información que ese canal distribuye, incluyendo mensajes y estado asociado a sus objetos.
+
+<Callout title="Punto importante" type="info">
+  Una conexión no está limitada a un único canal. Eco mantiene una colección de canales activos por cliente, por lo que un mismo jugador puede participar simultáneamente en varios ámbitos de red.
+</Callout>
+
+## Modelo [#modelo]
+
+```text
+Servidor
+│
+├── Canal 10
+│   ├── Jugador A
+│   └── Jugador B
+│
+├── Canal 20
+│   ├── Jugador B
+│   └── Jugador C
+│
+└── Canal 30
+    └── Jugador A
+```
+
+El mismo jugador puede aparecer en varios canales. En el cliente, esta pertenencia se representa mediante una colección interna de `Canal` mantenida por `ClienteJuego`. La API expone esa colección mediante `channels`.
+
+## Estado de un canal [#estado-de-un-canal]
+
+`Canal` mantiene información suficiente para representar tanto su configuración como su estado de red. Entre sus propiedades se encuentran `id`, `password`, `level`, `isPersistent`, `isClosed`, `isLeaving`, `playerLimit`, `jugadores`, `rfcs`, `created`, `destroyed` y `host`.
+
+## Unirse a un canal [#unirse-a-un-canal]
+
+El cliente utiliza `ClienteJuego.JoinChannel` para solicitar la entrada en un canal. La solicitud incluye identificador, contraseña, nivel, persistencia y límite de jugadores.
+
+```csharp
+cliente.JoinChannel(
+    channelID: 10,
+    levelName: "Arena",
+    persistent: false,
+    playerLimit: 4,
+    password: ""
+);
+```
+
+Durante el proceso de unión, Eco registra el canal como pendiente hasta recibir la respuesta del servidor.
+
+## Múltiples canales simultáneos [#múltiples-canales-simultáneos]
+
+La pertenencia a canales es acumulativa. Un cliente puede participar simultáneamente en varios canales:
+
+```csharp
+cliente.JoinChannel(10, "Mundo", true, 100, "");
+cliente.JoinChannel(20, "Partida", false, 4, "");
+```
+
+`IsInChannel(id)` comprueba la pertenencia y `GetChannel(id)` obtiene la instancia local.
+
+<Callout title="No confundir canal y transporte" type="warn">
+  Dos canales distintos no implican dos conexiones de socket distintas. La conexión y el transporte pertenecen a una capa inferior; el canal delimita el estado y los destinatarios.
+</Callout>
+
+## Consultar y abandonar [#consultar-y-abandonar]
+
+```csharp
+bool cualquiera = cliente.isInChannel;
+bool estaDentro = cliente.IsInChannel(20);
+bool uniendose = cliente.IsJoiningChannel(20);
+Canal canal = cliente.GetChannel(20);
+
+cliente.LeaveChannel(20);
+cliente.LeaveAllChannels();
+```
+
+Salir de un canal no implica desconectarse del servidor.
+
+## Persistencia y propiedad [#persistencia-y-propiedad]
+
+Un canal puede ser persistente. Cuando el último jugador abandona, Eco puede destruir objetos no persistentes, transferir la propiedad de otros objetos o cerrar y reiniciar el canal según su configuración.
+
+También mantiene objetos dinámicos y RFC asociadas para poder reconstruir el estado cuando corresponde.
+
+## Nivel y host [#nivel-y-host]
+
+Cada canal puede tener un `level` y un `host`. El cambio de nivel se coordina a través del sistema de red y el host puede cambiar cuando abandona el canal.
+
+## Correspondencia con TNet [#correspondencia-con-tnet]
+
+| TNet                     | Eco                         |
+| ------------------------ | --------------------------- |
+| `TNChannel` / `Channel`  | `Canal`                     |
+| `TNManager.JoinChannel`  | `ClienteJuego.JoinChannel`  |
+| `TNManager.LeaveChannel` | `ClienteJuego.LeaveChannel` |
+| `TNManager.IsInChannel`  | `ClienteJuego.IsInChannel`  |
+| `TNManager.GetChannel`   | `ClienteJuego.GetChannel`   |
+
+## Referencias [#referencias]
+
+<Card title="Eco" href="https://github.com/Nervelink/eco/tree/main/src/Assets/Pandora/Logica/Nucleo/Core/Red">
+  Código fuente de la implementación de canales.
+</Card>
+
+<Card title="TNet" href="https://github.com/tasharen/tnet">
+  Repositorio upstream.
+</Card>
+
+<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
+  Referencia generada sobre la implementación actual de TNet.
+</Card>
+
+
+# Modelo de red (/docs/red/v1/modelo)
+
+
+
+# Modelo de red [#modelo-de-red]
+
+Eco organiza el estado compartido alrededor de canales, objetos, jugadores y componentes.
+
+<Card title="Canales" href="/docs/red/v1/modelo/canales">
+  Ámbitos de estado compartido y pertenencia de los jugadores.
+</Card>
+
+<Card title="Objetos" href="/docs/red/v1/modelo/objetos">
+  Identidad de red, ownership, ciclo de vida y datos asociados.
+</Card>
+
+
+# Objetos (/docs/red/v1/modelo/objetos)
+
+
+
+# Objetos [#objetos]
+
+Un `Objeto` es la identidad de red asociada a un `GameObject` de Unity. Permite a Eco localizar una entidad, conocer su canal, determinar su propietario y asociar los `Componente` que implementan su comportamiento de red.
+
+<Callout title="Idea principal" type="info">
+  Un objeto no es simplemente un contenedor para RPC. Es la identidad de red sobre la que Eco construye direccionamiento, propiedad, estado y ciclo de vida.
+</Callout>
+
+## Identidad [#identidad]
+
+Cada objeto tiene un `id` y un `uid`.
+
+| Tipo     | Rango              | Uso                                 |
+| -------- | ------------------ | ----------------------------------- |
+| Estático | `1`–`32767`        | Objetos que ya existen en la escena |
+| Dinámico | `32768`–`16777215` | Objetos creados durante la sesión   |
+
+El `uid` combina canal e identificador del objeto:
+
+```text
+UID = Canal << 32 | ID
+```
+
+Los objetos estáticos y dinámicos tienen ciclos de vida diferentes. Por ejemplo, los objetos estáticos no permiten cambiar su propietario de la misma forma que los dinámicos.
+
+## Canal y registro [#canal-y-registro]
+
+Cada objeto tiene asociado un `channelID`. `hasBeenRegistered` indica que su creación ya terminó y que tiene un identificador de red asignado. `hasBeenDestroyed` bloquea el uso del objeto cuando comienza su destrucción.
+
+```text
+Creación
+   ↓
+Registro
+   ↓
+Activo
+   ↓
+Destrucción solicitada
+   ↓
+Destruido
+```
+
+## Propiedad [#propiedad]
+
+Las propiedades principales son:
+
+```csharp
+objeto.isMine
+objeto.owner
+objeto.ownerID
+```
+
+`isMine` comprueba la propiedad local, `owner` devuelve el `Jugador` propietario y `ownerID` expone su identificador.
+
+```text
+Objeto
+   │
+   └── ownerID → Jugador
+```
+
+Ser visible para un jugador no implica que sea suyo. La propiedad representa autoridad para determinadas operaciones de red.
+
+## Componentes [#componentes]
+
+Los `Componente` contienen el comportamiento de red asociado al `Objeto`.
+
+```text
+GameObject
+├── Objeto
+├── Componente A
+├── Componente B
+└── Componente C
+```
+
+Un `Componente` busca el `Objeto` en su jerarquía de Unity y expone accesos de conveniencia para datos, instanciación y destrucción.
+
+## Datos [#datos]
+
+Cada objeto puede mantener un `Nodo` de datos:
+
+```csharp
+objeto.Set("vida", 100);
+int vida = objeto.Get<int>("vida");
+```
+
+El cambio se aplica localmente y, cuando la sincronización está activa, Eco decide cómo propagarlo según propiedad y disponibilidad del objeto para enviar. Los cambios pueden quedar en cola mientras el objeto no puede transmitir.
+
+## Capacidad de envío [#capacidad-de-envío]
+
+`PuedeEnviar` comprueba que el objeto tenga un identificador válido, no esté destruido, pertenezca a un canal del cliente y no esté todavía completando la entrada en ese canal.
+
+Esto resulta especialmente importante durante cambios de escena y uniones a canales.
+
+## Ciclo de vida y transferencia [#ciclo-de-vida-y-transferencia]
+
+`Objeto` expone callbacks de red para destrucción y transferencia:
+
+```text
+onDestroy
+onTransfer
+```
+
+Estos callbacks permiten separar el ciclo de vida de red del ciclo de vida de Unity.
+
+## Relación con Eco [#relación-con-eco]
+
+```text
+                Eco
+                 │
+       ┌─────────┼─────────┐
+       │         │         │
+   Conexión    Canales   Jugadores
+                 │
+                 ▼
+               Objeto
+                 │
+            ┌────┴────┐
+            │         │
+       Propiedad    Datos
+            │
+       Componentes
+```
+
+## Correspondencia con TNet [#correspondencia-con-tnet]
+
+| Eco          | TNet          | Función                         |
+| ------------ | ------------- | ------------------------------- |
+| `Objeto`     | `TNObject`    | Identidad y estado de red       |
+| `Componente` | `TNBehaviour` | Comportamiento asociado         |
+| `owner`      | `owner`       | Jugador propietario             |
+| `ownerID`    | `ownerID`     | Identificador del propietario   |
+| `isMine`     | `isMine`      | Comprueba propiedad local       |
+| `uid`        | `uid`         | Canal + identificador de objeto |
+
+## Referencias [#referencias]
+
+<Card title="Objeto.cs · Eco" href="https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/Objeto.cs">
+  Implementación actual de `Objeto`.
+</Card>
+
+<Card title="Componente.cs · Eco" href="https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/Componente.cs">
+  Implementación de los componentes asociados a un objeto.
+</Card>
+
+<Card title="TNet" href="https://github.com/tasharen/tnet">
+  Repositorio upstream.
+</Card>
+
+<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
+  Referencia generada sobre la implementación actual de TNet.
+</Card>
+
+
+# Buffers (/docs/red/v1/transporte/buffers)
+
+
+
+# Buffers [#buffers]
+
+`Buffer` combina un flujo de memoria con las operaciones de `BinaryWriter` y `BinaryReader`. Es la pieza que Eco utiliza para construir, leer, copiar y reciclar datos binarios.
+
+```text
+Dato
+ ↓
+Buffer
+ ├── escribir
+ ├── leer
+ └── reciclar
+ ↓
+Paquete
+```
+
+## Escritura y lectura [#escritura-y-lectura]
+
+El ciclo básico es:
+
+```csharp
+var buffer = Buffer.Create();
+var writer = buffer.BeginWriting();
+writer.Write(123);
+writer.Write("Hola");
+buffer.EndWriting();
+
+var reader = buffer.BeginReading();
+int numero = reader.ReadInt32();
+string texto = reader.ReadString();
+```
+
+El buffer controla internamente la posición y el tamaño útil de los datos.
+
+## Modos del buffer [#modos-del-buffer]
+
+`BeginWriting` prepara el buffer para escribir y `EndWriting` finaliza esa fase. `BeginReading` cambia al modo de lectura y permite consumir los bytes existentes.
+
+Esto permite reutilizar la misma abstracción tanto para paquetes salientes como para datos recibidos.
+
+## Tamaño y posición [#tamaño-y-posición]
+
+Las propiedades principales son:
+
+| Propiedad   | Significado                            |
+| ----------- | -------------------------------------- |
+| `size`      | Cantidad de datos útiles.              |
+| `position`  | Posición actual del flujo.             |
+| `stream`    | `MemoryStream` subyacente.             |
+| `buffer`    | Array interno que contiene la memoria. |
+| `isWriting` | Indica si está en modo escritura.      |
+
+## Copia [#copia]
+
+`CopyTo` permite copiar el contenido útil de un buffer a otro, evitando arrastrar espacio no utilizado del `MemoryStream`.
+
+## Reciclado [#reciclado]
+
+Eco puede reutilizar buffers para reducir asignaciones. `Recycle()` devuelve el buffer al pool cuando el reciclado está habilitado.
+
+```text
+Crear
+ ↓
+usar
+ ↓
+Recycle
+ ↓
+pool
+ ↓
+Create
+ ↓
+reutilizar
+```
+
+El código también incorpora comprobaciones de depuración para detectar usos incorrectos y dobles reciclados cuando las opciones correspondientes están habilitadas.
+
+## Seguridad del reciclado [#seguridad-del-reciclado]
+
+Un buffer reciclado no debe utilizarse posteriormente como si siguiera siendo válido. Las rutas de depuración de Eco permiten detectar esta clase de error.
+
+Por eso las funciones que reciben un `Buffer` deben dejar claro quién posee su ciclo de vida.
+
+## Buffer y Datagramas [#buffer-y-datagramas]
+
+El mismo sistema de reciclado puede utilizarse con `Datagrama`, evitando crear memoria constantemente durante tráfico frecuente.
+
+## Relación con paquetes [#relación-con-paquetes]
+
+Un `Paquete` define el significado de los bytes; un `Buffer` proporciona el espacio y las operaciones para escribirlos.
+
+```text
+Paquete
+   │
+   └── BeginPacket()
+           ↓
+        Buffer
+           ↓
+       BinaryWriter
+```
+
+## Relación con TNet [#relación-con-tnet]
+
+`Buffer` es la evolución renombrada de `TNBuffer`. La arquitectura de pool, lectura/escritura y reciclado procede de TNet, mientras que la nomenclatura de Eco es la API utilizada por Pandora.
+
+<Card title="Buffer.cs · Eco" href="https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Comun/Buffer.cs">
+  Implementación del buffer binario.
+</Card>
+
+<Card title="TNet" href="https://github.com/tasharen/tnet">
+  Repositorio upstream.
+</Card>
+
+
+# Transporte (/docs/red/v1/transporte)
+
+
+
+# Transporte [#transporte]
+
+Esta sección describe las capas que convierten una operación de red en datos transmisibles y los mecanismos que los llevan entre cliente y servidor.
+
+<Card title="Paquetes" href="/docs/red/v1/transporte/paquetes">
+  Tipos de mensaje y protocolo de Eco.
+</Card>
+
+<Card title="Buffers" href="/docs/red/v1/transporte/buffers">
+  Lectura, escritura y reutilización de datos binarios.
+</Card>
+
+<Card title="Serialización" href="/docs/red/v1/transporte/serializacion">
+  Conversión de objetos y valores a formatos de red y persistencia.
+</Card>
+
+<Card title="TCP y UDP" href="/docs/red/v1/transporte/tcp-udp">
+  Diferencias entre transporte fiable y comunicación de baja latencia.
+</Card>
+
+
+# Paquetes (/docs/red/v1/transporte/paquetes)
+
+
+
+# Paquetes [#paquetes]
+
+`Paquete` identifica el tipo de operación que está viajando por la red. El contenido binario del mensaje se escribe mediante `Buffer` y su significado depende del tipo de paquete.
+
+```text
+Operación
+   ↓
+Paquete
+   ↓
+Buffer
+   ↓
+TCP / UDP
+```
+
+## Tipos de paquete [#tipos-de-paquete]
+
+Eco conserva un conjunto de paquetes para operaciones como conexión, ping, canales, creación y destrucción de objetos, datos de jugador y forwarding de llamadas remotas.
+
+Algunos ejemplos son:
+
+| Paquete                | Propósito                                               |
+| ---------------------- | ------------------------------------------------------- |
+| `RequestID`            | Iniciar la identificación y negociación de la conexión. |
+| `RequestPing`          | Medir latencia y mantener la conexión activa.           |
+| `RequestJoinChannel`   | Solicitar entrada a un canal.                           |
+| `RequestLeaveChannel`  | Abandonar un canal.                                     |
+| `RequestCreateObject`  | Crear un objeto dinámico.                               |
+| `RequestDestroyObject` | Destruir un objeto de red.                              |
+| `ForwardToAll`         | Distribuir una llamada o mensaje al canal.              |
+| `ForwardToOthers`      | Distribuirlo a los demás participantes.                 |
+
+La enumeración completa vive en `Paquete.cs` y constituye parte del protocolo interno de Eco.
+
+## Request y Response [#request-y-response]
+
+Muchos mensajes están organizados como una pareja solicitud/respuesta:
+
+```text
+Cliente
+  │
+  │ Request...
+  ▼
+Servidor
+  │
+  │ Response...
+  ▼
+Cliente
+```
+
+No todos los paquetes siguen exactamente este patrón. Algunos son notificaciones, forwarding o mensajes internos de transporte.
+
+## Canal dentro del protocolo [#canal-dentro-del-protocolo]
+
+Muchas operaciones contienen el identificador de canal porque el servidor necesita conocer el ámbito en el que debe realizar la operación.
+
+Esto permite que una misma conexión participe en varios canales sin mezclar sus estados.
+
+## Objetos y paquetes [#objetos-y-paquetes]
+
+Las operaciones relacionadas con objetos incluyen habitualmente un identificador de objeto. En RFC, el identificador puede combinar el objeto con un identificador compacto de función.
+
+```text
+UID
+├── Object ID
+└── Function ID
+```
+
+Cuando no existe un identificador numérico para la función, Eco puede transportar el nombre de la función.
+
+## Fiabilidad [#fiabilidad]
+
+Los paquetes se escriben sobre buffers y después se envían mediante las rutas fiables o rápidas que correspondan. La elección de TCP o UDP no cambia el significado del paquete: cambia cómo se transporta.
+
+## Paquetes personalizados [#paquetes-personalizados]
+
+El servidor y el cliente pueden exponer manejadores para paquetes que no formen parte del procesamiento estándar. Esto permite extender el protocolo cuando una aplicación necesita una operación específica.
+
+Los paquetes personalizados deben mantener una definición clara del formato binario y de quién es responsable de procesarlos.
+
+## Relación con TNet [#relación-con-tnet]
+
+`Paquete` corresponde conceptualmente al sistema de `Packet`/`TNPacket` de TNet. La enumeración y los nombres de Eco son la referencia válida para este proyecto.
+
+<Card title="Paquete.cs · Eco" href="https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Comun/Paquete.cs">
+  Implementación actual de los tipos de paquete.
+</Card>
+
+<Card title="TNet" href="https://github.com/tasharen/tnet">
+  Repositorio upstream.
+</Card>
+
+<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
+  Referencia para contrastar el protocolo heredado.
+</Card>
+
+
+# Serialización (/docs/red/v1/transporte/serializacion)
+
+
+
+# Serialización [#serialización]
+
+La serialización es la capa que transforma los datos que utiliza Eco en una representación que puede escribirse en un `Buffer`, almacenarse o enviarse por la red.
+
+Eco distingue principalmente entre datos estructurados mediante `Nodo` y serialización binaria mediante `IBinarySerializable` y `Serializacion`.
+
+<Callout title="Separar las capas" type="info">
+  `Nodo` describe datos. `Buffer` contiene bytes. `Paquete` describe un mensaje del protocolo. No son tres nombres para la misma cosa.
+</Callout>
+
+## Nodo [#nodo]
+
+`Nodo` es una estructura jerárquica formada por nombre, valor y nodos hijos. Permite representar datos con rutas y convertir valores entre tipos compatibles.
+
+```text
+Nodo
+├── name
+├── value
+└── children
+    ├── ...
+    └── ...
+```
+
+Entre sus operaciones están `AddChild`, `GetChild`, `SetChild`, `GetHierarchy` y `SetHierarchy`.
+
+## Serialización binaria [#serialización-binaria]
+
+Las clases que necesitan controlar cómo se representan sus datos pueden implementar `IBinarySerializable`:
+
+```csharp
+public interface IBinarySerializable
+{
+    void Serialize(BinaryWriter writer);
+    void Deserialize(BinaryReader reader);
+}
+```
+
+Esto permite definir una representación específica cuando la serialización automática no sea suficiente o cuando sea importante reducir el tamaño de los datos.
+
+## Serialización de tipos [#serialización-de-tipos]
+
+`Serializacion` proporciona extensiones para escribir y leer tipos básicos, estructuras de Unity, arrays, listas y objetos compatibles con el sistema de Eco.
+
+La resolución de tipos puede utilizar nombres serializados y cachés de tipo para evitar repetir el trabajo de reflexión.
+
+## Nodo frente a binario [#nodo-frente-a-binario]
+
+Los dos mecanismos responden a necesidades distintas:
+
+| Necesidad                          | Mecanismo              |
+| ---------------------------------- | ---------------------- |
+| Datos jerárquicos y configurables  | `Nodo`                 |
+| Mensajes compactos de red          | Serialización binaria  |
+| Formato personalizado de una clase | `IBinarySerializable`  |
+| Persistencia estructurada          | `Nodo` + serialización |
+
+## Relación con Buffer [#relación-con-buffer]
+
+El resultado de una serialización binaria termina normalmente en un `Buffer`:
+
+```text
+Objeto / dato
+      ↓
+Serializacion
+      ↓
+BinaryWriter
+      ↓
+Buffer
+      ↓
+Paquete
+```
+
+El `Buffer` no decide qué significa el dato. Sólo proporciona el soporte de lectura y escritura binaria.
+
+## Relación con Paquete [#relación-con-paquete]
+
+Un `Paquete` añade significado de protocolo al flujo binario. Por ejemplo, dos mensajes pueden transportar datos con la misma representación binaria pero utilizar diferentes tipos de paquete y, por tanto, tener comportamientos distintos.
+
+## Relación con TNet [#relación-con-tnet]
+
+Eco conserva el modelo de serialización heredado de TNet, incluyendo `DataNode`, `IBinarySerializable` y la infraestructura de escritura y lectura binaria. La nomenclatura de Eco utiliza `Nodo` y `Serializacion`.
+
+## Referencias [#referencias]
+
+<Card title="Eco" href="https://github.com/Nervelink/eco/tree/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Comun">
+  Código de `Nodo`, `Buffer` y serialización.
+</Card>
+
+<Card title="TNet" href="https://github.com/tasharen/tnet">
+  Repositorio upstream de la implementación heredada.
+</Card>
+
+<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
+  Referencia externa para contrastar el sistema de serialización de TNet.
+</Card>
+
+
+# TCP y UDP (/docs/red/v1/transporte/tcp-udp)
+
+
+
+# TCP y UDP [#tcp-y-udp]
+
+Eco dispone de un transporte principal basado en TCP y de una ruta UDP para tráfico que puede beneficiarse de menor latencia o tolerar pérdida de paquetes.
+
+```text
+Eco
+ │
+ ├── TCP → fiable / ordenado
+ │
+ └── UDP → rápido / no fiable
+```
+
+## TCP [#tcp]
+
+TCP es la vía principal de comunicación del cliente con el servidor. Se utiliza para operaciones que necesitan entrega fiable y ordenada.
+
+El cliente mantiene `ProtocoloTcp` como su protocolo principal y expone el estado de conexión a través de `ClienteJuego`.
+
+## UDP [#udp]
+
+Cuando está disponible, `ProtocoloUdp` permite enviar tráfico que no necesita las garantías completas de TCP.
+
+El cliente puede comprobar `canUseUDP` y conocer el puerto de escucha mediante `listeningPort`.
+
+## Activación [#activación]
+
+UDP no se considera disponible simplemente porque exista una instancia del protocolo. El servidor debe proporcionar un puerto UDP y el cliente debe completar su activación.
+
+```text
+Conexión TCP
+     ↓
+negociación UDP
+     ↓
+activación
+     ↓
+tráfico UDP disponible
+```
+
+## Qué transporte elegir [#qué-transporte-elegir]
+
+La elección depende de la semántica del mensaje:
+
+| Característica             | TCP                           | UDP                                    |
+| -------------------------- | ----------------------------- | -------------------------------------- |
+| Entrega fiable             | Sí                            | No                                     |
+| Orden de llegada           | Sí                            | No garantizado                         |
+| Retransmisión              | Sí                            | No                                     |
+| Latencia potencial         | Mayor bajo pérdida/congestión | Menor para tráfico tolerante a pérdida |
+| Estado crítico             | Adecuado                      | No suele ser adecuado                  |
+| Actualizaciones frecuentes | Puede ser adecuado            | Suele ser más apropiado                |
+
+No se debe elegir UDP simplemente por ser más rápido: si el dato necesita entrega garantizada, hay que utilizar un mecanismo fiable.
+
+## `Send` y `SendQuickly` [#send-y-sendquickly]
+
+Eco abstrae gran parte de esta decisión detrás de sus operaciones de envío. `Send` representa el camino normal, mientras que `SendQuickly` permite utilizar el camino optimizado para datos donde la fiabilidad completa no sea necesaria.
+
+La capa de gameplay no debería construir datagramas manualmente salvo que esté implementando una extensión de transporte.
+
+## Nagle y latencia TCP [#nagle-y-latencia-tcp]
+
+`ClienteJuego.noDelay` permite activar o desactivar el algoritmo de Nagle. Activarlo puede reducir la latencia de pequeños mensajes a costa de aumentar el tráfico.
+
+```csharp
+cliente.noDelay = true;
+```
+
+La misma configuración se comunica al servidor para mantener el comportamiento coherente del socket TCP.
+
+## Servidor [#servidor]
+
+`ServidorJuego` puede abrir un puerto TCP y, opcionalmente, un puerto UDP al arrancar.
+
+```csharp
+servidor.Start(tcpPort: 5127, udpPort: 5128);
+```
+
+El puerto UDP sólo se activa cuando se proporciona uno válido durante el arranque.
+
+## Restricciones de plataforma [#restricciones-de-plataforma]
+
+La disponibilidad de UDP depende de la plataforma y de las compilaciones de Eco. Algunas configuraciones, como determinados entornos antiguos de Unity o modos de modificación, deshabilitan explícitamente UDP.
+
+Por eso la aplicación debe consultar la disponibilidad real (`canUseUDP`) en lugar de asumir que UDP siempre está disponible.
+
+## Relación con Paquete [#relación-con-paquete]
+
+El transporte no cambia el significado de un `Paquete`.
+
+```text
+Paquete
+  ↓
+Buffer
+  ↓
+TCP o UDP
+  ↓
+Buffer
+  ↓
+Paquete
+```
+
+El mismo concepto de protocolo puede utilizar distintas rutas de transporte según el tipo de mensaje.
+
+## Relación con TNet [#relación-con-tnet]
+
+El modelo corresponde al de los protocolos TCP y UDP de TNet, pero Eco utiliza `ProtocoloTcp`, `ProtocoloUdp`, `ClienteJuego` y `ServidorJuego` como API interna.
+
+<Card title="Eco · ClienteJuego" href="https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/ClienteJuego.cs">
+  Gestión cliente de TCP, UDP y envío de paquetes.
+</Card>
+
+<Card title="Eco · ServidorJuego" href="https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Servidor/ServidorJuego.cs">
+  Gestión servidor de listeners TCP/UDP.
+</Card>
+
+<Card title="TNet" href="https://github.com/tasharen/tnet">
+  Repositorio upstream.
+</Card>
+
+
+# Referencia (/docs/red/v1/referencia)
+
+
+
+# Referencia [#referencia]
+
+Esta sección reunirá la documentación de referencia y el vínculo entre Eco y su upstream.
+
+<Card title="TNet upstream" href="https://github.com/tasharen/tnet">
+  Repositorio original del que parte la implementación de Eco.
+</Card>
+
+<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
+  Documentación generada sobre el repositorio actual de TNet.
+</Card>
+
+<Card title="Eco en GitHub" href="https://github.com/Nervelink/eco">
+  Código fuente que define el comportamiento normativo de Eco.
+</Card>
