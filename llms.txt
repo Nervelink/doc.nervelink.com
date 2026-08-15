@@ -84,6 +84,9 @@
       - [AutoCrear](/docs/red/v1/ejemplos/auto-crear): Instanciación automática de un prefab en un canal después de completar la entrada.
       - [RFC](/docs/red/v1/ejemplos/rfc): Ejemplo mínimo de una función remota y de la separación entre acción y estado.
       - [Varios canales](/docs/red/v1/ejemplos/varios-canales): Ejemplo práctico de una única conexión participando en varios canales simultáneamente.
+      - [Prueba de estrés](/docs/red/v1/ejemplos/stress-test): Cómo diseñar una escena de prueba para medir objetos, RFC, sincronización, CPU y ancho de banda.
+      - [Física en red](/docs/red/v1/ejemplos/fisica-en-red): Patrón para sincronizar vehículos y cuerpos físicos sin convertir cada frame de física en un mensaje fiable.
+      - [Código en tiempo de ejecución](/docs/red/v1/ejemplos/runtime-code): Integración avanzada de RuntimeCode para extensibilidad y herramientas dinámicas.
     - Funciones avanzadas
       - [Funciones avanzadas](/docs/red/v1/avanzado): Herramientas de Eco que amplían el runtime básico para rendimiento, integraciones y escenarios especializados.
       - [ActualizadorRed](/docs/red/v1/avanzado/actualizador-red): Actualizador centralizado de ciclos de vida y callbacks para reducir el número de MonoBehaviour con Update.
@@ -91,14 +94,18 @@
       - [TransformSuave](/docs/red/v1/avanzado/transform-suave): Interpolación visual de transformaciones recibidas desde la red.
       - [Runtime Code](/docs/red/v1/avanzado/runtime-code): Compilación y ejecución dinámica de C# dentro del runtime para modding y extensiones.
       - [Lobby](/docs/red/v1/avanzado/lobby): Descubrimiento de servidores mediante el sistema de lobby de Eco.
+      - [Lobby y descubrimiento](/docs/red/v1/avanzado/lobby-y-discovery): Arquitectura de lobby, descubrimiento de servidores y separación entre el servicio de entrada y la partida.
       - [Steam y conexiones personalizadas](/docs/red/v1/avanzado/steam-y-conexiones): Uso de IConnection y del módulo Steam para sustituir sockets en integraciones compatibles.
       - [Transportes personalizados](/docs/red/v1/avanzado/transportes-personalizados): Cómo extender Eco mediante IConnection sin acoplar el gameplay al transporte físico.
+      - [Servidor interno](/docs/red/v1/avanzado/servidor-interno): Arquitectura interna del servidor de Eco, ciclo de vida, canales, jugadores y persistencia.
+      - [Editor y herramientas](/docs/red/v1/avanzado/editor-y-herramientas): Herramientas de desarrollo, diagnóstico y utilidades que acompañan al sistema de red de Eco.
       - [UPnP y NAT](/docs/red/v1/avanzado/upnp): Utilidades para descubrir direcciones y solicitar apertura de puertos en routers compatibles.
     - Persistencia
       - [Persistencia](/docs/red/v1/persistencia): Cómo Eco conserva, restaura y reduce el estado de una sesión de juego.
       - [Estado persistente](/docs/red/v1/persistencia/estado)
       - [Canales persistentes](/docs/red/v1/persistencia/canales)
       - [Objetos persistentes](/docs/red/v1/persistencia/objetos)
+      - [Persistencia avanzada](/docs/red/v1/persistencia/persistencia-avanzada): Cómo Eco conserva objetos, RFC, datos de canal y estado para reconstruir una sesión.
     - Referencia
       - [Referencia](/docs/red/v1/referencia): Fuentes, API, equivalencias y material de consulta para trabajar con Eco.
       - API
@@ -111,6 +118,7 @@
         - [Objetivo](/docs/red/v1/referencia/api/objetivo): Destinatarios disponibles para los envíos de Eco y control de persistencia.
         - [ClienteJuego](/docs/red/v1/referencia/api/cliente-juego): Implementación interna del cliente de Eco y su ciclo de comunicación.
         - [ServidorJuego](/docs/red/v1/referencia/api/servidor-juego): Runtime del servidor de Eco, canales, jugadores, persistencia y extensibilidad.
+        - [APIs de bajo nivel](/docs/red/v1/referencia/api/bajo-nivel): Primitivas internas de Eco para paquetes, buffers, callbacks, caché, serialización y transporte personalizado.
       - [TNet upstream](/docs/red/v1/referencia/upstream): Relación de Eco con la implementación original de TNet.
       - [Equivalencias Eco ↔ TNet](/docs/red/v1/referencia/equivalencias): Mapa de nomenclatura entre Eco y la implementación de TNet.
       - [DeepWiki · TNet](/docs/red/v1/referencia/deepwiki): Referencia generada para explorar la arquitectura del TNet upstream.
