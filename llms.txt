@@ -45,6 +45,10 @@
       - [Cliente](/docs/red/v1/runtime/cliente): Ciclo de vida del cliente de Eco, conexión, transporte y gestión de la sesión.
       - [Servidor local](/docs/red/v1/runtime/servidor-local)
       - [Servidor](/docs/red/v1/runtime/servidor): Estado autoritativo, jugadores, canales y procesamiento del lado servidor.
+    - Guías
+      - [Guías](/docs/red/v1/guias): Recorridos prácticos para integrar y utilizar Eco en un proyecto de Unity.
+      - [Primer cliente](/docs/red/v1/guias/primer-cliente)
+      - [Primer objeto](/docs/red/v1/guias/primer-objeto)
     - Referencia
       - [Referencia](/docs/red/v1/referencia): Fuentes, equivalencias y material de consulta para trabajar con Eco.
       - [TNet upstream](/docs/red/v1/referencia/upstream): Relación de Eco con la implementación original de TNet.
