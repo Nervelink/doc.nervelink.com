@@ -57,6 +57,8 @@
       - [Instanciar y destruir objetos](/docs/red/v1/guias/instanciar-destruir): Crea objetos de red dinámicos y controla correctamente su ciclo de vida.
       - [Persistir una partida](/docs/red/v1/guias/persistir-partida)
       - [Transferir la propiedad de un objeto](/docs/red/v1/guias/transferir-propiedad)
+      - [Sincronizar los datos del jugador](/docs/red/v1/guias/sincronizar-jugador): Gestiona y sincroniza los datos asociados al jugador local.
+      - [Transferir un objeto entre canales](/docs/red/v1/guias/transferir-objeto-canal): Mueve un objeto de red entre canales conservando el control del ciclo de vida de la transferencia.
     - Referencia
       - [Referencia](/docs/red/v1/referencia): Fuentes, equivalencias y material de consulta para trabajar con Eco.
       - [TNet upstream](/docs/red/v1/referencia/upstream): Relación de Eco con la implementación original de TNet.
