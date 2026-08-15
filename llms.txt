@@ -53,6 +53,7 @@
       - [Crear una partida](/docs/red/v1/guias/crear-partida): Flujo completo para conectar jugadores, crear un canal y preparar el estado inicial de una partida.
       - [Varios canales simultáneos](/docs/red/v1/guias/multiples-canales): Gestiona varios ámbitos de red desde un mismo cliente.
       - [Enviar una acción](/docs/red/v1/guias/enviar-accion): Ejecuta una acción remotamente mediante RFC y elige correctamente sus destinatarios.
+      - [Servidor local](/docs/red/v1/guias/servidor-local): Ejecuta cliente y servidor de Eco dentro del mismo proceso sin utilizar sockets.
     - Referencia
       - [Referencia](/docs/red/v1/referencia): Fuentes, equivalencias y material de consulta para trabajar con Eco.
       - [TNet upstream](/docs/red/v1/referencia/upstream): Relación de Eco con la implementación original de TNet.

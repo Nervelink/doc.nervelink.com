@@ -704,242 +704,6 @@ La fuente de verdad para Eco sigue siendo `Nervelink/eco`.
 </Card>
 
 
-# Arquitectura (/docs/red/v1/fundamentos/arquitectura)
-
-
-
-# Arquitectura de Eco [#arquitectura-de-eco]
-
-Eco es la capa de red utilizada por Pandora. Su implementación procede de TNet 3, pero expone una nomenclatura y una organización propias de Nervelink.
-
-La documentación de Eco describe el comportamiento del código actual de `Nervelink/eco`. Las equivalencias con TNet se utilizan como referencia, no como contrato de la API.
-
-<Callout title="Idea principal" type="info">
-  Eco no debe entenderse como una colección de RPC aislados. Su arquitectura gira alrededor de conexiones, canales, jugadores, objetos de red, componentes, mensajes y sincronización de estado.
-</Callout>
-
-## Vista general [#vista-general]
-
-```text
-                              Eco
-                               │
-              ┌────────────────┼────────────────┐
-              │                │                │
-           Cliente          Servidor        Común
-              │                │                │
-       ┌──────┼──────┐         │        ┌───────┼────────┐
-       │      │      │         │        │       │        │
-   Conexión  Canal  Objetos   Canales  Paquetes  Buffer  Serialización
-              │      │
-              │      ├── Objeto
-              │      │     └── Componente
-              │      │
-              └──────┴── Jugadores
-```
-
-## Capas principales [#capas-principales]
-
-### Cliente [#cliente]
-
-La capa cliente contiene la lógica que conecta una instancia del juego con un servidor, procesa el tráfico recibido y mantiene la representación local de los canales y objetos de red.
-
-### Servidor [#servidor]
-
-El servidor mantiene el estado compartido, administra canales y jugadores y procesa las operaciones que deben existir fuera de una instancia concreta del juego.
-
-### Común [#común]
-
-La capa común contiene los tipos que necesitan compartir cliente y servidor: paquetes, buffers, identificadores, serialización y estructuras utilizadas para representar el protocolo.
-
-## Objetos de red [#objetos-de-red]
-
-Un objeto de red representa una entidad que Eco puede identificar y sincronizar dentro de un canal.
-
-```text
-Objeto
-├── Identidad
-├── Propietario
-├── Canal(es)
-├── Estado
-└── Componentes
-```
-
-## Canales [#canales]
-
-El `Canal` delimita el ámbito en el que se comparte estado entre jugadores. Una conexión puede participar en uno o varios canales.
-
-## Flujo conceptual de un mensaje [#flujo-conceptual-de-un-mensaje]
-
-```text
-Juego
-  ↓
-Objeto / Componente
-  ↓
-Eco
-  ↓
-Paquete
-  ↓
-Transporte
-  ↓
-Servidor
-  ↓
-Canal / destinatarios
-  ↓
-Paquete
-  ↓
-Cliente remoto
-```
-
-## Relación con TNet [#relación-con-tnet]
-
-| TNet                    | Eco          |
-| ----------------------- | ------------ |
-| `TNManager`             | `Eco`        |
-| `TNObject`              | `Objeto`     |
-| `TNBehaviour`           | `Componente` |
-| `TNChannel` / `Channel` | `Canal`      |
-| `TNPacket` / `Packet`   | `Paquete`    |
-| `TNBuffer`              | `Buffer`     |
-| `Player`                | `Jugador`    |
-
-## Referencias [#referencias]
-
-<Card title="Repositorio Eco" href="https://github.com/Nervelink/eco">
-  Código fuente de la implementación de Eco.
-</Card>
-
-<Card title="TNet" href="https://github.com/tasharen/tnet">
-  Repositorio original del que procede la base de Eco.
-</Card>
-
-<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
-  Documentación generada sobre el repositorio actual de TNet.
-</Card>
-
-
-# Conceptos (/docs/red/v1/fundamentos/conceptos)
-
-
-
-# Conceptos [#conceptos]
-
-Eco organiza la red alrededor de unas pocas piezas fundamentales. Entender su relación evita confundir conexión, canal, jugador, objeto y componente.
-
-<Callout title="Regla general" type="info">
-  Una conexión representa la comunicación con el servidor; un jugador representa a un participante; un canal define un ámbito de estado compartido; un objeto representa una entidad de red; y sus componentes implementan el comportamiento.
-</Callout>
-
-## Conexión [#conexión]
-
-La conexión representa el vínculo de transporte entre una instancia del juego y el servidor. No define por sí sola qué objetos o estado debe conocer el cliente.
-
-## Jugador [#jugador]
-
-Un `Jugador` representa a un participante de la sesión dentro de la infraestructura de red. Sirve para identificar presencia, propiedad y destinatarios.
-
-## Canal [#canal]
-
-Un `Canal` define un ámbito de estado compartido. Un mismo jugador puede participar simultáneamente en varios canales.
-
-```text
-Servidor
-  ├── Canal A → Jugador 1, Jugador 2
-  └── Canal B → Jugador 2, Jugador 3
-```
-
-## Objeto [#objeto]
-
-Un `Objeto` es una identidad de red que Eco puede registrar, localizar, sincronizar y destruir.
-
-```text
-Objeto
-├── ID de red
-├── Propietario
-├── Estado
-├── Canal(es)
-└── Componentes
-```
-
-## Componente [#componente]
-
-Un `Componente` contiene comportamiento de red asociado a un `Objeto`. Esta separación permite mantener la identidad de red independiente de la funcionalidad concreta.
-
-## Propietario [#propietario]
-
-El propietario identifica al jugador que tiene autoridad sobre determinadas operaciones del objeto. La propiedad no implica que el objeto sea invisible para los demás participantes.
-
-## Paquete [#paquete]
-
-Un `Paquete` representa una unidad del protocolo de Eco. Transporta comandos, eventos y datos entre clientes y servidor.
-
-## Buffer [#buffer]
-
-Un `Buffer` proporciona las operaciones de lectura y escritura utilizadas para serializar los datos que Eco intercambia.
-
-## Estado [#estado]
-
-Eco distingue entre comunicar una acción y mantener un estado. Una RFC puede comunicar que algo ocurrió; un mecanismo de sincronización mantiene valores que deben converger entre participantes.
-
-## Relación entre conceptos [#relación-entre-conceptos]
-
-```text
-Servidor
- │
- ├── Conexiones
- │     └── Jugadores
- │
- └── Canales
-       └── Objetos
-             └── Componentes
-                   ├── RFC
-                   ├── Sync
-                   └── Datos
-                         ↓
-                      Paquetes
-                         ↓
-                      Transporte
-```
-
-## Correspondencia con TNet [#correspondencia-con-tnet]
-
-| Eco          | TNet                    | Función                           |
-| ------------ | ----------------------- | --------------------------------- |
-| `Eco`        | `TNManager`             | Gestión principal del cliente     |
-| `Jugador`    | `Player`                | Participante de la sesión         |
-| `Canal`      | `Channel` / `TNChannel` | Ámbito de estado compartido       |
-| `Objeto`     | `TNObject`              | Identidad de red                  |
-| `Componente` | `TNBehaviour`           | Comportamiento asociado al objeto |
-| `Paquete`    | `Packet` / `TNPacket`   | Mensaje del protocolo             |
-| `Buffer`     | `TNBuffer`              | Serialización binaria             |
-
-## Referencias [#referencias]
-
-<Card title="TNet en GitHub" href="https://github.com/tasharen/tnet">
-  Repositorio upstream y fuente de referencia de la implementación heredada.
-</Card>
-
-<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
-  Vista generada de la arquitectura actual de TNet.
-</Card>
-
-
-# Fundamentos (/docs/red/v1/fundamentos)
-
-
-
-# Fundamentos [#fundamentos]
-
-Esta sección establece el modelo mental necesario para trabajar con Eco antes de entrar en sus mecanismos concretos.
-
-<Card title="Arquitectura" href="/docs/red/v1/fundamentos/arquitectura">
-  Cómo se organiza Eco y cómo fluye la información entre sus capas.
-</Card>
-
-<Card title="Conceptos" href="/docs/red/v1/fundamentos/conceptos">
-  Conexiones, jugadores, canales, objetos, componentes, estado y mensajes.
-</Card>
-
-
 # Crear una partida (/docs/red/v1/guias/crear-partida)
 
 
@@ -1857,6 +1621,206 @@ Continúa con [Sincronización](/docs/red/v1/comunicacion/sincronizacion) para d
 
 <Card title="Eco en GitHub" href="https://github.com/Nervelink/eco">
   Código fuente de la implementación actual.
+</Card>
+
+
+# Servidor local (/docs/red/v1/guias/servidor-local)
+
+
+
+# Servidor local [#servidor-local]
+
+Eco permite ejecutar `ServidorJuego` y `ClienteJuego` dentro del mismo proceso. Este modo conserva el modelo lógico de cliente/servidor, pero sustituye el transporte por una conexión interna.
+
+<Callout title="Cuándo utilizarlo" type="info">
+  El servidor local es especialmente útil para pruebas, desarrollo, herramientas internas y escenarios donde quieres ejecutar toda la infraestructura de red sin depender de otra instancia del juego ni de una conexión TCP real.
+</Callout>
+
+## Arquitectura [#arquitectura]
+
+```text
+┌─────────────────────────────────────┐
+│              Unity                  │
+│                                     │
+│   ClienteJuego  ←→  ServidorJuego   │
+│          conexión local             │
+│             sin sockets              │
+└─────────────────────────────────────┘
+```
+
+El cliente sigue viendo un servidor y el servidor sigue gestionando jugadores, canales y objetos. Lo que cambia es el mecanismo utilizado para transportar los datos entre ambos.
+
+## Crear el servidor [#crear-el-servidor]
+
+La instancia local se representa mediante `ServidorJuego`.
+
+```csharp
+var servidor = new ServidorJuego();
+```
+
+A partir de ahí se configura y arranca como un servidor normal. En el modo local no es necesario depender de un `TcpListener` para que el cliente pueda conectarse.
+
+## Conectar el cliente [#conectar-el-cliente]
+
+`ClienteJuego` puede conectarse directamente a una instancia de `ServidorJuego`.
+
+```csharp
+var servidor = new ServidorJuego();
+var cliente = new ClienteJuego();
+
+cliente.Connect(servidor);
+```
+
+El flujo lógico continúa siendo:
+
+```text
+ClienteJuego
+    ↓
+solicitud
+    ↓
+ServidorJuego
+    ↓
+respuesta
+    ↓
+ClienteJuego
+```
+
+La diferencia es que los datos no tienen que abandonar el proceso para llegar al otro extremo.
+
+## Qué se mantiene igual [#qué-se-mantiene-igual]
+
+El modo local no elimina los conceptos fundamentales de Eco. Siguen existiendo:
+
+* `Jugador` y estado de jugador.
+* `Canal` y pertenencia a canales.
+* `Objeto` y `Componente`.
+* RFC y destinatarios.
+* Sincronización de estado.
+* Persistencia y estado de servidor cuando corresponda.
+
+Por eso es posible utilizarlo para validar buena parte de la lógica del juego antes de desplegar un servidor independiente.
+
+## Qué cambia [#qué-cambia]
+
+Aunque el modelo lógico sea el mismo, el entorno local no reproduce las condiciones de una red real.
+
+```text
+Servidor local
+├── sin latencia de red real
+├── sin pérdida real de paquetes
+├── sin NAT
+└── sin separación entre procesos
+```
+
+Esto significa que una prueba correcta en local no demuestra por sí sola que una implementación esté preparada para condiciones reales de Internet o de una LAN.
+
+## Ventajas [#ventajas]
+
+El servidor local resulta especialmente útil para:
+
+| Caso                             | Utilidad |
+| -------------------------------- | -------- |
+| Pruebas automatizadas            | Alta     |
+| Desarrollo rápido                | Alta     |
+| Prototipos                       | Alta     |
+| Herramientas de depuración       | Alta     |
+| Simular varios jugadores         | Alta     |
+| Medir comportamiento real de red | Baja     |
+
+## Ejemplo: iniciar una partida local [#ejemplo-iniciar-una-partida-local]
+
+Un patrón habitual es crear el servidor, conectar el cliente y solicitar un canal:
+
+```csharp
+var servidor = new ServidorJuego();
+var cliente = new ClienteJuego();
+
+cliente.Connect(servidor);
+
+cliente.JoinChannel(
+    channelID: 1,
+    levelName: "Arena",
+    persistent: false,
+    playerLimit: 4,
+    password: ""
+);
+```
+
+Desde ese momento el resto de la lógica puede utilizar `Canal`, `Objeto`, RFC y sincronización de la misma forma que en una conexión remota.
+
+## Servidor local y pruebas multijugador [#servidor-local-y-pruebas-multijugador]
+
+El modo local también puede utilizarse para levantar varias instancias de cliente en un mismo proceso si la arquitectura del juego lo permite.
+
+```text
+          ServidorJuego
+          /     |      \
+         /      |       \
+Cliente A   Cliente B   Cliente C
+```
+
+Esto permite probar:
+
+* entrada y salida de jugadores;
+* propiedad de objetos;
+* sincronización;
+* múltiples canales;
+* RFC y destinatarios;
+* creación y destrucción de objetos.
+
+Debe tenerse en cuenta que todos los clientes comparten el mismo proceso y, por tanto, no existe el aislamiento que tendrían procesos o máquinas diferentes.
+
+## Cuándo no utilizarlo como prueba final [#cuándo-no-utilizarlo-como-prueba-final]
+
+El servidor local no debe ser la única validación de una funcionalidad que dependa de las propiedades reales de una red.
+
+Antes de considerar una funcionalidad lista para producción conviene probar también:
+
+```text
+Servidor local
+      ↓
+LAN / servidor independiente
+      ↓
+Internet / condiciones reales
+```
+
+Especialmente cuando la funcionalidad depende de UDP, latencia, pérdida de paquetes, desconexiones o tiempos de respuesta.
+
+## Relación con `Runtime` [#relación-con-runtime]
+
+La arquitectura del servidor local pertenece al runtime, no al transporte. El transporte real puede desaparecer, pero el servidor y el cliente siguen ejecutando sus respectivas responsabilidades.
+
+```text
+Runtime
+├── ClienteJuego
+├── ServidorJuego
+└── Servidor local
+       │
+       └── conexión interna
+```
+
+## Relación con TNet [#relación-con-tnet]
+
+Eco conserva el concepto de servidor local presente en la arquitectura heredada de TNet. La nomenclatura actual utiliza `ServidorJuego` y `ClienteJuego`.
+
+La referencia normativa sigue siendo el código de `Nervelink/eco`.
+
+## Referencias [#referencias]
+
+<Card title="Runtime · Cliente" href="/docs/red/v1/runtime/cliente">
+  Gestión de conexiones y sesión desde el lado cliente.
+</Card>
+
+<Card title="Runtime · Servidor" href="/docs/red/v1/runtime/servidor">
+  Estado autoritativo y gestión de jugadores y canales.
+</Card>
+
+<Card title="Servidor local · Eco" href="https://github.com/Nervelink/eco/tree/main/src/Assets/Pandora/Logica/Nucleo/Core/Red">
+  Código fuente de la implementación actual de Eco.
+</Card>
+
+<Card title="TNet upstream" href="https://github.com/tasharen/tnet">
+  Repositorio original de la arquitectura heredada.
 </Card>
 
 
@@ -3254,4 +3218,240 @@ El modelo corresponde al de los protocolos TCP y UDP de TNet, pero Eco utiliza `
 
 <Card title="TNet" href="https://github.com/tasharen/tnet">
   Repositorio upstream.
+</Card>
+
+
+# Arquitectura (/docs/red/v1/fundamentos/arquitectura)
+
+
+
+# Arquitectura de Eco [#arquitectura-de-eco]
+
+Eco es la capa de red utilizada por Pandora. Su implementación procede de TNet 3, pero expone una nomenclatura y una organización propias de Nervelink.
+
+La documentación de Eco describe el comportamiento del código actual de `Nervelink/eco`. Las equivalencias con TNet se utilizan como referencia, no como contrato de la API.
+
+<Callout title="Idea principal" type="info">
+  Eco no debe entenderse como una colección de RPC aislados. Su arquitectura gira alrededor de conexiones, canales, jugadores, objetos de red, componentes, mensajes y sincronización de estado.
+</Callout>
+
+## Vista general [#vista-general]
+
+```text
+                              Eco
+                               │
+              ┌────────────────┼────────────────┐
+              │                │                │
+           Cliente          Servidor        Común
+              │                │                │
+       ┌──────┼──────┐         │        ┌───────┼────────┐
+       │      │      │         │        │       │        │
+   Conexión  Canal  Objetos   Canales  Paquetes  Buffer  Serialización
+              │      │
+              │      ├── Objeto
+              │      │     └── Componente
+              │      │
+              └──────┴── Jugadores
+```
+
+## Capas principales [#capas-principales]
+
+### Cliente [#cliente]
+
+La capa cliente contiene la lógica que conecta una instancia del juego con un servidor, procesa el tráfico recibido y mantiene la representación local de los canales y objetos de red.
+
+### Servidor [#servidor]
+
+El servidor mantiene el estado compartido, administra canales y jugadores y procesa las operaciones que deben existir fuera de una instancia concreta del juego.
+
+### Común [#común]
+
+La capa común contiene los tipos que necesitan compartir cliente y servidor: paquetes, buffers, identificadores, serialización y estructuras utilizadas para representar el protocolo.
+
+## Objetos de red [#objetos-de-red]
+
+Un objeto de red representa una entidad que Eco puede identificar y sincronizar dentro de un canal.
+
+```text
+Objeto
+├── Identidad
+├── Propietario
+├── Canal(es)
+├── Estado
+└── Componentes
+```
+
+## Canales [#canales]
+
+El `Canal` delimita el ámbito en el que se comparte estado entre jugadores. Una conexión puede participar en uno o varios canales.
+
+## Flujo conceptual de un mensaje [#flujo-conceptual-de-un-mensaje]
+
+```text
+Juego
+  ↓
+Objeto / Componente
+  ↓
+Eco
+  ↓
+Paquete
+  ↓
+Transporte
+  ↓
+Servidor
+  ↓
+Canal / destinatarios
+  ↓
+Paquete
+  ↓
+Cliente remoto
+```
+
+## Relación con TNet [#relación-con-tnet]
+
+| TNet                    | Eco          |
+| ----------------------- | ------------ |
+| `TNManager`             | `Eco`        |
+| `TNObject`              | `Objeto`     |
+| `TNBehaviour`           | `Componente` |
+| `TNChannel` / `Channel` | `Canal`      |
+| `TNPacket` / `Packet`   | `Paquete`    |
+| `TNBuffer`              | `Buffer`     |
+| `Player`                | `Jugador`    |
+
+## Referencias [#referencias]
+
+<Card title="Repositorio Eco" href="https://github.com/Nervelink/eco">
+  Código fuente de la implementación de Eco.
+</Card>
+
+<Card title="TNet" href="https://github.com/tasharen/tnet">
+  Repositorio original del que procede la base de Eco.
+</Card>
+
+<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
+  Documentación generada sobre el repositorio actual de TNet.
+</Card>
+
+
+# Conceptos (/docs/red/v1/fundamentos/conceptos)
+
+
+
+# Conceptos [#conceptos]
+
+Eco organiza la red alrededor de unas pocas piezas fundamentales. Entender su relación evita confundir conexión, canal, jugador, objeto y componente.
+
+<Callout title="Regla general" type="info">
+  Una conexión representa la comunicación con el servidor; un jugador representa a un participante; un canal define un ámbito de estado compartido; un objeto representa una entidad de red; y sus componentes implementan el comportamiento.
+</Callout>
+
+## Conexión [#conexión]
+
+La conexión representa el vínculo de transporte entre una instancia del juego y el servidor. No define por sí sola qué objetos o estado debe conocer el cliente.
+
+## Jugador [#jugador]
+
+Un `Jugador` representa a un participante de la sesión dentro de la infraestructura de red. Sirve para identificar presencia, propiedad y destinatarios.
+
+## Canal [#canal]
+
+Un `Canal` define un ámbito de estado compartido. Un mismo jugador puede participar simultáneamente en varios canales.
+
+```text
+Servidor
+  ├── Canal A → Jugador 1, Jugador 2
+  └── Canal B → Jugador 2, Jugador 3
+```
+
+## Objeto [#objeto]
+
+Un `Objeto` es una identidad de red que Eco puede registrar, localizar, sincronizar y destruir.
+
+```text
+Objeto
+├── ID de red
+├── Propietario
+├── Estado
+├── Canal(es)
+└── Componentes
+```
+
+## Componente [#componente]
+
+Un `Componente` contiene comportamiento de red asociado a un `Objeto`. Esta separación permite mantener la identidad de red independiente de la funcionalidad concreta.
+
+## Propietario [#propietario]
+
+El propietario identifica al jugador que tiene autoridad sobre determinadas operaciones del objeto. La propiedad no implica que el objeto sea invisible para los demás participantes.
+
+## Paquete [#paquete]
+
+Un `Paquete` representa una unidad del protocolo de Eco. Transporta comandos, eventos y datos entre clientes y servidor.
+
+## Buffer [#buffer]
+
+Un `Buffer` proporciona las operaciones de lectura y escritura utilizadas para serializar los datos que Eco intercambia.
+
+## Estado [#estado]
+
+Eco distingue entre comunicar una acción y mantener un estado. Una RFC puede comunicar que algo ocurrió; un mecanismo de sincronización mantiene valores que deben converger entre participantes.
+
+## Relación entre conceptos [#relación-entre-conceptos]
+
+```text
+Servidor
+ │
+ ├── Conexiones
+ │     └── Jugadores
+ │
+ └── Canales
+       └── Objetos
+             └── Componentes
+                   ├── RFC
+                   ├── Sync
+                   └── Datos
+                         ↓
+                      Paquetes
+                         ↓
+                      Transporte
+```
+
+## Correspondencia con TNet [#correspondencia-con-tnet]
+
+| Eco          | TNet                    | Función                           |
+| ------------ | ----------------------- | --------------------------------- |
+| `Eco`        | `TNManager`             | Gestión principal del cliente     |
+| `Jugador`    | `Player`                | Participante de la sesión         |
+| `Canal`      | `Channel` / `TNChannel` | Ámbito de estado compartido       |
+| `Objeto`     | `TNObject`              | Identidad de red                  |
+| `Componente` | `TNBehaviour`           | Comportamiento asociado al objeto |
+| `Paquete`    | `Packet` / `TNPacket`   | Mensaje del protocolo             |
+| `Buffer`     | `TNBuffer`              | Serialización binaria             |
+
+## Referencias [#referencias]
+
+<Card title="TNet en GitHub" href="https://github.com/tasharen/tnet">
+  Repositorio upstream y fuente de referencia de la implementación heredada.
+</Card>
+
+<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
+  Vista generada de la arquitectura actual de TNet.
+</Card>
+
+
+# Fundamentos (/docs/red/v1/fundamentos)
+
+
+
+# Fundamentos [#fundamentos]
+
+Esta sección establece el modelo mental necesario para trabajar con Eco antes de entrar en sus mecanismos concretos.
+
+<Card title="Arquitectura" href="/docs/red/v1/fundamentos/arquitectura">
+  Cómo se organiza Eco y cómo fluye la información entre sus capas.
+</Card>
+
+<Card title="Conceptos" href="/docs/red/v1/fundamentos/conceptos">
+  Conexiones, jugadores, canales, objetos, componentes, estado y mensajes.
 </Card>
