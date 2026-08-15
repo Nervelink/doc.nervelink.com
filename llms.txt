@@ -41,6 +41,7 @@
 
     - **Cliente**
     - [Cliente](/docs/red/v1/cliente): Ciclo de vida del cliente de Eco, conexión, transporte y gestión de la sesión de red.
+    - [Servidor](/docs/red/v1/servidor)
 - Ui
   - UI
     - [UI - Nerve Docs](/docs/ui/v1): Sistemas principales
