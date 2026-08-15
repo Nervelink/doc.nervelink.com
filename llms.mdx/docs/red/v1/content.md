@@ -1,55 +1,100 @@
-# Red · Eco v1 (/docs/red/v1)
+# Inicio Rápido (/docs/red/v1)
 
 
 
-# Red · Eco v1 [#red--eco-v1]
+<Callout title="¿Qué es Eco?" type="info">
+  Eco es la capa de red de Pandora basada en TNet 3. Mantiene su modelo de conexión, canales, objetos, comunicación y sincronización, pero utiliza la nomenclatura y organización propias de Nervelink.
+</Callout>
 
-Eco es la capa de networking de Pandora. Su implementación parte de TNet 3 y conserva su modelo de comunicación, canales, objetos de red, sincronización y persistencia, pero expone una API adaptada a la nomenclatura y arquitectura de Nervelink.
+## Antes de empezar [#antes-de-empezar]
 
-La documentación de esta versión se centra en el comportamiento real de `eco`, no en los ejemplos históricos de TNet.
+La documentación está escrita para el comportamiento actual de `Nervelink/eco`. Los ejemplos y conceptos de TNet se utilizan como referencia histórica y para facilitar la transición, pero la implementación de Eco es la fuente de verdad.
 
-## Mapa rápido [#mapa-rápido]
+## Compatibilidad [#compatibilidad]
 
-```text
-Eco
-├── Cliente
-├── Común
-├── Servidor
-├── Serialización y buffers
-├── Sincronización
-└── Objetos y canales
-```
+### Unity [#unity]
 
-## Conceptos principales [#conceptos-principales]
+Eco está integrado como código de proyecto Unity. La compatibilidad concreta depende de la versión de Unity utilizada por el proyecto `eco` y de sus paquetes.
 
-| TNet                    | Eco               | Propósito                                    |
-| ----------------------- | ----------------- | -------------------------------------------- |
-| `TNManager`             | `Eco`             | Punto de entrada y gestión de la red         |
-| `TNObject`              | `Objeto`          | Identidad y estado de un objeto de red       |
-| `TNBehaviour`           | `Componente`      | Comportamiento de red asociado a un objeto   |
-| `Channel` / `TNChannel` | `Canal`           | Agrupa jugadores y estado compartido         |
-| `Packet` / `TNPacket`   | `Paquete`         | Representa mensajes del protocolo            |
-| `TNBuffer`              | `Buffer`          | Lectura y escritura binaria                  |
-| `TNList`                | `Lista`           | Colección utilizada por la infraestructura   |
-| `TNDatagram`            | `Datagrama`       | Unidad asociada al transporte de datagramas  |
-| `TNFieldOrProperty`     | `CampoOPropiedad` | Abstracción para acceso reflejado a miembros |
+### Plataformas [#plataformas]
 
-## Estructura del código [#estructura-del-código]
+La disponibilidad de TCP, UDP y determinadas APIs puede variar según la plataforma y las directivas de compilación utilizadas por Eco.
 
-La implementación se encuentra en el proyecto Unity de `Nervelink/eco`, principalmente bajo:
+### Proyecto [#proyecto]
+
+La integración presupone la estructura y dependencias del proyecto que contiene Eco. Las páginas de integración explican qué partes son necesarias y cuáles son opcionales.
+
+## Tu primer recorrido [#tu-primer-recorrido]
+
+Para entender Eco sin entrar todavía en todos sus detalles internos, sigue este orden:
 
 ```text
-src/Assets/Pandora/Logica/Nucleo/Core/Red/
+Inicio rápido
+     ↓
+Fundamentos
+     ↓
+Modelo de red
+     ↓
+Comunicación
+     ↓
+Transporte
+     ↓
+Runtime
 ```
 
-La estructura separa principalmente código de cliente y código común, además de las áreas auxiliares de runtime, ejemplos y compresión.
+### 1. Entender la arquitectura [#1-entender-la-arquitectura]
 
-## Principios de esta documentación [#principios-de-esta-documentación]
+Empieza por [Arquitectura](/docs/red/v1/fundamentos/arquitectura) para conocer la relación entre `Eco`, conexiones, canales, objetos, componentes y transporte.
 
-Esta documentación distingue entre tres cosas:
+### 2. Aprender el modelo de red [#2-aprender-el-modelo-de-red]
 
-* comportamiento heredado de TNet;
-* cambios realizados por Eco;
-* decisiones propias de la arquitectura de Pandora.
+Continúa con [Conceptos](/docs/red/v1/fundamentos/conceptos) y después con [Modelo de red](/docs/red/v1/modelo), especialmente [Canales](/docs/red/v1/modelo/canales) y [Objetos](/docs/red/v1/modelo/objetos).
 
-Cuando una página describe una API concreta, la fuente de referencia es el código de `eco` y no un tutorial antiguo de TNet.
+### 3. Elegir cómo comunicarte [#3-elegir-cómo-comunicarte]
+
+[Comunicación](/docs/red/v1/comunicacion) explica la diferencia entre RFC, estado y sincronización.
+
+### 4. Entender qué viaja por la red [#4-entender-qué-viaja-por-la-red]
+
+[Transporte](/docs/red/v1/transporte) cubre `Paquete`, `Buffer`, serialización y los transportes TCP/UDP.
+
+### 5. Ejecutar cliente y servidor [#5-ejecutar-cliente-y-servidor]
+
+[Runtime](/docs/red/v1/runtime) explica cómo se comportan `ClienteJuego`, `ServidorJuego` y el modo local.
+
+## Estructura mental de Eco [#estructura-mental-de-eco]
+
+```text
+                        Eco
+                         │
+       ┌─────────────────┼─────────────────┐
+       │                 │                 │
+   Fundamentos      Modelo de red     Comunicación
+                         │                 │
+                 ┌───────┴───────┐   ┌─────┴─────┐
+                 │               │   │           │
+              Canales         Objetos       RFC / Sync
+                 │               │
+                 └───────┬───────┘
+                         │
+                    Transporte
+                         │
+                    TCP / UDP
+                         │
+                    Runtime
+              ┌──────────┴──────────┐
+              │                     │
+           Cliente               Servidor
+```
+
+## Siguiente paso [#siguiente-paso]
+
+Antes de desarrollar una funcionalidad propia, consulta [Requisitos y limitaciones](/docs/red/v1/requisitos) para conocer las condiciones que pueden afectar a la integración.
+
+<Card title="Requisitos y limitaciones" href="/docs/red/v1/requisitos">
+  Compatibilidad, dependencias, restricciones conocidas y límites de la implementación.
+</Card>
+
+<Card title="Preguntas frecuentes" href="/docs/red/v1/preguntas-frecuentes">
+  Respuestas rápidas a las dudas más habituales sobre Eco y su relación con TNet.
+</Card>

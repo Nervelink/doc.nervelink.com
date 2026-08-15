@@ -16,7 +16,11 @@
   - Red
 
     - **Introducción**
-    - [Red · Eco v1](/docs/red/v1): Arquitectura y uso de la capa de red Eco basada en TNet 3.
+    - [Inicio Rápido](/docs/red/v1): Aprende lo esencial de Eco y prepara tu proyecto para comenzar a trabajar con la red.
+    - [Requisitos y limitaciones](/docs/red/v1/requisitos): Condiciones de integración, dependencias y restricciones que debes conocer antes de utilizar Eco.
+    - [Preguntas frecuentes](/docs/red/v1/preguntas-frecuentes): Respuestas a las dudas más habituales sobre la arquitectura y el uso de Eco.
+
+    - **Contenido**
     - Fundamentos
       - [Fundamentos](/docs/red/v1/fundamentos): Los conceptos que definen la arquitectura y el modelo mental de Eco.
       - [Conceptos](/docs/red/v1/fundamentos/conceptos): Las piezas que forman el modelo de red de Eco y cómo se relacionan entre sí.
@@ -43,6 +47,10 @@
       - [Servidor](/docs/red/v1/runtime/servidor): Estado autoritativo, jugadores, canales y procesamiento del lado servidor.
     - Referencia
       - [Referencia](/docs/red/v1/referencia): Fuentes, equivalencias y material de consulta para trabajar con Eco.
+      - [TNet upstream](/docs/red/v1/referencia/upstream): Relación de Eco con la implementación original de TNet.
+      - [Equivalencias Eco ↔ TNet](/docs/red/v1/referencia/equivalencias): Mapa de nomenclatura entre Eco y la implementación de TNet.
+      - [DeepWiki · TNet](/docs/red/v1/referencia/deepwiki): Referencia generada para explorar la arquitectura del TNet upstream.
+      - [Diferencias de Eco](/docs/red/v1/referencia/diferencias): Cambios de Eco respecto a la arquitectura heredada de TNet.
 - Ui
   - UI
     - [UI - Nerve Docs](/docs/ui/v1): Sistemas principales
