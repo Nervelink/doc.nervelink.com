@@ -107,6 +107,7 @@
       - [Transferir archivos](/docs/red/v1/guias/transferir-archivos): Utiliza las funciones de archivos de Eco para solicitar listados y cargar contenido desde el servidor.
       - [Desconectar y limpiar la sesión](/docs/red/v1/guias/desconectar-limpiar): Cierra una sesión de Eco y evita conservar estado de una conexión anterior.
       - [Diagnosticar una conexión](/docs/red/v1/guias/diagnosticar-conexion): Identifica problemas de conexión, canales, paquetes y transporte utilizando el estado expuesto por Eco.
+      - [Arquitectura de un Tower Defense multijugador](/docs/red/v1/guias/arquitectura-tower-defense): Pautas de ingeniería para construir un Tower Defense 3D de hasta cuatro jugadores utilizando Eco.
     - Ejemplos
       - [Ejemplos](/docs/red/v1/ejemplos): Ejemplos reales incluidos en el repositorio de Eco y su traducción al workflow actual del proyecto.
       - [AutoUnirse](/docs/red/v1/ejemplos/auto-unirse): Conexión y entrada automática a un canal mediante el componente AutoUnirse.
