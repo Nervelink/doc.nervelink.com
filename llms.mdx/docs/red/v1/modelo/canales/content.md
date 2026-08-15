@@ -4,95 +4,157 @@
 
 # Canales [#canales]
 
-Un `Canal` define un ámbito de estado compartido dentro del servidor de Eco. Los jugadores que forman parte de un canal pueden recibir la información que ese canal distribuye, incluyendo mensajes y estado asociado a sus objetos.
+Un `Canal` define un ámbito de estado compartido dentro de Eco. Agrupa jugadores, objetos, nivel, datos y operaciones persistentes que pertenecen a una misma sesión lógica.
 
-<Callout title="Punto importante" type="info">
-  Una conexión no está limitada a un único canal. Eco mantiene una colección de canales activos por cliente, por lo que un mismo jugador puede participar simultáneamente en varios ámbitos de red.
+<Callout title="Canal ≠ conexión" type="warn">
+  Una conexión física puede participar en varios canales simultáneamente. Nunca modeles un canal como si fuera un socket.
 </Callout>
 
-## Modelo [#modelo]
+## Qué contiene un canal [#qué-contiene-un-canal]
+
+<Cards>
+  <Card title="Jugadores">
+    Participantes que pertenecen al ámbito del canal y pueden recibir su estado.
+  </Card>
+
+  <Card title="Objetos">
+    Entidades de red cuyo `channelID` identifica el contexto donde viven.
+  </Card>
+
+  <Card title="Estado">
+    Nivel, datos del canal y RFC/estado que deben poder reconstruirse.
+  </Card>
+
+  <Card title="Autoridad">
+    Host, ownership y reglas de modificación que dependen del contexto del canal.
+  </Card>
+</Cards>
+
+## Modelo mental [#modelo-mental]
 
 ```text
-Servidor
+Conexión
 │
-├── Canal 10
+├── Canal 10 · Mundo
 │   ├── Jugador A
-│   └── Jugador B
-│
-├── Canal 20
 │   ├── Jugador B
-│   └── Jugador C
+│   └── Objetos
 │
-└── Canal 30
-    └── Jugador A
+├── Canal 20 · Partida
+│   ├── Jugador A
+│   └── Objetos
+│
+└── Canal 30 · Evento
+    └── Jugador C
 ```
 
-El mismo jugador puede aparecer en varios canales. En el cliente, esta pertenencia se representa mediante una colección interna de `Canal` mantenida por `ClienteJuego`. La API expone esa colección mediante `channels`.
+## Estado relevante [#estado-relevante]
 
-## Estado de un canal [#estado-de-un-canal]
+La implementación mantiene propiedades como `id`, `level`, `isPersistent`, `isClosed`, `isLeaving`, `playerLimit`, `jugadores`, `rfcs`, `created`, `destroyed` y `host`.
 
-`Canal` mantiene información suficiente para representar tanto su configuración como su estado de red. Entre sus propiedades se encuentran `id`, `password`, `level`, `isPersistent`, `isClosed`, `isLeaving`, `playerLimit`, `jugadores`, `rfcs`, `created`, `destroyed` y `host`.
+No todas estas propiedades deben ser manipuladas directamente. Parte de ellas representan el estado interno que mantiene Eco durante las transiciones.
 
-## Unirse a un canal [#unirse-a-un-canal]
+## Entrada al canal [#entrada-al-canal]
 
-El cliente utiliza `ClienteJuego.JoinChannel` para solicitar la entrada en un canal. La solicitud incluye identificador, contraseña, nivel, persistencia y límite de jugadores.
+<div className="fd-steps">
+  <div className="fd-step">
+    ### Solicitar la entrada \[step] [#1-solicitar-la-entrada-step]
 
-```csharp
-cliente.JoinChannel(
-    channelID: 10,
-    levelName: "Arena",
-    persistent: false,
-    playerLimit: 4,
-    password: ""
-);
-```
+    ```csharp
+    cliente.JoinChannel(
+        channelID: 10,
+        levelName: "Arena",
+        persistent: false,
+        playerLimit: 4,
+        password: ""
+    );
+    ```
+  </div>
 
-Durante el proceso de unión, Eco registra el canal como pendiente hasta recibir la respuesta del servidor.
+  <div className="fd-step">
+    ### Esperar la confirmación \[step] [#2-esperar-la-confirmación-step]
 
-## Múltiples canales simultáneos [#múltiples-canales-simultáneos]
+    Eco registra el identificador como pendiente mientras espera la respuesta del servidor. Durante esta fase no debes tratar el canal como completamente operativo.
+  </div>
 
-La pertenencia a canales es acumulativa. Un cliente puede participar simultáneamente en varios canales:
+  <div className="fd-step">
+    ### Comprobar la pertenencia \[step] [#3-comprobar-la-pertenencia-step]
 
-```csharp
+    ```csharp
+    if (cliente.IsInChannel(10))
+    {
+        Canal canal = cliente.GetChannel(10);
+    }
+    ```
+
+    `IsJoiningChannel(10)` permite diferenciar el estado pendiente del estado confirmado.
+  </div>
+</div>
+
+## Varios canales [#varios-canales]
+
+```csharp title="Mundo + partida"
 cliente.JoinChannel(10, "Mundo", true, 100, "");
 cliente.JoinChannel(20, "Partida", false, 4, "");
 ```
 
-`IsInChannel(id)` comprueba la pertenencia y `GetChannel(id)` obtiene la instancia local.
+```text
+Jugador A
+   │
+   ├── Canal 10 → mundo persistente
+   └── Canal 20 → partida actual
+```
 
-<Callout title="No confundir canal y transporte" type="warn">
-  Dos canales distintos no implican dos conexiones de socket distintas. La conexión y el transporte pertenecen a una capa inferior; el canal delimita el estado y los destinatarios.
-</Callout>
+Consulta la guía [Varios canales simultáneos](/docs/red/v1/guias/multiples-canales) para un workflow completo.
 
-## Consultar y abandonar [#consultar-y-abandonar]
+## Salir de un canal [#salir-de-un-canal]
 
 ```csharp
-bool cualquiera = cliente.isInChannel;
-bool estaDentro = cliente.IsInChannel(20);
-bool uniendose = cliente.IsJoiningChannel(20);
-Canal canal = cliente.GetChannel(20);
-
 cliente.LeaveChannel(20);
+```
+
+Abandonar un canal no desconecta al cliente y no elimina automáticamente su pertenencia a otros canales.
+
+Para cerrar todos los contextos activos:
+
+```csharp
 cliente.LeaveAllChannels();
 ```
 
-Salir de un canal no implica desconectarse del servidor.
+## Nivel, host y persistencia [#nivel-host-y-persistencia]
 
-## Persistencia y propiedad [#persistencia-y-propiedad]
+El canal también es el contexto de operaciones coordinadas como el cambio de nivel y la persistencia.
 
-Un canal puede ser persistente. Cuando el último jugador abandona, Eco puede destruir objetos no persistentes, transferir la propiedad de otros objetos o cerrar y reiniciar el canal según su configuración.
+<Tabs items="['Temporal', 'Persistente']">
+  <Tab value="Temporal">
+    El canal representa una sesión que puede cerrarse y liberar su estado cuando ya no quedan participantes y no existen condiciones que lo mantengan abierto.
+  </Tab>
 
-También mantiene objetos dinámicos y RFC asociadas para poder reconstruir el estado cuando corresponde.
+  <Tab value="Persistente">
+    El canal puede mantener su estado sin jugadores activos para poder ser recuperado posteriormente.
+  </Tab>
+</Tabs>
 
-## Nivel y host [#nivel-y-host]
+## Reglas de diseño [#reglas-de-diseño]
 
-Cada canal puede tener un `level` y un `host`. El cambio de nivel se coordina a través del sistema de red y el host puede cambiar cuando abandona el canal.
+<Callout title="Diseña por ámbito" type="idea">
+  Si dos sistemas necesitan ciclos de vida diferentes, considera separarlos en canales distintos. Si sólo necesitas enviar una orden diferente a un jugador, probablemente no necesitas otro canal.
+</Callout>
+
+| Necesidad                 | Canal             |
+| ------------------------- | ----------------- |
+| Mundo persistente         | Sí                |
+| Partida independiente     | Sí                |
+| Evento temporal aislado   | Sí                |
+| Mensaje a un solo jugador | No necesariamente |
+| Separar TCP/UDP           | No                |
+| Identificar una entidad   | No; usa `Objeto`  |
 
 ## Correspondencia con TNet [#correspondencia-con-tnet]
 
 | TNet                     | Eco                         |
 | ------------------------ | --------------------------- |
-| `TNChannel` / `Channel`  | `Canal`                     |
+| `Channel`                | `Canal`                     |
 | `TNManager.JoinChannel`  | `ClienteJuego.JoinChannel`  |
 | `TNManager.LeaveChannel` | `ClienteJuego.LeaveChannel` |
 | `TNManager.IsInChannel`  | `ClienteJuego.IsInChannel`  |
@@ -100,14 +162,16 @@ Cada canal puede tener un `level` y un `host`. El cambio de nivel se coordina a 
 
 ## Referencias [#referencias]
 
-<Card title="Eco" href="https://github.com/Nervelink/eco/tree/main/src/Assets/Pandora/Logica/Nucleo/Core/Red">
-  Código fuente de la implementación de canales.
-</Card>
+<Cards>
+  <Card title="Modelo de objetos" href="/docs/red/v1/modelo/objetos">
+    Cómo se relacionan objeto, canal, jugador y ownership.
+  </Card>
 
-<Card title="TNet" href="https://github.com/tasharen/tnet">
-  Repositorio upstream.
-</Card>
+  <Card title="Varios canales" href="/docs/red/v1/guias/multiples-canales">
+    Ejemplo práctico de una conexión participando en varios canales.
+  </Card>
 
-<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
-  Referencia generada sobre la implementación actual de TNet.
-</Card>
+  <Card title="Canal.cs · Eco" href="https://github.com/Nervelink/eco/tree/main/src/Assets/Pandora/Logica/Nucleo/Core/Red">
+    Implementación actual del modelo de canal.
+  </Card>
+</Cards>

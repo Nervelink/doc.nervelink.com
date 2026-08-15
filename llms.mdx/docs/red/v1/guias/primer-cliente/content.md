@@ -4,143 +4,175 @@
 
 # Primer cliente [#primer-cliente]
 
-Esta guía muestra el recorrido mínimo para conectar un cliente de Eco a un servidor y comprobar que la sesión está operativa.
+Esta guía cubre el recorrido mínimo desde una instancia de juego sin sesión hasta un cliente conectado y dentro de un canal.
 
-<Callout title="Antes de empezar" type="info">
-  Esta guía asume que ya conoces la estructura básica de Eco y que el proyecto incluye las partes de cliente necesarias. Para entender la arquitectura antes de escribir código, consulta [Fundamentos](/docs/red/v1/fundamentos).
+<Callout title="Objetivo" type="info">
+  Al terminar tendrás una secuencia fiable: conexión → handshake → canal → comprobación de estado. No añadiremos objetos ni gameplay hasta que este flujo sea estable.
 </Callout>
 
-## 1. Obtener el cliente [#1-obtener-el-cliente]
-
-La implementación de Eco concentra la gestión de sesión en `ClienteJuego`. La fachada que utilices desde tu proyecto debe proporcionar acceso a esa instancia según la arquitectura de Pandora.
-
-Conceptualmente:
+## Flujo [#flujo]
 
 ```text
-Juego
-  ↓
+Aplicación
+   ↓
 Eco
-  ↓
+   ↓
 ClienteJuego
+   ↓
+Handshake
+   ↓
+Canal
+   ↓
+Sesión lista
 ```
 
-## 2. Conectar [#2-conectar]
+## Preparación [#preparación]
 
-El cliente puede conectarse a un servidor remoto mediante su endpoint de red.
+La lógica de cliente se concentra en `ClienteJuego`. La fachada de Pandora puede exponerlo de otra forma, pero el modelo interno sigue teniendo estados independientes para conexión y pertenencia a canales.
 
-```csharp
-cliente.Connect(endpoint);
-```
+## Conectar [#conectar]
 
-En este punto comienza el ciclo de conexión y handshake. No asumas que la conexión está lista inmediatamente después de llamar a `Connect`.
+<div className="fd-steps">
+  <div className="fd-step">
+    ### Crear la intención de conexión \[step] [#1-crear-la-intención-de-conexión-step]
 
-## 3. Esperar el estado conectado [#3-esperar-el-estado-conectado]
+    ```csharp title="Conectar con el servidor"
+    cliente.Connect(endpoint);
+    ```
 
-Comprueba el estado de la sesión antes de realizar operaciones que dependan del servidor.
+    `Connect` inicia el proceso; no implica que la sesión esté lista en la misma instrucción.
+  </div>
 
-```csharp
-if (cliente.isConnected)
-{
-    // La sesión está disponible.
-}
-```
+  <div className="fd-step">
+    ### Esperar el handshake \[step] [#2-esperar-el-handshake-step]
 
-El cliente también mantiene estados separados para el intento de conexión y la entrada a canales.
+    Comprueba el estado de conexión antes de solicitar operaciones dependientes del servidor.
+
+    ```csharp
+    if (!cliente.isConnected)
+    {
+        return;
+    }
+    ```
+  </div>
+
+  <div className="fd-step">
+    ### Solicitar un canal \[step] [#3-solicitar-un-canal-step]
+
+    ```csharp
+    cliente.JoinChannel(
+        channelID: 1,
+        levelName: "Game",
+        persistent: false,
+        playerLimit: 4,
+        password: ""
+    );
+    ```
+  </div>
+
+  <div className="fd-step">
+    ### Esperar la entrada \[step] [#4-esperar-la-entrada-step]
+
+    Mientras Eco espera la respuesta, `IsJoiningChannel(1)` puede indicar que la operación todavía está pendiente.
+
+    ```csharp
+    if (cliente.IsJoiningChannel(1))
+    {
+        // Todavía no usar el canal como si estuviera listo.
+    }
+    ```
+  </div>
+
+  <div className="fd-step">
+    ### Validar el canal \[step] [#5-validar-el-canal-step]
+
+    ```csharp
+    if (cliente.IsInChannel(1))
+    {
+        Canal canal = cliente.GetChannel(1);
+    }
+    ```
+  </div>
+</div>
+
+## Cliente remoto vs local [#cliente-remoto-vs-local]
+
+<Tabs items="['Remoto', 'Servidor local']">
+  <Tab value="Remoto">
+    `ClienteJuego` utiliza la conexión de red y el protocolo normal. Es el entorno que debes utilizar para validar comportamiento real entre procesos o máquinas.
+  </Tab>
+
+  <Tab value="Servidor local">
+    Eco puede asociar un `ServidorJuego` local para ejecutar cliente y servidor en el mismo proceso. Es excelente para pruebas, pero no reproduce todas las condiciones de una conexión real.
+  </Tab>
+</Tabs>
+
+## Estado de la sesión [#estado-de-la-sesión]
 
 ```text
-Intentando conectar
-        ↓
-     Handshake
-        ↓
-    Conectado
-        ↓
-   Sin canal todavía
-        ↓
-   Canal conectado
+isTryingToConnect
+        │
+        ▼
+     isConnected
+        │
+        ├── isJoiningChannel
+        │        │
+        │        ▼
+        └──── isInChannel
 ```
 
-## 4. Entrar en un canal [#4-entrar-en-un-canal]
+Estos estados son independientes. Conectar no te introduce automáticamente en una partida.
 
-Una vez establecida la conexión, solicita la entrada en un canal.
+## A partir de aquí [#a-partir-de-aquí]
 
-```csharp
-cliente.JoinChannel(
-    channelID: 1,
-    levelName: "Game",
-    persistent: false,
-    playerLimit: 4,
-    password: ""
-);
-```
+Una vez dentro del canal puedes:
 
-La operación es asíncrona desde el punto de vista del cliente. Eco mantiene la solicitud como pendiente hasta recibir la respuesta del servidor.
+<Cards>
+  <Card title="Crear un objeto" href="/docs/red/v1/guias/primer-objeto">
+    Añadir una entidad con identidad de red.
+  </Card>
 
-Consulta [Canales](/docs/red/v1/modelo/canales) para conocer el modelo multi-canal y las restricciones de entrada y salida.
+  <Card title="Sincronizar estado" href="/docs/red/v1/guias/sincronizar-entidad">
+    Mantener datos de la entidad sincronizados.
+  </Card>
 
-## 5. Comprobar el canal [#5-comprobar-el-canal]
-
-Cuando la respuesta de unión ha sido procesada puedes consultar la pertenencia:
-
-```csharp
-if (cliente.IsInChannel(1))
-{
-    Canal canal = cliente.GetChannel(1);
-}
-```
-
-No utilices la existencia de una solicitud de unión como si significara que el cliente ya está dentro del canal.
-
-## 6. Comprobar la comunicación [#6-comprobar-la-comunicación]
-
-A partir de este punto puedes crear objetos, enviar RFC o modificar datos de estado según las necesidades del juego.
-
-La separación recomendada es:
-
-```text
-Acción puntual       → RFC
-Estado de una entidad → datos / sincronización
-Datos binarios       → Buffer
-Transporte            → TCP / UDP
-```
-
-## 7. Desconectar correctamente [#7-desconectar-correctamente]
-
-Cuando el juego termina la sesión, utiliza el mecanismo de desconexión de Eco para liberar la sesión y los recursos de transporte.
-
-```csharp
-cliente.Disconnect();
-```
-
-No es necesario abandonar manualmente cada canal para poder cerrar la conexión; la desconexión gestiona el estado de la sesión.
+  <Card title="Enviar una acción" href="/docs/red/v1/guias/enviar-accion">
+    Ejecutar una RFC con destinatarios concretos.
+  </Card>
+</Cards>
 
 ## Errores frecuentes [#errores-frecuentes]
 
-### Intentar enviar antes de estar conectado [#intentar-enviar-antes-de-estar-conectado]
+<Callout title="Conectar no significa estar en una partida" type="warn">
+  La conexión sólo establece la sesión con el servidor. La entrada a uno o varios canales es una operación posterior.
+</Callout>
 
-Un objeto puede existir localmente antes de que el cliente tenga un canal válido y una conexión utilizable. Comprueba siempre el estado antes de depender de una operación de red.
+<Callout title="No asumas un solo canal" type="warn">
+  Eco mantiene varios canales por cliente. Evita diseñar tu estado alrededor de un único `channels[0]`.
+</Callout>
 
-### Confundir `Connect` con "ya estoy dentro de una partida" [#confundir-connect-con-ya-estoy-dentro-de-una-partida]
+## Desconexión [#desconexión]
 
-Conectar establece la sesión con el servidor. Entrar en un canal es una operación distinta.
+Cuando termines la sesión:
 
-### Suponer que sólo existe un canal [#suponer-que-sólo-existe-un-canal]
+```csharp title="Cerrar la conexión"
+cliente.Disconnect();
+```
 
-Eco permite mantener varios canales simultáneamente. No diseñes tu gestión de sesión como si `cliente.channels[0]` fuera necesariamente el único contexto de juego.
-
-## Siguiente paso [#siguiente-paso]
-
-Continúa con [Primer objeto](/docs/red/v1/guias/primer-objeto) para pasar de una conexión funcional a una entidad de red.
+No necesitas convertir la desconexión en una secuencia manual de abandono de canales; el cierre de la sesión forma parte del ciclo de vida del cliente.
 
 ## Referencias [#referencias]
 
-<Card title="Cliente" href="/docs/red/v1/runtime/cliente">
-  Referencia conceptual y de ciclo de vida de `ClienteJuego`.
-</Card>
+<Cards>
+  <Card title="ClienteJuego" href="/docs/red/v1/runtime/cliente">
+    Funcionamiento del runtime de cliente.
+  </Card>
 
-<Card title="Canales" href="/docs/red/v1/modelo/canales">
-  Cómo se gestiona la pertenencia a canales.
-</Card>
+  <Card title="Canales" href="/docs/red/v1/modelo/canales">
+    Modelo de uno o varios canales.
+  </Card>
 
-<Card title="Eco en GitHub" href="https://github.com/Nervelink/eco">
-  Código fuente de la implementación actual.
-</Card>
+  <Card title="Eco" href="https://github.com/Nervelink/eco">
+    Código fuente actual.
+  </Card>
+</Cards>

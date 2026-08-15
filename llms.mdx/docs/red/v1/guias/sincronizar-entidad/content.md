@@ -8,186 +8,206 @@ Una vez creado un objeto de red, el siguiente paso habitual es mantener parte de
 
 La idea central es sencilla: **el objeto tiene un estado y un propietario, y Eco se encarga de propagar los cambios según el modelo de autoridad**.
 
-## 1. Definir el componente [#1-definir-el-componente]
+<div className="fd-steps">
+  <div className="fd-step">
+    ## Definir el componente [#1-definir-el-componente]
 
-Crea un `Componente` que represente el comportamiento de la entidad.
+    Crea un `Componente` que represente el comportamiento de la entidad.
 
-```csharp
-public class Unidad : Componente
-{
-    public void CambiarVida(int valor)
+    ```csharp
+    public class Unidad : Componente
     {
-        Set("vida", valor);
+        public void CambiarVida(int valor)
+        {
+            Set("vida", valor);
+        }
     }
-}
-```
+    ```
 
-El `Componente` utiliza su `Objeto` asociado para acceder al estado de red.
+    El `Componente` utiliza su `Objeto` asociado para acceder al estado de red.
+  </div>
 
-## 2. Escribir el estado [#2-escribir-el-estado]
+  <div className="fd-step">
+    ## Escribir el estado [#2-escribir-el-estado]
 
-El estado puede escribirse mediante `Set`:
+    El estado puede escribirse mediante `Set`:
 
-```csharp
-Set("vida", 100);
-Set("nivel", 5);
-```
+    ```csharp
+    Set("vida", 100);
+    Set("nivel", 5);
+    ```
 
-También puedes utilizar rutas jerárquicas cuando el estado tenga más estructura:
+    También puedes utilizar rutas jerárquicas cuando el estado tenga más estructura:
 
-```csharp
-Set("estadisticas/vida", 100);
-Set("estadisticas/defensa", 25);
-```
+    ```csharp
+    Set("estadisticas/vida", 100);
+    Set("estadisticas/defensa", 25);
+    ```
 
-El valor se actualiza localmente antes de que Eco determine cómo debe propagarse.
+    El valor se actualiza localmente antes de que Eco determine cómo debe propagarse.
+  </div>
 
-## 3. Leer el estado [#3-leer-el-estado]
+  <div className="fd-step">
+    ## Leer el estado [#3-leer-el-estado]
 
-Cualquier participante que disponga del objeto puede consultar los datos mediante `Get`:
+    Cualquier participante que disponga del objeto puede consultar los datos mediante `Get`:
 
-```csharp
-int vida = Get<int>("vida");
-int nivel = Get<int>("nivel");
-```
-
-La lectura no implica comunicación con el servidor: consulta el estado local conocido por ese objeto.
-
-## 4. Entender la autoridad [#4-entender-la-autoridad]
-
-El punto más importante es decidir quién puede producir el estado.
-
-```text
-                 Objeto
-                    │
-              propietario
-                    │
-          ┌─────────┴─────────┐
-          │                   │
-        Propietario        Otros clientes
-          │                   │
-       produce             consumen
-        estado               estado
-```
-
-Cuando el cliente local es propietario, Eco puede distribuir el cambio y actualizar el estado persistente cuando corresponde.
-
-Cuando el cliente no es propietario, un cambio puede requerir una solicitud al propietario en lugar de modificar unilateralmente la autoridad remota.
-
-## 5. Sincronizar un estado sencillo [#5-sincronizar-un-estado-sencillo]
-
-Para una propiedad discreta, el flujo normal puede ser tan simple como:
-
-```csharp
-public void RecibirDaño(int daño)
-{
+    ```csharp
     int vida = Get<int>("vida");
-    Set("vida", Mathf.Max(0, vida - daño));
-}
-```
+    int nivel = Get<int>("nivel");
+    ```
 
-Aquí `vida` es estado. No hace falta convertir cada valor en una llamada remota diferente como `CambiarVida(99)`, `CambiarVida(98)`, etc.
+    La lectura no implica comunicación con el servidor: consulta el estado local conocido por ese objeto.
+  </div>
 
-## 6. ¿Qué ocurre si todavía no se puede enviar? [#6-qué-ocurre-si-todavía-no-se-puede-enviar]
+  <div className="fd-step">
+    ## Entender la autoridad [#4-entender-la-autoridad]
 
-Durante determinadas fases de conexión o entrada a canales, el objeto puede existir localmente pero todavía no estar listo para transmitir.
+    El punto más importante es decidir quién puede producir el estado.
 
-En ese caso, Eco puede mantener los cambios pendientes y procesarlos cuando `PuedeEnviar` vuelva a ser verdadero.
+    ```text
+                     Objeto
+                        │
+                  propietario
+                        │
+              ┌─────────┴─────────┐
+              │                   │
+            Propietario        Otros clientes
+              │                   │
+           produce             consumen
+            estado               estado
+    ```
 
-```text
-Set()
-  ↓
-actualización local
-  ↓
-¿Puede enviar?
- ├── Sí → sincronizar
- └── No → mantener pendiente
-              ↓
-        objeto preparado
-              ↓
-          sincronizar
-```
+    Cuando el cliente local es propietario, Eco puede distribuir el cambio y actualizar el estado persistente cuando corresponde.
 
-Esto evita que el gameplay tenga que conocer todos los estados transitorios de la conexión.
+    Cuando el cliente no es propietario, un cambio puede requerir una solicitud al propietario en lugar de modificar unilateralmente la autoridad remota.
+  </div>
 
-## 7. Sincronización automática [#7-sincronización-automática]
+  <div className="fd-step">
+    ## Sincronizar un estado sencillo [#5-sincronizar-un-estado-sencillo]
 
-Cuando una propiedad de Unity debe sincronizarse periódicamente, `AutoSincronizar` puede evitar tener que escribir manualmente el código de comparación y envío.
+    Para una propiedad discreta, el flujo normal puede ser tan simple como:
 
-Es especialmente útil durante prototipos o para componentes sencillos.
-
-```text
-Transform / campo
-       ↓
-AutoSincronizar
-       ↓
-cambio detectado
-       ↓
-Send / SendQuickly
-```
-
-`AutoSincronizar` comprueba valores mediante reflexión y puede limitar la frecuencia de actualización con `updatesPerSecond`.
-
-## 8. Elegir el mecanismo correcto [#8-elegir-el-mecanismo-correcto]
-
-| Necesidad                                     | Mecanismo                     |
-| --------------------------------------------- | ----------------------------- |
-| Propiedad persistente de una entidad          | `Set` / estado del objeto     |
-| Acción puntual                                | RFC                           |
-| Campo de Unity durante prototipo              | `AutoSincronizar`             |
-| Estado muy frecuente y crítico                | Sistema específico optimizado |
-| Estado que debe sobrevivir a nuevos jugadores | Persistencia del estado       |
-
-Una regla útil es distinguir **estado** de **acción**.
-
-```text
-"Mi vida es 80"   → estado
-"He atacado"      → acción
-```
-
-El primero suele ser candidato a sincronización; el segundo suele expresarse mediante una comunicación de evento o RFC.
-
-## 9. Ejemplo completo [#9-ejemplo-completo]
-
-```csharp
-public class Unidad : Componente
-{
-    protected override void Start()
-    {
-        base.Start();
-
-        if (isMine && !Has("vida"))
-            Set("vida", 100);
-    }
-
+    ```csharp
     public void RecibirDaño(int daño)
     {
-        if (!isMine) return;
-
         int vida = Get<int>("vida");
         Set("vida", Mathf.Max(0, vida - daño));
     }
+    ```
 
-    public int ObtenerVida()
+    Aquí `vida` es estado. No hace falta convertir cada valor en una llamada remota diferente como `CambiarVida(99)`, `CambiarVida(98)`, etc.
+  </div>
+
+  <div className="fd-step">
+    ## ¿Qué ocurre si todavía no se puede enviar? [#6-qué-ocurre-si-todavía-no-se-puede-enviar]
+
+    Durante determinadas fases de conexión o entrada a canales, el objeto puede existir localmente pero todavía no estar listo para transmitir.
+
+    En ese caso, Eco puede mantener los cambios pendientes y procesarlos cuando `PuedeEnviar` vuelva a ser verdadero.
+
+    ```text
+    Set()
+      ↓
+    actualización local
+      ↓
+    ¿Puede enviar?
+     ├── Sí → sincronizar
+     └── No → mantener pendiente
+                  ↓
+            objeto preparado
+                  ↓
+              sincronizar
+    ```
+
+    Esto evita que el gameplay tenga que conocer todos los estados transitorios de la conexión.
+  </div>
+
+  <div className="fd-step">
+    ## Sincronización automática [#7-sincronización-automática]
+
+    Cuando una propiedad de Unity debe sincronizarse periódicamente, `AutoSincronizar` puede evitar tener que escribir manualmente el código de comparación y envío.
+
+    Es especialmente útil durante prototipos o para componentes sencillos.
+
+    ```text
+    Transform / campo
+           ↓
+    AutoSincronizar
+           ↓
+    cambio detectado
+           ↓
+    Send / SendQuickly
+    ```
+
+    `AutoSincronizar` comprueba valores mediante reflexión y puede limitar la frecuencia de actualización con `updatesPerSecond`.
+  </div>
+
+  <div className="fd-step">
+    ## Elegir el mecanismo correcto [#8-elegir-el-mecanismo-correcto]
+
+    | Necesidad                                     | Mecanismo                     |
+    | --------------------------------------------- | ----------------------------- |
+    | Propiedad persistente de una entidad          | `Set` / estado del objeto     |
+    | Acción puntual                                | RFC                           |
+    | Campo de Unity durante prototipo              | `AutoSincronizar`             |
+    | Estado muy frecuente y crítico                | Sistema específico optimizado |
+    | Estado que debe sobrevivir a nuevos jugadores | Persistencia del estado       |
+
+    Una regla útil es distinguir **estado** de **acción**.
+
+    ```text
+    "Mi vida es 80"   → estado
+    "He atacado"      → acción
+    ```
+
+    El primero suele ser candidato a sincronización; el segundo suele expresarse mediante una comunicación de evento o RFC.
+  </div>
+
+  <div className="fd-step">
+    ## Ejemplo completo [#9-ejemplo-completo]
+
+    ```csharp
+    public class Unidad : Componente
     {
-        return Get<int>("vida");
+        protected override void Start()
+        {
+            base.Start();
+
+            if (isMine && !Has("vida"))
+                Set("vida", 100);
+        }
+
+        public void RecibirDaño(int daño)
+        {
+            if (!isMine) return;
+
+            int vida = Get<int>("vida");
+            Set("vida", Mathf.Max(0, vida - daño));
+        }
+
+        public int ObtenerVida()
+        {
+            return Get<int>("vida");
+        }
     }
-}
-```
+    ```
 
-La idea importante del ejemplo no es la clase concreta, sino el reparto de responsabilidades:
+    La idea importante del ejemplo no es la clase concreta, sino el reparto de responsabilidades:
 
-```text
-Unity / gameplay
-      ↓
-Componente
-      ↓
-Objeto
-      ↓
-Estado + propietario
-      ↓
-Eco
-```
+    ```text
+    Unity / gameplay
+          ↓
+    Componente
+          ↓
+    Objeto
+          ↓
+    Estado + propietario
+          ↓
+    Eco
+    ```
+  </div>
+</div>
 
 ## Errores habituales [#errores-habituales]
 

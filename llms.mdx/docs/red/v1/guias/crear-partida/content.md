@@ -18,135 +18,153 @@ Objetos de red
 Estado sincronizado
 ```
 
-## 1. Conectar el cliente [#1-conectar-el-cliente]
+<div className="fd-steps">
+  <div className="fd-step">
+    ## Conectar el cliente [#1-conectar-el-cliente]
 
-El cliente necesita establecer primero una conexión con el servidor.
+    El cliente necesita establecer primero una conexión con el servidor.
 
-```csharp
-ClienteJuego cliente = ...;
-cliente.Connect(endpoint);
-```
+    ```csharp
+    ClienteJuego cliente = ...;
+    cliente.Connect(endpoint);
+    ```
 
-Antes de intentar entrar en la partida conviene esperar a que `isConnected` sea verdadero.
+    Antes de intentar entrar en la partida conviene esperar a que `isConnected` sea verdadero.
+  </div>
 
-## 2. Crear o seleccionar el canal [#2-crear-o-seleccionar-el-canal]
+  <div className="fd-step">
+    ## Crear o seleccionar el canal [#2-crear-o-seleccionar-el-canal]
 
-El servidor es quien mantiene el estado del canal. El cliente solicita entrar mediante `JoinChannel`.
+    El servidor es quien mantiene el estado del canal. El cliente solicita entrar mediante `JoinChannel`.
 
-```csharp
-cliente.JoinChannel(
-    channelID: 10,
-    levelName: "Arena",
-    persistent: false,
-    playerLimit: 4,
-    password: ""
-);
-```
+    ```csharp
+    cliente.JoinChannel(
+        channelID: 10,
+        levelName: "Arena",
+        persistent: false,
+        playerLimit: 4,
+        password: ""
+    );
+    ```
 
-La unión no es instantánea. Eco mantiene la solicitud como pendiente hasta recibir la respuesta del servidor.
+    La unión no es instantánea. Eco mantiene la solicitud como pendiente hasta recibir la respuesta del servidor.
 
-<Callout title="El canal es el ámbito de la partida" type="info">
-  Los jugadores, objetos dinámicos y estado asociado a la partida deben entenderse dentro del contexto del canal. La conexión puede permanecer activa mientras el cliente cambia de un canal a otro o participa en varios simultáneamente.
-</Callout>
+    <Callout title="El canal es el ámbito de la partida" type="info">
+      Los jugadores, objetos dinámicos y estado asociado a la partida deben entenderse dentro del contexto del canal. La conexión puede permanecer activa mientras el cliente cambia de un canal a otro o participa en varios simultáneamente.
+    </Callout>
+  </div>
 
-## 3. Esperar la entrada al canal [#3-esperar-la-entrada-al-canal]
+  <div className="fd-step">
+    ## Esperar la entrada al canal [#3-esperar-la-entrada-al-canal]
 
-No es recomendable empezar a crear lógica de partida inmediatamente después de llamar a `JoinChannel`. Primero debe completarse la unión y, cuando corresponda, la carga del nivel asociado.
+    No es recomendable empezar a crear lógica de partida inmediatamente después de llamar a `JoinChannel`. Primero debe completarse la unión y, cuando corresponda, la carga del nivel asociado.
 
-```text
-JoinChannel()
-     ↓
-Solicitud pendiente
-     ↓
-Respuesta del servidor
-     ↓
-Canal activo
-     ↓
-Nivel preparado
-```
+    ```text
+    JoinChannel()
+         ↓
+    Solicitud pendiente
+         ↓
+    Respuesta del servidor
+         ↓
+    Canal activo
+         ↓
+    Nivel preparado
+    ```
 
-Durante esta transición Eco protege el flujo de paquetes para evitar que operaciones pertenecientes a una escena anterior sean procesadas fuera de contexto.
+    Durante esta transición Eco protege el flujo de paquetes para evitar que operaciones pertenecientes a una escena anterior sean procesadas fuera de contexto.
+  </div>
 
-## 4. Crear el estado de la partida [#4-crear-el-estado-de-la-partida]
+  <div className="fd-step">
+    ## Crear el estado de la partida [#4-crear-el-estado-de-la-partida]
 
-Una vez dentro del canal se pueden crear los objetos dinámicos que representan el estado de la partida.
+    Una vez dentro del canal se pueden crear los objetos dinámicos que representan el estado de la partida.
 
-Por ejemplo:
+    Por ejemplo:
 
-```text
-Canal
-├── Jugadores
-├── Objetos de la partida
-│   ├── Objetivo
-│   ├── Unidad
-│   └── Estado de partida
-└── Datos persistentes
-```
+    ```text
+    Canal
+    ├── Jugadores
+    ├── Objetos de la partida
+    │   ├── Objetivo
+    │   ├── Unidad
+    │   └── Estado de partida
+    └── Datos persistentes
+    ```
 
-Los objetos deben tener un propietario claro cuando su estado vaya a ser modificado por un cliente.
+    Los objetos deben tener un propietario claro cuando su estado vaya a ser modificado por un cliente.
+  </div>
 
-## 5. Sincronizar el estado inicial [#5-sincronizar-el-estado-inicial]
+  <div className="fd-step">
+    ## Sincronizar el estado inicial [#5-sincronizar-el-estado-inicial]
 
-El estado que necesitan los demás jugadores debe modelarse como datos de red, no como una sucesión de acciones.
+    El estado que necesitan los demás jugadores debe modelarse como datos de red, no como una sucesión de acciones.
 
-```csharp
-objeto.Set("fase", "Preparacion");
-objeto.Set("tiempo", 30);
-```
+    ```csharp
+    objeto.Set("fase", "Preparacion");
+    objeto.Set("tiempo", 30);
+    ```
 
-Si el estado debe actualizarse de forma continua puede utilizarse un sistema de sincronización apropiado. Para prototipos sencillos, `AutoSincronizar` puede servir como punto de partida.
+    Si el estado debe actualizarse de forma continua puede utilizarse un sistema de sincronización apropiado. Para prototipos sencillos, `AutoSincronizar` puede servir como punto de partida.
+  </div>
 
-## 6. Enviar acciones de juego [#6-enviar-acciones-de-juego]
+  <div className="fd-step">
+    ## Enviar acciones de juego [#6-enviar-acciones-de-juego]
 
-Las acciones puntuales de la partida deben utilizar el sistema de comunicación correspondiente.
+    Las acciones puntuales de la partida deben utilizar el sistema de comunicación correspondiente.
 
-```text
-Estado
-  → Set / sincronización
+    ```text
+    Estado
+      → Set / sincronización
 
-Acción
-  → RFC
-```
+    Acción
+      → RFC
+    ```
 
-Por ejemplo, cambiar la vida actual de una unidad representa un cambio de estado, mientras que solicitar que una unidad ejecute una habilidad representa una acción.
+    Por ejemplo, cambiar la vida actual de una unidad representa un cambio de estado, mientras que solicitar que una unidad ejecute una habilidad representa una acción.
+  </div>
 
-## 7. Un segundo jugador entra [#7-un-segundo-jugador-entra]
+  <div className="fd-step">
+    ## Un segundo jugador entra [#7-un-segundo-jugador-entra]
 
-La partida debe poder reconstruirse desde el estado del canal y de sus objetos.
+    La partida debe poder reconstruirse desde el estado del canal y de sus objetos.
 
-```text
-Jugador A
-   │
-   └── crea estado
-            ↓
-         Canal
-            ↓
-Jugador B entra
-            ↓
-  estado inicial sincronizado
-```
+    ```text
+    Jugador A
+       │
+       └── crea estado
+                ↓
+             Canal
+                ↓
+    Jugador B entra
+                ↓
+      estado inicial sincronizado
+    ```
 
-Dependiendo de cómo se configure el objeto o componente, el estado puede conservarse en servidor o ser enviado explícitamente al nuevo participante.
+    Dependiendo de cómo se configure el objeto o componente, el estado puede conservarse en servidor o ser enviado explícitamente al nuevo participante.
+  </div>
 
-## 8. Finalizar la partida [#8-finalizar-la-partida]
+  <div className="fd-step">
+    ## Finalizar la partida [#8-finalizar-la-partida]
 
-Al terminar una partida pueden utilizarse distintos niveles de limpieza:
+    Al terminar una partida pueden utilizarse distintos niveles de limpieza:
 
-```text
-Salir del canal
-     ↓
-conservar conexión
+    ```text
+    Salir del canal
+         ↓
+    conservar conexión
 
-Desconectar
-     ↓
-finalizar sesión completa
+    Desconectar
+         ↓
+    finalizar sesión completa
 
-Eliminar canal
-     ↓
-eliminar el ámbito de partida
-```
+    Eliminar canal
+         ↓
+    eliminar el ámbito de partida
+    ```
 
-La elección depende de si el cliente debe continuar conectado a otros canales o sesiones.
+    La elección depende de si el cliente debe continuar conectado a otros canales o sesiones.
+  </div>
+</div>
 
 ## Flujo completo [#flujo-completo]
 

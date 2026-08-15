@@ -10,97 +10,113 @@ Esta guía muestra el paso siguiente después de conectar el cliente: trabajar c
   En Eco, `Objeto` representa la identidad de red y `Componente` implementa el comportamiento asociado. No son conceptos intercambiables.
 </Callout>
 
-## 1. Crear la entidad [#1-crear-la-entidad]
+<div className="fd-steps">
+  <div className="fd-step">
+    ## Crear la entidad [#1-crear-la-entidad]
 
-Un objeto puede corresponder a un `GameObject` de Unity que tenga un `Objeto` y uno o varios `Componente`.
+    Un objeto puede corresponder a un `GameObject` de Unity que tenga un `Objeto` y uno o varios `Componente`.
 
-```text
-GameObject
-├── Objeto
-├── Componente
-└── otros componentes de Unity
-```
+    ```text
+    GameObject
+    ├── Objeto
+    ├── Componente
+    └── otros componentes de Unity
+    ```
 
-El objeto necesita un identificador de red válido para participar en la comunicación con el servidor.
+    El objeto necesita un identificador de red válido para participar en la comunicación con el servidor.
+  </div>
 
-## 2. Añadir un componente de red [#2-añadir-un-componente-de-red]
+  <div className="fd-step">
+    ## Añadir un componente de red [#2-añadir-un-componente-de-red]
 
-El patrón habitual es derivar de `Componente`:
+    El patrón habitual es derivar de `Componente`:
 
-```csharp
-public class MiUnidad : Componente
-{
-    // Comportamiento de red de la unidad.
-}
-```
+    ```csharp
+    public class MiUnidad : Componente
+    {
+        // Comportamiento de red de la unidad.
+    }
+    ```
 
-El componente se asocia al `Objeto` de su jerarquía y puede utilizarlo como contexto de red.
+    El componente se asocia al `Objeto` de su jerarquía y puede utilizarlo como contexto de red.
+  </div>
 
-## 3. Leer y modificar estado [#3-leer-y-modificar-estado]
+  <div className="fd-step">
+    ## Leer y modificar estado [#3-leer-y-modificar-estado]
 
-Para datos de estado utiliza las operaciones de `Objeto` o sus accesos de conveniencia desde `Componente`:
+    Para datos de estado utiliza las operaciones de `Objeto` o sus accesos de conveniencia desde `Componente`:
 
-```csharp
-Set("vida", 100);
-int vida = Get<int>("vida");
-```
-
-El valor se modifica localmente y Eco determina cómo debe propagarse según la autoridad del objeto y el estado de la conexión.
-
-## 4. Comprobar propiedad [#4-comprobar-propiedad]
-
-Antes de permitir determinadas operaciones, comprueba la propiedad del objeto:
-
-```csharp
-if (ero.isMine)
-{
+    ```csharp
     Set("vida", 100);
-}
-```
+    int vida = Get<int>("vida");
+    ```
 
-Ser capaz de observar un objeto no implica ser su propietario.
+    El valor se modifica localmente y Eco determina cómo debe propagarse según la autoridad del objeto y el estado de la conexión.
+  </div>
 
-## 5. Enviar una acción [#5-enviar-una-acción]
+  <div className="fd-step">
+    ## Comprobar propiedad [#4-comprobar-propiedad]
 
-Cuando lo que necesitas comunicar es una acción puntual, utiliza el mecanismo de RFC disponible en el objeto:
+    Antes de permitir determinadas operaciones, comprueba la propiedad del objeto:
 
-```csharp
-ero.Send("Atacar", Objetivo.Otros);
-```
+    ```csharp
+    if (ero.isMine)
+    {
+        Set("vida", 100);
+    }
+    ```
 
-La acción no debe confundirse con el estado. Si `vida` representa un valor persistente de la entidad, es preferible sincronizar ese dato en lugar de enviar continuamente llamadas que representen su valor.
+    Ser capaz de observar un objeto no implica ser su propietario.
+  </div>
 
-## 6. Destruir el objeto [#6-destruir-el-objeto]
+  <div className="fd-step">
+    ## Enviar una acción [#5-enviar-una-acción]
 
-El ciclo de vida de red y el ciclo de vida de Unity están relacionados, pero no son idénticos. Utiliza la API de Eco para solicitar la destrucción de un objeto de red en lugar de asumir que `Destroy(gameObject)` informa automáticamente al servidor.
+    Cuando lo que necesitas comunicar es una acción puntual, utiliza el mecanismo de RFC disponible en el objeto:
 
-```text
-Gameplay
-   ↓
-Destrucción de red
-   ↓
-Servidor
-   ↓
-Notificación a participantes
-```
+    ```csharp
+    ero.Send("Atacar", Objetivo.Otros);
+    ```
 
-## 7. Probarlo dentro de un canal [#7-probarlo-dentro-de-un-canal]
+    La acción no debe confundirse con el estado. Si `vida` representa un valor persistente de la entidad, es preferible sincronizar ese dato en lugar de enviar continuamente llamadas que representen su valor.
+  </div>
 
-El objeto debe existir en el contexto de un canal válido. Una prueba mínima debería ser:
+  <div className="fd-step">
+    ## Destruir el objeto [#6-destruir-el-objeto]
 
-```text
-Cliente conectado
-      ↓
-Canal activo
-      ↓
-Objeto registrado
-      ↓
-Componente activo
-      ↓
-Estado / RFC
-```
+    El ciclo de vida de red y el ciclo de vida de Unity están relacionados, pero no son idénticos. Utiliza la API de Eco para solicitar la destrucción de un objeto de red en lugar de asumir que `Destroy(gameObject)` informa automáticamente al servidor.
 
-Si alguno de estos estados falta, el comportamiento observado puede ser local aunque todavía no exista una entidad de red utilizable.
+    ```text
+    Gameplay
+       ↓
+    Destrucción de red
+       ↓
+    Servidor
+       ↓
+    Notificación a participantes
+    ```
+  </div>
+
+  <div className="fd-step">
+    ## Probarlo dentro de un canal [#7-probarlo-dentro-de-un-canal]
+
+    El objeto debe existir en el contexto de un canal válido. Una prueba mínima debería ser:
+
+    ```text
+    Cliente conectado
+          ↓
+    Canal activo
+          ↓
+    Objeto registrado
+          ↓
+    Componente activo
+          ↓
+    Estado / RFC
+    ```
+
+    Si alguno de estos estados falta, el comportamiento observado puede ser local aunque todavía no exista una entidad de red utilizable.
+  </div>
+</div>
 
 ## Errores frecuentes [#errores-frecuentes]
 

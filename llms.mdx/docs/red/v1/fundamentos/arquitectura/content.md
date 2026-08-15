@@ -2,110 +2,191 @@
 
 
 
-# Arquitectura de Eco [#arquitectura-de-eco]
+# Arquitectura [#arquitectura]
 
-Eco es la capa de red utilizada por Pandora. Su implementación procede de TNet 3, pero expone una nomenclatura y una organización propias de Nervelink.
+Eco es la capa de red utilizada por Pandora. Parte de la arquitectura de TNet, pero utiliza la nomenclatura, organización y extensiones propias de Nervelink.
 
-La documentación de Eco describe el comportamiento del código actual de `Nervelink/eco`. Las equivalencias con TNet se utilizan como referencia, no como contrato de la API.
-
-<Callout title="Idea principal" type="info">
-  Eco no debe entenderse como una colección de RPC aislados. Su arquitectura gira alrededor de conexiones, canales, jugadores, objetos de red, componentes, mensajes y sincronización de estado.
+<Callout title="Regla fundamental" type="info">
+  Piensa en Eco como un sistema por capas. `Canal`, `Objeto`, `Jugador`, `RFC`, `Paquete` y `Buffer` resuelven problemas distintos; no son sustitutos entre sí.
 </Callout>
 
-## Vista general [#vista-general]
+## Mapa de la arquitectura [#mapa-de-la-arquitectura]
 
 ```text
-                              Eco
-                               │
-              ┌────────────────┼────────────────┐
-              │                │                │
-           Cliente          Servidor        Común
-              │                │                │
-       ┌──────┼──────┐         │        ┌───────┼────────┐
-       │      │      │         │        │       │        │
-   Conexión  Canal  Objetos   Canales  Paquetes  Buffer  Serialización
-              │      │
-              │      ├── Objeto
-              │      │     └── Componente
-              │      │
-              └──────┴── Jugadores
+┌─────────────────────────────────────────────────────────────┐
+│                         Gameplay                            │
+└────────────────────────────┬────────────────────────────────┘
+                             │
+                    Objeto / Componente
+                             │
+              ┌──────────────┴──────────────┐
+              │                             │
+             RFC                         Estado
+              │                             │
+              └──────────────┬──────────────┘
+                             │
+                          Canal
+                             │
+                  Paquete / Protocolo
+                             │
+                           Buffer
+                             │
+                    TCP / UDP / custom
+                             │
+              ┌──────────────┴──────────────┐
+              │                             │
+           Cliente                       Servidor
 ```
 
-## Capas principales [#capas-principales]
+## Las cuatro capas que debes distinguir [#las-cuatro-capas-que-debes-distinguir]
 
-### Cliente [#cliente]
+<Cards>
+  <Card title="Modelo de red" href="/docs/red/v1/modelo">
+    Define quién participa, qué objetos existen y en qué canal viven.
+  </Card>
 
-La capa cliente contiene la lógica que conecta una instancia del juego con un servidor, procesa el tráfico recibido y mantiene la representación local de los canales y objetos de red.
+  <Card title="Comunicación" href="/docs/red/v1/comunicacion">
+    Define qué se quiere comunicar y quién debe recibirlo.
+  </Card>
 
-### Servidor [#servidor]
+  <Card title="Transporte" href="/docs/red/v1/transporte">
+    Convierte la operación en un mensaje serializado y lo transporta.
+  </Card>
 
-El servidor mantiene el estado compartido, administra canales y jugadores y procesa las operaciones que deben existir fuera de una instancia concreta del juego.
+  <Card title="Runtime" href="/docs/red/v1/runtime">
+    Ejecuta cliente y servidor y mantiene sus ciclos de vida.
+  </Card>
+</Cards>
 
-### Común [#común]
+## Modelo de red [#modelo-de-red]
 
-La capa común contiene los tipos que necesitan compartir cliente y servidor: paquetes, buffers, identificadores, serialización y estructuras utilizadas para representar el protocolo.
+### Canal [#canal]
 
-## Objetos de red [#objetos-de-red]
+Un `Canal` delimita un ámbito de jugadores y estado. Una conexión puede pertenecer a varios canales simultáneamente; esto es una propiedad del modelo de Eco, no una conexión física adicional.
 
-Un objeto de red representa una entidad que Eco puede identificar y sincronizar dentro de un canal.
+### Jugador [#jugador]
+
+`Jugador` representa una participación en la sesión. Su identidad es independiente de la conexión física y dispone de datos propios que pueden sincronizarse.
+
+### Objeto [#objeto]
+
+`Objeto` aporta identidad de red, ownership, canal, datos y ciclo de vida. Su `uid` combina el contexto del canal con la identidad del objeto.
+
+### Componente [#componente]
+
+`Componente` es la capa de integración con `MonoBehaviour`: permite acceder cómodamente al objeto de red y es el punto habitual desde el que se declaran RFC, datos y operaciones de instanciación.
+
+## Comunicación [#comunicación]
+
+Una operación empieza en gameplay y acaba convertida en un mensaje de protocolo.
 
 ```text
-Objeto
-├── Identidad
-├── Propietario
-├── Canal(es)
-├── Estado
-└── Componentes
+Componente
+   │
+   ├── RFC ────────────────┐
+   │                       │
+   └── Set / Sync ─────────┤
+                           ▼
+                        Objeto
+                           │
+                        Paquete
+                           │
+                         Buffer
+                           │
+                      Transporte
 ```
 
-## Canales [#canales]
+La selección de destinatario se realiza antes de que el mensaje abandone el contexto de Eco. Por eso [Destinatarios](/docs/red/v1/comunicacion/destinatarios) pertenece conceptualmente a Comunicación y no a Transporte.
 
-El `Canal` delimita el ámbito en el que se comparte estado entre jugadores. Una conexión puede participar en uno o varios canales.
+## Runtime [#runtime]
 
-## Flujo conceptual de un mensaje [#flujo-conceptual-de-un-mensaje]
+El cliente mantiene su conexión y representación local. El servidor mantiene el estado compartido, administra jugadores y canales y procesa las solicitudes que requieren autoridad del servidor.
 
 ```text
-Juego
-  ↓
-Objeto / Componente
-  ↓
-Eco
-  ↓
-Paquete
-  ↓
-Transporte
-  ↓
-Servidor
-  ↓
-Canal / destinatarios
-  ↓
-Paquete
-  ↓
-Cliente remoto
+ClienteJuego
+├── Conexión TCP
+├── UDP opcional
+├── Canales
+├── Jugador local
+└── Cola / procesamiento de paquetes
+
+ServidorJuego
+├── Listener TCP
+├── UDP opcional
+├── Jugadores
+├── Canales
+├── Persistencia
+└── Procesamiento de paquetes
 ```
+
+## Flujo de una operación [#flujo-de-una-operación]
+
+<div className="fd-steps">
+  <div className="fd-step">
+    ### Gameplay \[step] [#1-gameplay-step]
+
+    Tu código decide qué quiere hacer: cambiar estado, ejecutar una acción, crear un objeto o cambiar de canal.
+  </div>
+
+  <div className="fd-step">
+    ### Modelo de red \[step] [#2-modelo-de-red-step]
+
+    Eco determina el `Objeto`, `Canal`, propietario y contexto de la operación.
+  </div>
+
+  <div className="fd-step">
+    ### Comunicación \[step] [#3-comunicación-step]
+
+    Se selecciona RFC, sincronización o una operación de protocolo existente y se determinan sus destinatarios.
+  </div>
+
+  <div className="fd-step">
+    ### Serialización \[step] [#4-serialización-step]
+
+    Los parámetros se convierten a una representación binaria mediante `Buffer` y las herramientas de serialización.
+  </div>
+
+  <div className="fd-step">
+    ### Transporte \[step] [#5-transporte-step]
+
+    El mensaje viaja mediante TCP, UDP cuando corresponde, o una conexión personalizada.
+  </div>
+
+  <div className="fd-step">
+    ### Aplicación remota \[step] [#6-aplicación-remota-step]
+
+    El receptor procesa el paquete, actualiza el estado correspondiente y ejecuta los callbacks asociados.
+  </div>
+</div>
 
 ## Relación con TNet [#relación-con-tnet]
 
-| TNet                    | Eco          |
-| ----------------------- | ------------ |
-| `TNManager`             | `Eco`        |
-| `TNObject`              | `Objeto`     |
-| `TNBehaviour`           | `Componente` |
-| `TNChannel` / `Channel` | `Canal`      |
-| `TNPacket` / `Packet`   | `Paquete`    |
-| `TNBuffer`              | `Buffer`     |
-| `Player`                | `Jugador`    |
+| TNet          | Eco          | Responsabilidad                |
+| ------------- | ------------ | ------------------------------ |
+| `TNManager`   | `Eco`        | Fachada y operaciones globales |
+| `TNObject`    | `Objeto`     | Identidad y estado de red      |
+| `TNBehaviour` | `Componente` | Integración con Unity          |
+| `Channel`     | `Canal`      | Ámbito compartido              |
+| `Packet`      | `Paquete`    | Protocolo                      |
+| `Buffer`      | `Buffer`     | Datos binarios                 |
+| `Player`      | `Jugador`    | Participante                   |
 
-## Referencias [#referencias]
+<Callout title="No copies el workflow antiguo de TNet literalmente" type="warn">
+  Los ejemplos históricos suelen asumir un único canal activo y una API distinta. En Eco debes seguir el comportamiento actual del repositorio y utilizar las páginas de [Modelo de red](/docs/red/v1/modelo) y [Guías](/docs/red/v1/guias) como referencia práctica.
+</Callout>
 
-<Card title="Repositorio Eco" href="https://github.com/Nervelink/eco">
-  Código fuente de la implementación de Eco.
-</Card>
+## Fuentes [#fuentes]
 
-<Card title="TNet" href="https://github.com/tasharen/tnet">
-  Repositorio original del que procede la base de Eco.
-</Card>
+<Cards>
+  <Card title="Eco" href="https://github.com/Nervelink/eco">
+    Implementación actual.
+  </Card>
 
-<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
-  Documentación generada sobre el repositorio actual de TNet.
-</Card>
+  <Card title="TNet upstream" href="https://github.com/tasharen/tnet">
+    Código del que procede la arquitectura base.
+  </Card>
+
+  <Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
+    Índice externo útil para comparar la arquitectura upstream.
+  </Card>
+</Cards>
