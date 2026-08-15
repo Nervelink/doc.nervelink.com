@@ -1626,6 +1626,661 @@ No todos los routers admiten UPnP y algunas redes lo deshabilitan por seguridad.
 </Card>
 
 
+# Destinatarios (/docs/red/v1/comunicacion/destinatarios)
+
+
+
+# Destinatarios [#destinatarios]
+
+Enviar un mensaje no significa necesariamente enviarlo a todos los participantes. Eco permite elegir el ámbito de destinatarios según el tipo de comunicación y el estado que se quiere mantener.
+
+<Callout title="El destinatario forma parte del contrato" type="info">
+  Antes de enviar un mensaje conviene decidir quién necesita conocerlo: el propietario, los demás jugadores, todo el canal o también los jugadores que entren posteriormente.
+</Callout>
+
+## Contexto de canal [#contexto-de-canal]
+
+Los mensajes asociados a objetos se interpretan dentro de un `Canal`. El canal determina qué jugadores forman parte del ámbito de difusión.
+
+```text
+Canal
+├── Jugador A
+├── Jugador B
+└── Jugador C
+```
+
+A partir de ese contexto, Eco puede excluir al emisor, incluirlo, conservar el mensaje para futuros participantes o dirigirlo a un participante concreto.
+
+## Objetivos habituales [#objetivos-habituales]
+
+| Objetivo conceptual | Uso                                                           |
+| ------------------- | ------------------------------------------------------------- |
+| `Todos`             | Todos los jugadores del canal.                                |
+| `Otros`             | Todos salvo el emisor.                                        |
+| Propietario         | El jugador que posee el objeto.                               |
+| Persistente         | También debe estar disponible para participantes posteriores. |
+| Jugador concreto    | Un único participante identificado.                           |
+
+Los nombres exactos disponibles dependen de la API de `Objetivo` y del método utilizado para enviar el mensaje.
+
+## Propietario frente a canal [#propietario-frente-a-canal]
+
+La propiedad y la visibilidad son conceptos diferentes:
+
+```text
+Objeto
+├── Propietario → Jugador A
+└── Visible para → A, B, C
+```
+
+Que un objeto tenga propietario no significa que únicamente ese jugador pueda recibir sus actualizaciones.
+
+## Comunicación persistente [#comunicación-persistente]
+
+Un mensaje marcado para persistir puede formar parte del estado que Eco mantiene asociado al canal u objeto. Esto resulta útil cuando el contenido debe estar disponible también para jugadores que todavía no estaban conectados cuando ocurrió la comunicación.
+
+No debe utilizarse persistencia sólo porque un mensaje se considere importante: debe existir una necesidad real de reconstruir ese estado posteriormente.
+
+## Elección práctica [#elección-práctica]
+
+```text
+¿Quién necesita el mensaje?
+        │
+        ├── Sólo un jugador ───────► jugador concreto
+        │
+        ├── Propietario ───────────► propietario
+        │
+        ├── Todos ahora ───────────► todos / otros
+        │
+        └── Ahora + futuros ───────► persistente
+```
+
+## Listas de jugadores [#listas-de-jugadores]
+
+La arquitectura de TNet/Eco también contempla el envío a una lista concreta de jugadores, no sólo a un único ID. Esta opción es especialmente útil para grupos seleccionados que no coinciden con todos los miembros del canal.
+
+## Echo y llamadas reenviadas [#echo-y-llamadas-reenviadas]
+
+El protocolo distingue comunicaciones como `ForwardToAll`, `ForwardToOthers` y sus variantes persistentes. Estas operaciones permiten que el servidor reenvíe el contenido sin que el cliente tenga que construir manualmente un paquete distinto para cada receptor.
+
+## Relación con persistencia [#relación-con-persistencia]
+
+Hay que separar dos preguntas:
+
+```text
+¿Quién lo recibe ahora?
+        ↓
+¿Debe estar disponible para quien llegue después?
+```
+
+La primera es una decisión de destinatario. La segunda es una decisión de persistencia. Pueden combinarse, pero no son el mismo concepto.
+
+## Relación con TNet [#relación-con-tnet]
+
+Eco conserva el modelo de objetivos de TNet, pero utiliza la nomenclatura propia del proyecto. Las equivalencias deben comprobarse siempre contra la implementación actual de `Eco`, `Objeto` y `Paquete`.
+
+## Referencias [#referencias]
+
+<Card title="RFC avanzadas" href="/docs/red/v1/comunicacion/rfc-avanzadas">
+  Cómo construir llamadas remotas y decidir su comportamiento.
+</Card>
+
+<Card title="Varios canales simultáneos" href="/docs/red/v1/guias/multiples-canales">
+  Aplicación práctica del alcance por canal.
+</Card>
+
+<Card title="TNet" href="https://github.com/tasharen/tnet">
+  Repositorio upstream.
+</Card>
+
+
+# Comunicación (/docs/red/v1/comunicacion)
+
+
+
+# Comunicación [#comunicación]
+
+La comunicación de Eco se divide en dos problemas: **ejecutar algo** y **mantener algo sincronizado**. Las RFC resuelven principalmente el primero; `Set`, `Nodo` y los sistemas de sincronización resuelven el segundo.
+
+<Callout title="Primero decide qué quieres comunicar" type="idea">
+  No empieces por `Send`. Empieza por definir si estás enviando una acción, un estado, una respuesta o información que debe persistir para futuros participantes.
+</Callout>
+
+<Cards>
+  <Card title="RFC" href="/docs/red/v1/comunicacion/rfc">
+    Ejecutar acciones o notificaciones remotas.
+  </Card>
+
+  <Card title="Sincronización" href="/docs/red/v1/comunicacion/sincronizacion">
+    Mantener propiedades y datos de una entidad coherentes entre participantes.
+  </Card>
+
+  <Card title="Destinatarios" href="/docs/red/v1/comunicacion/destinatarios">
+    Determinar quién debe recibir una operación.
+  </Card>
+
+  <Card title="Comunicación avanzada" href="/docs/red/v1/comunicacion/rfc-avanzadas">
+    RFC persistentes, coordinación y patrones heredados de TNet que Eco mantiene.
+  </Card>
+</Cards>
+
+## Árbol de decisión [#árbol-de-decisión]
+
+```text
+¿Qué representa el mensaje?
+        │
+        ├── Acción puntual ───────────► RFC
+        │
+        ├── Propiedad / estado ───────► Set / Sync
+        │
+        ├── Estado para futuros users ─► persistencia
+        │
+        └── Operación de protocolo ───► Paquete
+```
+
+## Flujo de una RFC [#flujo-de-una-rfc]
+
+<div className="fd-steps">
+  <div className="fd-step">
+    ### Definir la operación [#definir-la-operación-step]
+
+    Declara la función remota en un `Componente` asociado a un `Objeto`.
+  </div>
+
+  <div className="fd-step">
+    ### Elegir el alcance [#elegir-el-alcance-step]
+
+    Determina si deben recibirla todos, otros jugadores, un jugador concreto o un conjunto determinado.
+  </div>
+
+  <div className="fd-step">
+    ### Serializar los parámetros [#serializar-los-parámetros-step]
+
+    Eco transforma los parámetros en datos transportables sin que el gameplay necesite construir directamente el `Buffer`.
+  </div>
+
+  <div className="fd-step">
+    ### Procesar en destino [#procesar-en-destino-step]
+
+    El receptor resuelve el objeto, localiza la RFC y ejecuta la función correspondiente.
+  </div>
+</div>
+
+## Estado frente a eventos [#estado-frente-a-eventos]
+
+<Tabs items="['RFC', 'Estado']">
+  <Tab value="RFC">
+    Usa RFC para hechos puntuales: disparar un arma, abrir una puerta, reproducir una animación o solicitar una acción.
+  </Tab>
+
+  <Tab value="Estado">
+    Usa sincronización para valores que deben poder consultarse en cualquier momento: vida, inventario, configuración o estado de una entidad.
+  </Tab>
+</Tabs>
+
+## Autoridad [#autoridad]
+
+La comunicación no elimina la autoridad. Un cliente puede solicitar una operación, pero el servidor y el propietario del objeto siguen siendo parte del diseño de seguridad y consistencia.
+
+<Callout title="No confíes en el cliente" type="warn">
+  La validación importante debe permanecer en el lado que controla la autoridad real. Una RFC recibida correctamente no significa que la acción sea válida desde las reglas del juego.
+</Callout>
+
+## Referencias [#referencias]
+
+<Cards>
+  <Card title="RFC" href="/docs/red/v1/comunicacion/rfc">
+    Sintaxis y ciclo de una llamada remota.
+  </Card>
+
+  <Card title="Sincronización" href="/docs/red/v1/comunicacion/sincronizacion">
+    Estado, `Set`, `Get` y colas de sincronización.
+  </Card>
+
+  <Card title="Destinatarios" href="/docs/red/v1/comunicacion/destinatarios">
+    Objetivos de una comunicación.
+  </Card>
+
+  <Card title="Guía: Enviar una acción" href="/docs/red/v1/guias/enviar-accion">
+    Workflow práctico para una RFC.
+  </Card>
+</Cards>
+
+
+# RFC avanzadas (/docs/red/v1/comunicacion/rfc-avanzadas)
+
+
+
+# RFC avanzadas [#rfc-avanzadas]
+
+Las RFC (Remote Function Calls) son el mecanismo principal de Eco para ejecutar una función en otro extremo de la sesión. Una RFC describe una acción o notificación; no debe utilizarse como sustituto de un estado que necesita mantenerse sincronizado.
+
+## RFC básica [#rfc-básica]
+
+Una función marcada como RFC puede ser invocada a través del `Objeto` que contiene el componente:
+
+```csharp
+[RFC]
+void RecibirDaño(int cantidad)
+{
+    vida -= cantidad;
+}
+```
+
+La llamada transporta la identidad del objeto, el identificador o nombre de la RFC y sus parámetros.
+
+## Destinatarios [#destinatarios]
+
+Eco hereda el modelo de objetivos de TNet. Entre los casos habituales están:
+
+```text
+Todos los jugadores
+Todos excepto el emisor
+Un jugador concreto
+Un conjunto de jugadores
+Solo el estado persistente
+```
+
+La selección del destino forma parte de la semántica de la llamada y debe hacerse explícitamente.
+
+## RFC persistente [#rfc-persistente]
+
+Una RFC normal representa un evento puntual. Una RFC guardada representa una operación que además queda registrada en el estado del canal para que pueda reproducirse cuando corresponda.
+
+Esto es útil para:
+
+* construir objetos o estado inicial;
+* registrar una acción que nuevos jugadores necesitan reconstruir;
+* almacenar una operación en el orden en que debe restaurarse.
+
+No conviene guardar indiscriminadamente todas las acciones: el historial persistente debe ser suficientemente pequeño y determinista.
+
+## RFC sin eco al cliente [#rfc-sin-eco-al-cliente]
+
+TNet incluye un modo `NoneSaved` para almacenar una RFC en servidor sin reenviarla a los clientes actuales. Eco conserva la idea: permite guardar datos para futuros participantes sin convertirlos en un evento inmediato para todos.
+
+## Esperar confirmación [#esperar-confirmación]
+
+El flujo de red puede necesitar esperar a que llamadas previas hayan terminado antes de continuar con una operación dependiente. TNet documenta `WaitForBounceBack` para este escenario, y Eco debe tratar este patrón como una herramienta de coordinación, no como un bloqueo del hilo principal.
+
+## RFC frente a sincronización [#rfc-frente-a-sincronización]
+
+| Necesidad                              | Mecanismo                         |
+| -------------------------------------- | --------------------------------- |
+| Ejecutar una acción una vez            | RFC                               |
+| Notificar un evento                    | RFC                               |
+| Mantener una propiedad sincronizada    | `Set` / sincronización            |
+| Restaurar estado para nuevos jugadores | datos persistentes / RFC guardada |
+| Enviar una orden a un jugador concreto | RFC con destinatario explícito    |
+
+## Errores habituales [#errores-habituales]
+
+No uses una RFC para enviar la posición de una unidad cada frame si lo que realmente quieres es sincronizar su estado. Tampoco asumas que llamar una RFC significa que el emisor es necesariamente el propietario del objeto: la autoridad debe comprobarse según el flujo de la operación.
+
+## Referencias [#referencias]
+
+<Card title="Comunicación" href="/docs/red/v1/comunicacion">
+  Modelo general de comunicación de Eco.
+</Card>
+
+<Card title="Destinatarios" href="/docs/red/v1/comunicacion/destinatarios">
+  Selección de receptores y alcance de una llamada.
+</Card>
+
+<Card title="TNet upstream" href="https://github.com/tasharen/tnet">
+  Implementación de referencia heredada.
+</Card>
+
+
+# RFC (/docs/red/v1/comunicacion/rfc)
+
+
+
+# RFC [#rfc]
+
+Una RFC (*Remote Function Call*) representa una llamada a una función asociada a un `Objeto` que debe ejecutarse remotamente.
+
+<Callout title="Acción, no estado" type="info">
+  Una RFC es adecuada para comunicar que debe ocurrir algo. Para representar el valor actual de una propiedad conviene utilizar los mecanismos de estado y sincronización.
+</Callout>
+
+## Estructura [#estructura]
+
+Eco conserva las RFC dentro del contexto del `Canal`. Cada entrada contiene, conceptualmente:
+
+```text
+RFC
+├── uid
+├── functionName
+└── data
+```
+
+El identificador permite localizar el objeto y la función. Cuando la llamada no utiliza un identificador numérico, se conserva el nombre de la función.
+
+## Flujo [#flujo]
+
+```text
+Componente
+   ↓
+Objeto
+   ↓
+RFC
+   ↓
+Paquete
+   ↓
+Servidor
+   ↓
+Destinatarios
+   ↓
+Objeto remoto
+```
+
+El canal forma parte del contexto de la comunicación, por lo que una RFC no debe entenderse como un mensaje global independiente de la sesión.
+
+## RFC identificadas por nombre o ID [#rfc-identificadas-por-nombre-o-id]
+
+Eco puede trabajar con funciones identificadas mediante un ID compacto o mediante nombre. El nombre se utiliza cuando el identificador de función es `0`.
+
+Esto permite mantener una comunicación más compacta cuando existe un identificador estable, dejando el nombre para los casos dinámicos o no registrados mediante ID.
+
+## Persistencia [#persistencia]
+
+Algunas RFC pueden conservarse como parte del estado de un objeto o canal. `Canal` almacena las RFC asociadas a objetos dinámicos y puede exportarlas junto con los datos de creación del objeto.
+
+Por tanto, una RFC persistente puede formar parte del estado necesario para reconstruir un objeto, no solamente de una cola temporal de mensajes.
+
+## RFC desde un `Componente` [#rfc-desde-un-componente]
+
+Los componentes trabajan normalmente a través del `Objeto` asociado:
+
+```csharp
+public class MiUnidad : Componente
+{
+    public void Atacar()
+    {
+        ero.Send("Atacar", Objetivo.Otros);
+    }
+}
+```
+
+`Componente` también proporciona acceso de conveniencia a la instanciación, destrucción y datos del objeto.
+
+## Cuándo utilizar una RFC [#cuándo-utilizar-una-rfc]
+
+Utiliza RFC cuando el mensaje representa una acción o evento puntual:
+
+| Situación                                    | RFC               |
+| -------------------------------------------- | ----------------- |
+| Solicitar un ataque                          | Sí                |
+| Reproducir una acción                        | Sí                |
+| Ejecutar una habilidad                       | Sí                |
+| Notificar un evento puntual                  | Sí                |
+| Mantener `vida = 75`                         | No necesariamente |
+| Sincronizar una transformación continuamente | No                |
+
+## Relación con TNet [#relación-con-tnet]
+
+| Eco          | TNet                    |
+| ------------ | ----------------------- |
+| RFC          | RFC                     |
+| `Objeto`     | `TNObject`              |
+| `Componente` | `TNBehaviour`           |
+| `Canal`      | `TNChannel` / `Channel` |
+
+La correspondencia sirve para trasladar conocimientos de TNet, pero la referencia normativa es el código de Eco.
+
+## Referencias [#referencias]
+
+<Card title="Eco" href="https://github.com/Nervelink/eco">
+  Implementación actual de Eco.
+</Card>
+
+<Card title="TNet" href="https://github.com/tasharen/tnet">
+  Repositorio upstream.
+</Card>
+
+<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
+  Referencia generada sobre el repositorio actual de TNet.
+</Card>
+
+
+# Sincronización avanzada (/docs/red/v1/comunicacion/sincronizacion-avanzada)
+
+
+
+# Sincronización avanzada [#sincronización-avanzada]
+
+El sistema de datos de `Objeto` actualiza localmente el valor y, cuando puede enviar, comunica el cambio por la red. Si el objeto todavía no puede enviar, Eco puede poner el cambio en una cola para transmitirlo posteriormente. fileciteturn235file0
+
+## Flujo [#flujo]
+
+```text
+Set(...)
+  ↓
+Actualizar estado local
+  ↓
+¿Puede enviar?
+ ├─ No → cola pendiente
+ └─ Sí → enviar cambio
+          ↓
+       servidor / propietario
+          ↓
+      resto de clientes
+```
+
+## Autoridad [#autoridad]
+
+Idealmente el propietario del objeto realiza el cambio. Si otro participante intenta modificarlo, Eco puede reenviar la petición al propietario para mantener una autoridad clara. fileciteturn235file0
+
+Esto evita que dos clientes escriban simultáneamente el mismo estado sin una regla de autoridad.
+
+## Estado local inmediato [#estado-local-inmediato]
+
+`Set` actualiza la copia local antes de terminar el viaje de red. Esto mejora la respuesta inmediata, pero implica que la interfaz puede observar un valor antes de que el servidor haya confirmado la operación.
+
+Por eso los sistemas críticos no deberían confundir “valor local solicitado” con “estado autoritativo confirmado”.
+
+## Datos completos frente a cambios incrementales [#datos-completos-frente-a-cambios-incrementales]
+
+Durante la creación puede ser razonable enviar un `Nodo` completo. Durante el juego resulta más eficiente enviar cambios concretos:
+
+```text
+Creación → estado inicial completo
+Runtime  → Set("vida", 75)
+Runtime  → Set("mana", 40)
+```
+
+El propio código recomienda utilizar `Get/Set` después de la creación en lugar de reemplazar continuamente todo el árbol de datos. fileciteturn235file0
+
+## AutoSincronizar [#autosincronizar]
+
+`AutoSincronizar` puede automatizar la comparación y envío de valores, pero debe utilizarse con criterio: comprobar campos mediante reflexión periódicamente tiene un coste y puede ocultar la autoridad real del estado.
+
+## Referencias [#referencias]
+
+<Card title="Sincronización" href="/docs/red/v1/comunicacion/sincronizacion">
+  Modelo básico de sincronización de Eco.
+</Card>
+
+<Card title="Sincronizar una entidad" href="/docs/red/v1/guias/sincronizar-entidad">
+  Workflow práctico para sincronizar un objeto.
+</Card>
+
+
+# Sincronización (/docs/red/v1/comunicacion/sincronizacion)
+
+
+
+# Sincronización [#sincronización]
+
+La sincronización responde a una pregunta distinta de una RFC: &#x2A;*¿cómo hago que todos conozcan el estado actual de una entidad?**
+
+<Callout title="Acción vs estado" type="info">
+  Una RFC representa normalmente un evento puntual. Un dato sincronizado representa el estado actual y puede necesitar volver a enviarse o reconstruirse para un jugador que entra más tarde.
+</Callout>
+
+## Modelo de datos [#modelo-de-datos]
+
+```text
+Objeto
+└── Nodo
+    ├── vida
+    ├── posición
+    ├── inventario
+    └── estado
+```
+
+Las operaciones principales son `Get` y `Set`.
+
+```csharp
+objeto.Set("vida", 100);
+int vida = objeto.Get<int>("vida");
+```
+
+## Qué ocurre al llamar a `Set` [#qué-ocurre-al-llamar-a-set]
+
+<div className="fd-steps">
+  <div className="fd-step">
+    ### Estado local \[step] [#1-estado-local-step]
+
+    Eco actualiza primero el `Nodo` local. Esto permite que el código que acaba de cambiar el dato lo vea inmediatamente.
+  </div>
+
+  <div className="fd-step">
+    ### Comprobación de capacidad \[step] [#2-comprobación-de-capacidad-step]
+
+    Se comprueba que el objeto tenga identidad válida, pertenezca a un contexto enviable y no esté atravesando una transición donde la transmisión todavía no sea posible.
+  </div>
+
+  <div className="fd-step">
+    ### Comprobación de autoridad \[step] [#3-comprobación-de-autoridad-step]
+
+    Si el llamador es propietario, puede distribuir el cambio. Si no lo es, la operación se dirige al propietario para que siga el flujo de autoridad.
+  </div>
+
+  <div className="fd-step">
+    ### Propagación \[step] [#4-propagación-step]
+
+    El cambio se comunica a los destinatarios y el estado puede actualizarse también en la representación persistente del servidor.
+  </div>
+
+  <div className="fd-step">
+    ### Cola temporal \[step] [#5-cola-temporal-step]
+
+    Si el objeto no puede enviar todavía, el cambio puede quedar pendiente hasta que la transmisión vuelva a estar disponible.
+  </div>
+</div>
+
+## Autoridad [#autoridad]
+
+```text
+Cliente A
+   │
+   │ Set("vida", 80)
+   ▼
+¿A es propietario?
+   │
+   ├── Sí ──► distribuir + actualizar estado persistente
+   │
+   └── No ─► solicitar al propietario
+```
+
+Esto evita que varios clientes actúen como fuente de verdad simultánea para una propiedad.
+
+## Qué sincronizar [#qué-sincronizar]
+
+<Tabs items="['Estado crítico', 'Alta frecuencia', 'Inicialización']">
+  <Tab value="Estado crítico">
+    Vida, inventario, reglas de partida y cualquier valor cuyo estado actual deba ser consistente. Prioriza claridad y autoridad sobre frecuencia extrema.
+  </Tab>
+
+  <Tab value="Alta frecuencia">
+    Transformaciones o valores que cambian muchas veces por segundo pueden usar mecanismos rápidos si perder estados intermedios es aceptable.
+  </Tab>
+
+  <Tab value="Inicialización">
+    Datos necesarios para reconstruir un objeto cuando aparece o cuando entra un jugador nuevo deben formar parte de un estado que pueda recuperarse.
+  </Tab>
+</Tabs>
+
+## `AutoSincronizar` [#autosincronizar]
+
+`AutoSincronizar` automatiza parte de este trabajo para campos y propiedades de componentes de Unity. Su configuración incluye conceptos como frecuencia, persistencia y autoridad del propietario.
+
+```text
+AutoSincronizar
+├── entries
+├── updatesPerSecond
+├── isSavedOnServer
+├── isImportant
+└── onlyOwnerCanSync
+```
+
+<Callout title="Conveniencia, no arquitectura" type="idea">
+  `AutoSincronizar` es útil para prototipos y propiedades sencillas. En sistemas de producción conviene controlar explícitamente qué datos viajan, quién los modifica y con qué frecuencia.
+</Callout>
+
+## Frecuencia [#frecuencia]
+
+Si una propiedad cambia a alta frecuencia, transmitir todos sus valores puede generar tráfico innecesario.
+
+```text
+100 cambios locales / s
+        │
+        ├── enviar todos ───────► tráfico alto
+        │
+        └── muestrear / agrupar ─► tráfico controlado
+```
+
+`updatesPerSecond` establece una frecuencia máxima para el sistema automático.
+
+## Persistencia [#persistencia]
+
+La sincronización de estado y la persistencia no son lo mismo:
+
+| Concepto       | Pregunta                                         |
+| -------------- | ------------------------------------------------ |
+| Sincronización | ¿Quién necesita conocer el estado ahora?         |
+| Persistencia   | ¿Debe poder reconstruirse el estado después?     |
+| RFC guardada   | ¿Debe reproducirse una operación al reconstruir? |
+
+Consulta [Persistencia](/docs/red/v1/persistencia) cuando el objetivo sea sobrevivir a la ausencia de jugadores.
+
+## Errores habituales [#errores-habituales]
+
+<Callout title="No conviertas el estado en eventos" type="warn">
+  Si una unidad tiene `vida = 74`, no necesitas una RFC por cada cambio si lo único importante es que los clientes conozcan el valor actual. Sincroniza el estado.
+</Callout>
+
+<Callout title="No sincronices cada frame por defecto" type="warn">
+  La frecuencia debe depender de la percepción del jugador y de la necesidad real del sistema, no del `Update()` de Unity.
+</Callout>
+
+## Relación con TNet [#relación-con-tnet]
+
+El modelo procede conceptualmente de `TNObject.Set/Get` y `TNAutoSync`, pero los nombres y el comportamiento deben comprobarse en la implementación de Eco.
+
+## Referencias [#referencias]
+
+<Cards>
+  <Card title="Objetos" href="/docs/red/v1/modelo/objetos">
+    Identidad y datos del objeto.
+  </Card>
+
+  <Card title="RFC avanzadas" href="/docs/red/v1/comunicacion/rfc-avanzadas">
+    Cuándo una acción debe ser un evento remoto.
+  </Card>
+
+  <Card title="Sincronizar una entidad" href="/docs/red/v1/guias/sincronizar-entidad">
+    Implementación práctica de este flujo.
+  </Card>
+
+  <Card title="Persistencia" href="/docs/red/v1/persistencia">
+    Cómo hacer que el estado sobreviva a la ausencia temporal de jugadores.
+  </Card>
+</Cards>
+
+
 # AutoCrear (/docs/red/v1/ejemplos/auto-crear)
 
 
@@ -8557,661 +9212,6 @@ El modelo corresponde al de los protocolos TCP y UDP de TNet, pero Eco utiliza `
 <Card title="TNet" href="https://github.com/tasharen/tnet">
   Repositorio upstream.
 </Card>
-
-
-# Destinatarios (/docs/red/v1/comunicacion/destinatarios)
-
-
-
-# Destinatarios [#destinatarios]
-
-Enviar un mensaje no significa necesariamente enviarlo a todos los participantes. Eco permite elegir el ámbito de destinatarios según el tipo de comunicación y el estado que se quiere mantener.
-
-<Callout title="El destinatario forma parte del contrato" type="info">
-  Antes de enviar un mensaje conviene decidir quién necesita conocerlo: el propietario, los demás jugadores, todo el canal o también los jugadores que entren posteriormente.
-</Callout>
-
-## Contexto de canal [#contexto-de-canal]
-
-Los mensajes asociados a objetos se interpretan dentro de un `Canal`. El canal determina qué jugadores forman parte del ámbito de difusión.
-
-```text
-Canal
-├── Jugador A
-├── Jugador B
-└── Jugador C
-```
-
-A partir de ese contexto, Eco puede excluir al emisor, incluirlo, conservar el mensaje para futuros participantes o dirigirlo a un participante concreto.
-
-## Objetivos habituales [#objetivos-habituales]
-
-| Objetivo conceptual | Uso                                                           |
-| ------------------- | ------------------------------------------------------------- |
-| `Todos`             | Todos los jugadores del canal.                                |
-| `Otros`             | Todos salvo el emisor.                                        |
-| Propietario         | El jugador que posee el objeto.                               |
-| Persistente         | También debe estar disponible para participantes posteriores. |
-| Jugador concreto    | Un único participante identificado.                           |
-
-Los nombres exactos disponibles dependen de la API de `Objetivo` y del método utilizado para enviar el mensaje.
-
-## Propietario frente a canal [#propietario-frente-a-canal]
-
-La propiedad y la visibilidad son conceptos diferentes:
-
-```text
-Objeto
-├── Propietario → Jugador A
-└── Visible para → A, B, C
-```
-
-Que un objeto tenga propietario no significa que únicamente ese jugador pueda recibir sus actualizaciones.
-
-## Comunicación persistente [#comunicación-persistente]
-
-Un mensaje marcado para persistir puede formar parte del estado que Eco mantiene asociado al canal u objeto. Esto resulta útil cuando el contenido debe estar disponible también para jugadores que todavía no estaban conectados cuando ocurrió la comunicación.
-
-No debe utilizarse persistencia sólo porque un mensaje se considere importante: debe existir una necesidad real de reconstruir ese estado posteriormente.
-
-## Elección práctica [#elección-práctica]
-
-```text
-¿Quién necesita el mensaje?
-        │
-        ├── Sólo un jugador ───────► jugador concreto
-        │
-        ├── Propietario ───────────► propietario
-        │
-        ├── Todos ahora ───────────► todos / otros
-        │
-        └── Ahora + futuros ───────► persistente
-```
-
-## Listas de jugadores [#listas-de-jugadores]
-
-La arquitectura de TNet/Eco también contempla el envío a una lista concreta de jugadores, no sólo a un único ID. Esta opción es especialmente útil para grupos seleccionados que no coinciden con todos los miembros del canal.
-
-## Echo y llamadas reenviadas [#echo-y-llamadas-reenviadas]
-
-El protocolo distingue comunicaciones como `ForwardToAll`, `ForwardToOthers` y sus variantes persistentes. Estas operaciones permiten que el servidor reenvíe el contenido sin que el cliente tenga que construir manualmente un paquete distinto para cada receptor.
-
-## Relación con persistencia [#relación-con-persistencia]
-
-Hay que separar dos preguntas:
-
-```text
-¿Quién lo recibe ahora?
-        ↓
-¿Debe estar disponible para quien llegue después?
-```
-
-La primera es una decisión de destinatario. La segunda es una decisión de persistencia. Pueden combinarse, pero no son el mismo concepto.
-
-## Relación con TNet [#relación-con-tnet]
-
-Eco conserva el modelo de objetivos de TNet, pero utiliza la nomenclatura propia del proyecto. Las equivalencias deben comprobarse siempre contra la implementación actual de `Eco`, `Objeto` y `Paquete`.
-
-## Referencias [#referencias]
-
-<Card title="RFC avanzadas" href="/docs/red/v1/comunicacion/rfc-avanzadas">
-  Cómo construir llamadas remotas y decidir su comportamiento.
-</Card>
-
-<Card title="Varios canales simultáneos" href="/docs/red/v1/guias/multiples-canales">
-  Aplicación práctica del alcance por canal.
-</Card>
-
-<Card title="TNet" href="https://github.com/tasharen/tnet">
-  Repositorio upstream.
-</Card>
-
-
-# Comunicación (/docs/red/v1/comunicacion)
-
-
-
-# Comunicación [#comunicación]
-
-La comunicación de Eco se divide en dos problemas: **ejecutar algo** y **mantener algo sincronizado**. Las RFC resuelven principalmente el primero; `Set`, `Nodo` y los sistemas de sincronización resuelven el segundo.
-
-<Callout title="Primero decide qué quieres comunicar" type="idea">
-  No empieces por `Send`. Empieza por definir si estás enviando una acción, un estado, una respuesta o información que debe persistir para futuros participantes.
-</Callout>
-
-<Cards>
-  <Card title="RFC" href="/docs/red/v1/comunicacion/rfc">
-    Ejecutar acciones o notificaciones remotas.
-  </Card>
-
-  <Card title="Sincronización" href="/docs/red/v1/comunicacion/sincronizacion">
-    Mantener propiedades y datos de una entidad coherentes entre participantes.
-  </Card>
-
-  <Card title="Destinatarios" href="/docs/red/v1/comunicacion/destinatarios">
-    Determinar quién debe recibir una operación.
-  </Card>
-
-  <Card title="Comunicación avanzada" href="/docs/red/v1/comunicacion/rfc-avanzadas">
-    RFC persistentes, coordinación y patrones heredados de TNet que Eco mantiene.
-  </Card>
-</Cards>
-
-## Árbol de decisión [#árbol-de-decisión]
-
-```text
-¿Qué representa el mensaje?
-        │
-        ├── Acción puntual ───────────► RFC
-        │
-        ├── Propiedad / estado ───────► Set / Sync
-        │
-        ├── Estado para futuros users ─► persistencia
-        │
-        └── Operación de protocolo ───► Paquete
-```
-
-## Flujo de una RFC [#flujo-de-una-rfc]
-
-<div className="fd-steps">
-  <div className="fd-step">
-    ### Definir la operación [#definir-la-operación-step]
-
-    Declara la función remota en un `Componente` asociado a un `Objeto`.
-  </div>
-
-  <div className="fd-step">
-    ### Elegir el alcance [#elegir-el-alcance-step]
-
-    Determina si deben recibirla todos, otros jugadores, un jugador concreto o un conjunto determinado.
-  </div>
-
-  <div className="fd-step">
-    ### Serializar los parámetros [#serializar-los-parámetros-step]
-
-    Eco transforma los parámetros en datos transportables sin que el gameplay necesite construir directamente el `Buffer`.
-  </div>
-
-  <div className="fd-step">
-    ### Procesar en destino [#procesar-en-destino-step]
-
-    El receptor resuelve el objeto, localiza la RFC y ejecuta la función correspondiente.
-  </div>
-</div>
-
-## Estado frente a eventos [#estado-frente-a-eventos]
-
-<Tabs items="['RFC', 'Estado']">
-  <Tab value="RFC">
-    Usa RFC para hechos puntuales: disparar un arma, abrir una puerta, reproducir una animación o solicitar una acción.
-  </Tab>
-
-  <Tab value="Estado">
-    Usa sincronización para valores que deben poder consultarse en cualquier momento: vida, inventario, configuración o estado de una entidad.
-  </Tab>
-</Tabs>
-
-## Autoridad [#autoridad]
-
-La comunicación no elimina la autoridad. Un cliente puede solicitar una operación, pero el servidor y el propietario del objeto siguen siendo parte del diseño de seguridad y consistencia.
-
-<Callout title="No confíes en el cliente" type="warn">
-  La validación importante debe permanecer en el lado que controla la autoridad real. Una RFC recibida correctamente no significa que la acción sea válida desde las reglas del juego.
-</Callout>
-
-## Referencias [#referencias]
-
-<Cards>
-  <Card title="RFC" href="/docs/red/v1/comunicacion/rfc">
-    Sintaxis y ciclo de una llamada remota.
-  </Card>
-
-  <Card title="Sincronización" href="/docs/red/v1/comunicacion/sincronizacion">
-    Estado, `Set`, `Get` y colas de sincronización.
-  </Card>
-
-  <Card title="Destinatarios" href="/docs/red/v1/comunicacion/destinatarios">
-    Objetivos de una comunicación.
-  </Card>
-
-  <Card title="Guía: Enviar una acción" href="/docs/red/v1/guias/enviar-accion">
-    Workflow práctico para una RFC.
-  </Card>
-</Cards>
-
-
-# RFC avanzadas (/docs/red/v1/comunicacion/rfc-avanzadas)
-
-
-
-# RFC avanzadas [#rfc-avanzadas]
-
-Las RFC (Remote Function Calls) son el mecanismo principal de Eco para ejecutar una función en otro extremo de la sesión. Una RFC describe una acción o notificación; no debe utilizarse como sustituto de un estado que necesita mantenerse sincronizado.
-
-## RFC básica [#rfc-básica]
-
-Una función marcada como RFC puede ser invocada a través del `Objeto` que contiene el componente:
-
-```csharp
-[RFC]
-void RecibirDaño(int cantidad)
-{
-    vida -= cantidad;
-}
-```
-
-La llamada transporta la identidad del objeto, el identificador o nombre de la RFC y sus parámetros.
-
-## Destinatarios [#destinatarios]
-
-Eco hereda el modelo de objetivos de TNet. Entre los casos habituales están:
-
-```text
-Todos los jugadores
-Todos excepto el emisor
-Un jugador concreto
-Un conjunto de jugadores
-Solo el estado persistente
-```
-
-La selección del destino forma parte de la semántica de la llamada y debe hacerse explícitamente.
-
-## RFC persistente [#rfc-persistente]
-
-Una RFC normal representa un evento puntual. Una RFC guardada representa una operación que además queda registrada en el estado del canal para que pueda reproducirse cuando corresponda.
-
-Esto es útil para:
-
-* construir objetos o estado inicial;
-* registrar una acción que nuevos jugadores necesitan reconstruir;
-* almacenar una operación en el orden en que debe restaurarse.
-
-No conviene guardar indiscriminadamente todas las acciones: el historial persistente debe ser suficientemente pequeño y determinista.
-
-## RFC sin eco al cliente [#rfc-sin-eco-al-cliente]
-
-TNet incluye un modo `NoneSaved` para almacenar una RFC en servidor sin reenviarla a los clientes actuales. Eco conserva la idea: permite guardar datos para futuros participantes sin convertirlos en un evento inmediato para todos.
-
-## Esperar confirmación [#esperar-confirmación]
-
-El flujo de red puede necesitar esperar a que llamadas previas hayan terminado antes de continuar con una operación dependiente. TNet documenta `WaitForBounceBack` para este escenario, y Eco debe tratar este patrón como una herramienta de coordinación, no como un bloqueo del hilo principal.
-
-## RFC frente a sincronización [#rfc-frente-a-sincronización]
-
-| Necesidad                              | Mecanismo                         |
-| -------------------------------------- | --------------------------------- |
-| Ejecutar una acción una vez            | RFC                               |
-| Notificar un evento                    | RFC                               |
-| Mantener una propiedad sincronizada    | `Set` / sincronización            |
-| Restaurar estado para nuevos jugadores | datos persistentes / RFC guardada |
-| Enviar una orden a un jugador concreto | RFC con destinatario explícito    |
-
-## Errores habituales [#errores-habituales]
-
-No uses una RFC para enviar la posición de una unidad cada frame si lo que realmente quieres es sincronizar su estado. Tampoco asumas que llamar una RFC significa que el emisor es necesariamente el propietario del objeto: la autoridad debe comprobarse según el flujo de la operación.
-
-## Referencias [#referencias]
-
-<Card title="Comunicación" href="/docs/red/v1/comunicacion">
-  Modelo general de comunicación de Eco.
-</Card>
-
-<Card title="Destinatarios" href="/docs/red/v1/comunicacion/destinatarios">
-  Selección de receptores y alcance de una llamada.
-</Card>
-
-<Card title="TNet upstream" href="https://github.com/tasharen/tnet">
-  Implementación de referencia heredada.
-</Card>
-
-
-# RFC (/docs/red/v1/comunicacion/rfc)
-
-
-
-# RFC [#rfc]
-
-Una RFC (*Remote Function Call*) representa una llamada a una función asociada a un `Objeto` que debe ejecutarse remotamente.
-
-<Callout title="Acción, no estado" type="info">
-  Una RFC es adecuada para comunicar que debe ocurrir algo. Para representar el valor actual de una propiedad conviene utilizar los mecanismos de estado y sincronización.
-</Callout>
-
-## Estructura [#estructura]
-
-Eco conserva las RFC dentro del contexto del `Canal`. Cada entrada contiene, conceptualmente:
-
-```text
-RFC
-├── uid
-├── functionName
-└── data
-```
-
-El identificador permite localizar el objeto y la función. Cuando la llamada no utiliza un identificador numérico, se conserva el nombre de la función.
-
-## Flujo [#flujo]
-
-```text
-Componente
-   ↓
-Objeto
-   ↓
-RFC
-   ↓
-Paquete
-   ↓
-Servidor
-   ↓
-Destinatarios
-   ↓
-Objeto remoto
-```
-
-El canal forma parte del contexto de la comunicación, por lo que una RFC no debe entenderse como un mensaje global independiente de la sesión.
-
-## RFC identificadas por nombre o ID [#rfc-identificadas-por-nombre-o-id]
-
-Eco puede trabajar con funciones identificadas mediante un ID compacto o mediante nombre. El nombre se utiliza cuando el identificador de función es `0`.
-
-Esto permite mantener una comunicación más compacta cuando existe un identificador estable, dejando el nombre para los casos dinámicos o no registrados mediante ID.
-
-## Persistencia [#persistencia]
-
-Algunas RFC pueden conservarse como parte del estado de un objeto o canal. `Canal` almacena las RFC asociadas a objetos dinámicos y puede exportarlas junto con los datos de creación del objeto.
-
-Por tanto, una RFC persistente puede formar parte del estado necesario para reconstruir un objeto, no solamente de una cola temporal de mensajes.
-
-## RFC desde un `Componente` [#rfc-desde-un-componente]
-
-Los componentes trabajan normalmente a través del `Objeto` asociado:
-
-```csharp
-public class MiUnidad : Componente
-{
-    public void Atacar()
-    {
-        ero.Send("Atacar", Objetivo.Otros);
-    }
-}
-```
-
-`Componente` también proporciona acceso de conveniencia a la instanciación, destrucción y datos del objeto.
-
-## Cuándo utilizar una RFC [#cuándo-utilizar-una-rfc]
-
-Utiliza RFC cuando el mensaje representa una acción o evento puntual:
-
-| Situación                                    | RFC               |
-| -------------------------------------------- | ----------------- |
-| Solicitar un ataque                          | Sí                |
-| Reproducir una acción                        | Sí                |
-| Ejecutar una habilidad                       | Sí                |
-| Notificar un evento puntual                  | Sí                |
-| Mantener `vida = 75`                         | No necesariamente |
-| Sincronizar una transformación continuamente | No                |
-
-## Relación con TNet [#relación-con-tnet]
-
-| Eco          | TNet                    |
-| ------------ | ----------------------- |
-| RFC          | RFC                     |
-| `Objeto`     | `TNObject`              |
-| `Componente` | `TNBehaviour`           |
-| `Canal`      | `TNChannel` / `Channel` |
-
-La correspondencia sirve para trasladar conocimientos de TNet, pero la referencia normativa es el código de Eco.
-
-## Referencias [#referencias]
-
-<Card title="Eco" href="https://github.com/Nervelink/eco">
-  Implementación actual de Eco.
-</Card>
-
-<Card title="TNet" href="https://github.com/tasharen/tnet">
-  Repositorio upstream.
-</Card>
-
-<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
-  Referencia generada sobre el repositorio actual de TNet.
-</Card>
-
-
-# Sincronización avanzada (/docs/red/v1/comunicacion/sincronizacion-avanzada)
-
-
-
-# Sincronización avanzada [#sincronización-avanzada]
-
-El sistema de datos de `Objeto` actualiza localmente el valor y, cuando puede enviar, comunica el cambio por la red. Si el objeto todavía no puede enviar, Eco puede poner el cambio en una cola para transmitirlo posteriormente. fileciteturn235file0
-
-## Flujo [#flujo]
-
-```text
-Set(...)
-  ↓
-Actualizar estado local
-  ↓
-¿Puede enviar?
- ├─ No → cola pendiente
- └─ Sí → enviar cambio
-          ↓
-       servidor / propietario
-          ↓
-      resto de clientes
-```
-
-## Autoridad [#autoridad]
-
-Idealmente el propietario del objeto realiza el cambio. Si otro participante intenta modificarlo, Eco puede reenviar la petición al propietario para mantener una autoridad clara. fileciteturn235file0
-
-Esto evita que dos clientes escriban simultáneamente el mismo estado sin una regla de autoridad.
-
-## Estado local inmediato [#estado-local-inmediato]
-
-`Set` actualiza la copia local antes de terminar el viaje de red. Esto mejora la respuesta inmediata, pero implica que la interfaz puede observar un valor antes de que el servidor haya confirmado la operación.
-
-Por eso los sistemas críticos no deberían confundir “valor local solicitado” con “estado autoritativo confirmado”.
-
-## Datos completos frente a cambios incrementales [#datos-completos-frente-a-cambios-incrementales]
-
-Durante la creación puede ser razonable enviar un `Nodo` completo. Durante el juego resulta más eficiente enviar cambios concretos:
-
-```text
-Creación → estado inicial completo
-Runtime  → Set("vida", 75)
-Runtime  → Set("mana", 40)
-```
-
-El propio código recomienda utilizar `Get/Set` después de la creación en lugar de reemplazar continuamente todo el árbol de datos. fileciteturn235file0
-
-## AutoSincronizar [#autosincronizar]
-
-`AutoSincronizar` puede automatizar la comparación y envío de valores, pero debe utilizarse con criterio: comprobar campos mediante reflexión periódicamente tiene un coste y puede ocultar la autoridad real del estado.
-
-## Referencias [#referencias]
-
-<Card title="Sincronización" href="/docs/red/v1/comunicacion/sincronizacion">
-  Modelo básico de sincronización de Eco.
-</Card>
-
-<Card title="Sincronizar una entidad" href="/docs/red/v1/guias/sincronizar-entidad">
-  Workflow práctico para sincronizar un objeto.
-</Card>
-
-
-# Sincronización (/docs/red/v1/comunicacion/sincronizacion)
-
-
-
-# Sincronización [#sincronización]
-
-La sincronización responde a una pregunta distinta de una RFC: &#x2A;*¿cómo hago que todos conozcan el estado actual de una entidad?**
-
-<Callout title="Acción vs estado" type="info">
-  Una RFC representa normalmente un evento puntual. Un dato sincronizado representa el estado actual y puede necesitar volver a enviarse o reconstruirse para un jugador que entra más tarde.
-</Callout>
-
-## Modelo de datos [#modelo-de-datos]
-
-```text
-Objeto
-└── Nodo
-    ├── vida
-    ├── posición
-    ├── inventario
-    └── estado
-```
-
-Las operaciones principales son `Get` y `Set`.
-
-```csharp
-objeto.Set("vida", 100);
-int vida = objeto.Get<int>("vida");
-```
-
-## Qué ocurre al llamar a `Set` [#qué-ocurre-al-llamar-a-set]
-
-<div className="fd-steps">
-  <div className="fd-step">
-    ### Estado local \[step] [#1-estado-local-step]
-
-    Eco actualiza primero el `Nodo` local. Esto permite que el código que acaba de cambiar el dato lo vea inmediatamente.
-  </div>
-
-  <div className="fd-step">
-    ### Comprobación de capacidad \[step] [#2-comprobación-de-capacidad-step]
-
-    Se comprueba que el objeto tenga identidad válida, pertenezca a un contexto enviable y no esté atravesando una transición donde la transmisión todavía no sea posible.
-  </div>
-
-  <div className="fd-step">
-    ### Comprobación de autoridad \[step] [#3-comprobación-de-autoridad-step]
-
-    Si el llamador es propietario, puede distribuir el cambio. Si no lo es, la operación se dirige al propietario para que siga el flujo de autoridad.
-  </div>
-
-  <div className="fd-step">
-    ### Propagación \[step] [#4-propagación-step]
-
-    El cambio se comunica a los destinatarios y el estado puede actualizarse también en la representación persistente del servidor.
-  </div>
-
-  <div className="fd-step">
-    ### Cola temporal \[step] [#5-cola-temporal-step]
-
-    Si el objeto no puede enviar todavía, el cambio puede quedar pendiente hasta que la transmisión vuelva a estar disponible.
-  </div>
-</div>
-
-## Autoridad [#autoridad]
-
-```text
-Cliente A
-   │
-   │ Set("vida", 80)
-   ▼
-¿A es propietario?
-   │
-   ├── Sí ──► distribuir + actualizar estado persistente
-   │
-   └── No ─► solicitar al propietario
-```
-
-Esto evita que varios clientes actúen como fuente de verdad simultánea para una propiedad.
-
-## Qué sincronizar [#qué-sincronizar]
-
-<Tabs items="['Estado crítico', 'Alta frecuencia', 'Inicialización']">
-  <Tab value="Estado crítico">
-    Vida, inventario, reglas de partida y cualquier valor cuyo estado actual deba ser consistente. Prioriza claridad y autoridad sobre frecuencia extrema.
-  </Tab>
-
-  <Tab value="Alta frecuencia">
-    Transformaciones o valores que cambian muchas veces por segundo pueden usar mecanismos rápidos si perder estados intermedios es aceptable.
-  </Tab>
-
-  <Tab value="Inicialización">
-    Datos necesarios para reconstruir un objeto cuando aparece o cuando entra un jugador nuevo deben formar parte de un estado que pueda recuperarse.
-  </Tab>
-</Tabs>
-
-## `AutoSincronizar` [#autosincronizar]
-
-`AutoSincronizar` automatiza parte de este trabajo para campos y propiedades de componentes de Unity. Su configuración incluye conceptos como frecuencia, persistencia y autoridad del propietario.
-
-```text
-AutoSincronizar
-├── entries
-├── updatesPerSecond
-├── isSavedOnServer
-├── isImportant
-└── onlyOwnerCanSync
-```
-
-<Callout title="Conveniencia, no arquitectura" type="idea">
-  `AutoSincronizar` es útil para prototipos y propiedades sencillas. En sistemas de producción conviene controlar explícitamente qué datos viajan, quién los modifica y con qué frecuencia.
-</Callout>
-
-## Frecuencia [#frecuencia]
-
-Si una propiedad cambia a alta frecuencia, transmitir todos sus valores puede generar tráfico innecesario.
-
-```text
-100 cambios locales / s
-        │
-        ├── enviar todos ───────► tráfico alto
-        │
-        └── muestrear / agrupar ─► tráfico controlado
-```
-
-`updatesPerSecond` establece una frecuencia máxima para el sistema automático.
-
-## Persistencia [#persistencia]
-
-La sincronización de estado y la persistencia no son lo mismo:
-
-| Concepto       | Pregunta                                         |
-| -------------- | ------------------------------------------------ |
-| Sincronización | ¿Quién necesita conocer el estado ahora?         |
-| Persistencia   | ¿Debe poder reconstruirse el estado después?     |
-| RFC guardada   | ¿Debe reproducirse una operación al reconstruir? |
-
-Consulta [Persistencia](/docs/red/v1/persistencia) cuando el objetivo sea sobrevivir a la ausencia de jugadores.
-
-## Errores habituales [#errores-habituales]
-
-<Callout title="No conviertas el estado en eventos" type="warn">
-  Si una unidad tiene `vida = 74`, no necesitas una RFC por cada cambio si lo único importante es que los clientes conozcan el valor actual. Sincroniza el estado.
-</Callout>
-
-<Callout title="No sincronices cada frame por defecto" type="warn">
-  La frecuencia debe depender de la percepción del jugador y de la necesidad real del sistema, no del `Update()` de Unity.
-</Callout>
-
-## Relación con TNet [#relación-con-tnet]
-
-El modelo procede conceptualmente de `TNObject.Set/Get` y `TNAutoSync`, pero los nombres y el comportamiento deben comprobarse en la implementación de Eco.
-
-## Referencias [#referencias]
-
-<Cards>
-  <Card title="Objetos" href="/docs/red/v1/modelo/objetos">
-    Identidad y datos del objeto.
-  </Card>
-
-  <Card title="RFC avanzadas" href="/docs/red/v1/comunicacion/rfc-avanzadas">
-    Cuándo una acción debe ser un evento remoto.
-  </Card>
-
-  <Card title="Sincronizar una entidad" href="/docs/red/v1/guias/sincronizar-entidad">
-    Implementación práctica de este flujo.
-  </Card>
-
-  <Card title="Persistencia" href="/docs/red/v1/persistencia">
-    Cómo hacer que el estado sobreviva a la ausencia temporal de jugadores.
-  </Card>
-</Cards>
 
 
 # APIs de bajo nivel (/docs/red/v1/referencia/api/bajo-nivel)
