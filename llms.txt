@@ -35,6 +35,8 @@
 
     - **Sincronización**
     - [Sincronización](/docs/red/v1/sincronizacion): Cómo Eco mantiene el estado de los objetos coherente entre clientes y servidor.
+
+    - **Serialización**
     - [Serialización](/docs/red/v1/serializacion): Cómo Eco representa datos, construye buffers y codifica los paquetes que circulan por la red.
 - Ui
   - UI
