@@ -49,6 +49,7 @@
       - [Guías](/docs/red/v1/guias): Recorridos prácticos para integrar y utilizar Eco en un proyecto de Unity.
       - [Primer cliente](/docs/red/v1/guias/primer-cliente)
       - [Primer objeto](/docs/red/v1/guias/primer-objeto)
+      - [Sincronizar una entidad](/docs/red/v1/guias/sincronizar-entidad): Sincroniza el estado de una entidad de red utilizando la autoridad y el sistema de datos de Eco.
     - Referencia
       - [Referencia](/docs/red/v1/referencia): Fuentes, equivalencias y material de consulta para trabajar con Eco.
       - [TNet upstream](/docs/red/v1/referencia/upstream): Relación de Eco con la implementación original de TNet.

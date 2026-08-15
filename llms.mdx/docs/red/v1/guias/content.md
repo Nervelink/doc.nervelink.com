@@ -10,6 +10,10 @@ Las guías muestran cómo utilizar Eco para resolver tareas concretas. No preten
   Conecta un cliente de Unity a un servidor Eco y verifica el estado de la sesión.
 </Card>
 
-<Card title="Siguiente paso" href="/docs/red/v1/guias/primer-objeto">
+<Card title="Primer objeto" href="/docs/red/v1/guias/primer-objeto">
   Crea y utiliza un objeto de red dentro de un canal.
+</Card>
+
+<Card title="Sincronizar una entidad" href="/docs/red/v1/guias/sincronizar-entidad">
+  Mantén el estado de una entidad sincronizado y entiende el papel del propietario y la autoridad.
 </Card>
