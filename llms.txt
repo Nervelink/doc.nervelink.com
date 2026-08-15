@@ -59,6 +59,10 @@
       - [Transferir la propiedad de un objeto](/docs/red/v1/guias/transferir-propiedad)
       - [Sincronizar los datos del jugador](/docs/red/v1/guias/sincronizar-jugador): Gestiona y sincroniza los datos asociados al jugador local.
       - [Transferir un objeto entre canales](/docs/red/v1/guias/transferir-objeto-canal): Mueve un objeto de red entre canales conservando el control del ciclo de vida de la transferencia.
+      - [Cambiar el nivel de un canal](/docs/red/v1/guias/cambiar-nivel): Coordina el cambio de nivel de un canal sin tratarlo como una carga de escena local.
+      - [Transferir archivos](/docs/red/v1/guias/transferir-archivos): Utiliza las funciones de archivos de Eco para solicitar listados y cargar contenido desde el servidor.
+      - [Desconectar y limpiar la sesión](/docs/red/v1/guias/desconectar-limpiar): Cierra una sesión de Eco y evita conservar estado de una conexión anterior.
+      - [Diagnosticar una conexión](/docs/red/v1/guias/diagnosticar-conexion): Identifica problemas de conexión, canales, paquetes y transporte utilizando el estado expuesto por Eco.
     - Referencia
       - [Referencia](/docs/red/v1/referencia): Fuentes, equivalencias y material de consulta para trabajar con Eco.
       - [TNet upstream](/docs/red/v1/referencia/upstream): Relación de Eco con la implementación original de TNet.
