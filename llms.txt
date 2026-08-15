@@ -38,6 +38,8 @@
 
     - **Serialización**
     - [Serialización](/docs/red/v1/serializacion): Cómo Eco representa datos, construye buffers y codifica los paquetes que circulan por la red.
+
+    - **Cliente**
     - [Cliente](/docs/red/v1/cliente): Ciclo de vida del cliente de Eco, conexión, transporte y gestión de la sesión de red.
 - Ui
   - UI
