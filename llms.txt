@@ -14,7 +14,7 @@
     - [Inicio](/docs/nucleo/v2)
 - Red
   - Red
-    - [Red - Nerve Docs](/docs/red/v1): Sistemas principales
+    - [Red · Eco v1](/docs/red/v1): Arquitectura y uso de la capa de red Eco basada en TNet 3.
 - Ui
   - UI
     - [UI - Nerve Docs](/docs/ui/v1): Sistemas principales
