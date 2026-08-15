@@ -23,6 +23,7 @@
 
     - **Conceptos**
     - [Conceptos fundamentales](/docs/red/v1/conceptos): Las piezas que forman el modelo de red de Eco y cómo se relacionan entre sí.
+    - [Canales](/docs/red/v1/canales): Ámbitos de estado compartido en Eco y gestión de la pertenencia de los jugadores.
 - Ui
   - UI
     - [UI - Nerve Docs](/docs/ui/v1): Sistemas principales
