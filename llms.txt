@@ -109,15 +109,21 @@
     - Referencia
       - [Referencia](/docs/red/v1/referencia): Fuentes, API, equivalencias y material de consulta para trabajar con Eco.
       - API
-        - [Referencia API](/docs/red/v1/referencia/api): Referencia práctica de las clases y tipos públicos que forman la API de Eco.
-        - [Eco](/docs/red/v1/referencia/api/eco): Fachada central de Eco para conexiones, canales, jugadores, objetos, datos y utilidades de red.
-        - [Objeto](/docs/red/v1/referencia/api/objeto): Referencia práctica de la identidad, propiedad, datos y ciclo de vida de un objeto de red.
+        - [Referencia API](/docs/red/v1/referencia/api): Referencia práctica de las clases, propiedades, métodos y tipos que forman la API de Eco.
+        - [Eco](/docs/red/v1/referencia/api/eco): Fachada central de Eco para conexiones, canales, jugadores, objetos, datos, eventos y diagnóstico.
+        - [Objeto](/docs/red/v1/referencia/api/objeto): Referencia de la identidad, ownership, estado, RPC, transferencia y ciclo de vida de un objeto de red.
         - [Componente](/docs/red/v1/referencia/api/componente): Base de comportamiento de Unity asociada a un Objeto de red.
-        - [Canal](/docs/red/v1/referencia/api/canal): Estado interno de un canal, jugadores, objetos, RFC y persistencia.
+        - [Canal](/docs/red/v1/referencia/api/canal): Referencia de un ámbito compartido de red, sus jugadores, objetos, RFC y persistencia.
         - [Jugador](/docs/red/v1/referencia/api/jugador): Identidad, nombre, aliases y datos sincronizados de un participante de Eco.
-        - [Objetivo](/docs/red/v1/referencia/api/objetivo): Destinatarios disponibles para los envíos de Eco y control de persistencia.
-        - [ClienteJuego](/docs/red/v1/referencia/api/cliente-juego): Implementación interna del cliente de Eco y su ciclo de comunicación.
-        - [ServidorJuego](/docs/red/v1/referencia/api/servidor-juego): Runtime del servidor de Eco, canales, jugadores, persistencia y extensibilidad.
+        - [Objetivo](/docs/red/v1/referencia/api/objetivo): Destinatario lógico de un envío de Eco y regla de persistencia asociada.
+        - [Nodo](/docs/red/v1/referencia/api/nodo): Estructura jerárquica de datos utilizada por Eco para estado, configuración y serialización.
+        - [Buffer](/docs/red/v1/referencia/api/buffer): Lectura y escritura binaria de bajo nivel utilizada por el protocolo de Eco.
+        - [Paquete](/docs/red/v1/referencia/api/paquete): Catálogo de mensajes que forman el protocolo de comunicación de Eco.
+        - [Serialización](/docs/red/v1/referencia/api/serializacion): Conversión de tipos de C# a las representaciones binarias y jerárquicas utilizadas por Eco.
+        - [Datagrama](/docs/red/v1/referencia/api/datagrama): Unidad mínima de datos asociada al transporte de Eco.
+        - [IConnection](/docs/red/v1/referencia/api/iconnection): Abstracción de transporte para conectar Eco con sockets o servicios de red personalizados.
+        - [ClienteJuego](/docs/red/v1/referencia/api/cliente-juego): Runtime interno del cliente de Eco para conexiones, canales, paquetes y estado de sesión.
+        - [ServidorJuego](/docs/red/v1/referencia/api/servidor-juego): Runtime del servidor de Eco para conexiones, canales, jugadores, persistencia y procesamiento de paquetes.
         - [APIs de bajo nivel](/docs/red/v1/referencia/api/bajo-nivel): Primitivas internas de Eco para paquetes, buffers, callbacks, caché, serialización y transporte personalizado.
       - [TNet upstream](/docs/red/v1/referencia/upstream): Relación de Eco con la implementación original de TNet.
       - [Equivalencias Eco ↔ TNet](/docs/red/v1/referencia/equivalencias): Mapa de nomenclatura entre Eco y la implementación de TNet.

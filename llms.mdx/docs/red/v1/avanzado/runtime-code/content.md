@@ -39,16 +39,6 @@ No es una buena opción para sustituir el código normal de un sistema que conoc
   Ejecutar C# generado o recibido externamente equivale a ejecutar código con los permisos del proceso. Nunca trates código de mods desconocidos como contenido de datos inocente.
 </Callout>
 
-## Componentes [#componentes]
-
-```text
-RuntimeCode
-├── CodeCompiler
-├── CustomDynamicDriver
-├── RuntimeBehaviour
-└── CustomReportPrinter
-```
-
 ## Flujo recomendado [#flujo-recomendado]
 
 <Steps>
@@ -76,6 +66,8 @@ RuntimeCode
     Utiliza `RuntimeBehaviour` o el driver dinámico para asociar el código a un objeto.
   </Step>
 </Steps>
+
+## Fuente [#fuente]
 
 <Card title="RuntimeCode" href="https://github.com/Nervelink/eco/tree/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/RuntimeCode">
   Implementación de la infraestructura de código dinámico.

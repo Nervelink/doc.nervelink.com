@@ -4,26 +4,26 @@
 
 # ClienteJuego [#clientejuego]
 
-`ClienteJuego` contiene la implementación de la sesión cliente que utiliza la fachada `Eco`.
+`ClienteJuego` es la implementación interna de la sesión cliente. La mayoría del gameplay debe utilizar `Eco`, pero esta clase es fundamental para integrar sistemas avanzados, depurar el runtime y trabajar con transportes personalizados.
 
-En código de gameplay, normalmente se trabaja con `Eco`. Esta página resulta útil cuando necesitas diagnosticar o extender el runtime.
+## Estado de sesión [#estado-de-sesión]
 
-## Estado de conexión [#estado-de-conexión]
+| Miembro             | Significado                      |
+| ------------------- | -------------------------------- |
+| `isConnected`       | Conexión establecida             |
+| `isTryingToConnect` | Intentando conectar              |
+| `isJoiningChannel`  | Existe una entrada pendiente     |
+| `isInChannel`       | Pertenece al contexto consultado |
+| `stage`             | Etapa interna del cliente        |
+| `playerID`          | ID local                         |
+| `playerName`        | Nombre actual                    |
+| `playerData`        | Nodo de datos del jugador        |
 
-```csharp
-cliente.isConnected;
-cliente.isTryingToConnect;
-cliente.isJoiningChannel;
-cliente.isInChannel;
-cliente.stage;
-```
-
-Estos estados son independientes. Estar conectado al servidor no implica pertenecer a un canal.
+Conectado y dentro de un canal son estados diferentes.
 
 ## Canales [#canales]
 
 ```csharp
-cliente.channels;
 cliente.IsInChannel(idCanal);
 cliente.IsJoiningChannel(idCanal);
 cliente.GetChannel(idCanal);
@@ -31,18 +31,7 @@ cliente.JoinChannel(...);
 cliente.LeaveChannel(idCanal);
 ```
 
-`channels` es la colección de canales activos de la conexión.
-
-## Jugador local [#jugador-local]
-
-```csharp
-cliente.playerID;
-cliente.playerName;
-cliente.playerData;
-cliente.jugador;
-```
-
-El cliente también proporciona métodos para modificar datos del jugador y del servidor.
+La colección `channels` representa los canales activos del cliente. El modelo permite varios canales simultáneos.
 
 ## Transporte [#transporte]
 
@@ -55,9 +44,9 @@ cliente.tcpEndPoint;
 cliente.ping;
 ```
 
-TCP es el transporte principal y UDP es opcional. `custom` permite sustituir la capa de conexión mediante `IConnection`.
+`custom` permite sustituir la conexión mediante `IConnection` sin cambiar el modelo lógico de canales y objetos.
 
-## Diagnóstico [#diagnóstico]
+## Métricas [#métricas]
 
 ```csharp
 cliente.sentPackets;
@@ -68,26 +57,57 @@ cliente.serverTime;
 cliente.serverUptime;
 ```
 
-Estas métricas permiten detectar saturación, tráfico inesperado y problemas de latencia.
+Estas propiedades son útiles para instrumentación y para comprobar si un problema está en gameplay, procesamiento o transporte.
 
-## Colas [#colas]
+## Cola de paquetes [#cola-de-paquetes]
 
-El cliente expone colas de recepción y envío para integraciones que operan sin sockets directamente. Deben tratarse como estructuras internas y sincronizarse correctamente cuando se usan desde hilos externos.
+El cliente recibe datos del transporte y los procesa durante su ciclo de actualización. El procesamiento distribuido evita que una ráfaga de paquetes bloquee indefinidamente el frame.
+
+```text
+Socket / IConnection
+        ↓
+Buffer
+        ↓
+Cola de entrada
+        ↓
+ProcesarPaquetes
+        ↓
+Despacho
+```
 
 ## Paquetes personalizados [#paquetes-personalizados]
-
-`packetHandlers` permite registrar controladores para paquetes que el núcleo no procesa.
 
 ```csharp
 cliente.packetHandlers[(byte)miPaquete] = OnPacket;
 ```
 
-## Referencia [#referencia]
+El handler debe respetar el formato binario definido por quien genera el paquete.
+
+## Relación con Eco [#relación-con-eco]
+
+```text
+Gameplay
+   ↓
+Eco
+   ↓
+ClienteJuego
+   ├── Transporte
+   ├── Canales
+   ├── Jugador
+   ├── Paquetes
+   └── Objetos
+```
+
+<Callout title="No expongas ClienteJuego innecesariamente" type="warn">
+  Encapsula el acceso directo dentro de sistemas de infraestructura. El gameplay normal debe permanecer sobre la fachada de Eco para evitar acoplamiento al runtime.
+</Callout>
+
+## Código fuente [#código-fuente]
 
 <Card title="ClienteJuego.cs" href="https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/ClienteJuego.cs">
-  Código fuente actual.
+  Implementación actual del runtime cliente.
 </Card>
 
 <Card title="Eco" href="/docs/red/v1/referencia/api/eco">
-  Fachada recomendada para la mayoría del código del juego.
+  Fachada recomendada para gameplay.
 </Card>

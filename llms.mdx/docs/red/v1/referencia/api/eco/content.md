@@ -4,107 +4,65 @@
 
 # Eco [#eco]
 
-`Eco` es la fachada principal del sistema de red. Se inicializa como sistema de Pandora y expone métodos estáticos para que el código de gameplay pueda trabajar con la red sin acceder directamente a `ClienteJuego`.
+`Eco` es la fachada principal del sistema de red. Se inicializa como sistema de Pandora y concentra las operaciones que el código de juego necesita para trabajar con la sesión sin acceder directamente a los detalles del runtime.
 
-<Callout title="No instanciar Eco" type="warn">
-  La instancia del sistema es gestionada por Pandora/Alexandria. Desde el juego utiliza la API estática de `Eco` y reserva `Eco.Cliente` para necesidades avanzadas.
+<Callout title="Regla de uso" type="info">
+  En gameplay utiliza `Eco`. Accede a `Eco.Cliente`, `Servidor` o `ServidorJuego` cuando necesites diagnóstico, integración o infraestructura avanzada.
 </Callout>
 
-## Estado de conexión [#estado-de-conexión]
+## Estado [#estado]
 
-```csharp
-bool conectado = Eco.EstaConectado;
-bool intentando = Eco.IntentandoConectar;
-bool enAlgunCanal = Eco.EstaEnAlgunCanal;
-int idJugador = Eco.IdJugador;
-int ping = Eco.Ping;
-```
-
-Propiedades especialmente útiles:
-
-| Propiedad            | Significado                               |
-| -------------------- | ----------------------------------------- |
-| `EstaConectado`      | Existe una conexión activa.               |
-| `IntentandoConectar` | Hay un intento de conexión en curso.      |
-| `EstaEnAlgunCanal`   | El jugador pertenece a al menos un canal. |
-| `Canales`            | Canales activos para el jugador.          |
-| `Jugador`            | Jugador local.                            |
-| `IdJugador`          | Identificador asignado por el servidor.   |
-| `NombreJugador`      | Nombre visible del jugador.               |
-| `Ping`               | Latencia actual registrada.               |
-| `PuedeUsarUDP`       | UDP está disponible para el cliente.      |
+| Miembro                  | Resultado                             |
+| ------------------------ | ------------------------------------- |
+| `Eco.EstaConectado`      | `bool`, conexión activa               |
+| `Eco.IntentandoConectar` | `bool`, intento de conexión           |
+| `Eco.EstaEnAlgunCanal`   | `bool`, pertenece a uno o más canales |
+| `Eco.IdJugador`          | `int`, ID del jugador local           |
+| `Eco.NombreJugador`      | `string`, nombre actual               |
+| `Eco.Ping`               | latencia observada                    |
+| `Eco.Jugador`            | `Jugador`, participante local         |
+| `Eco.Canales`            | colección de canales activos          |
 
 ## Conexión [#conexión]
 
+Firmas de uso habitual:
+
 ```csharp
-Eco.Conectar("192.168.1.20", 5127);
+Eco.Conectar(string direccion, int puerto = 5127);
+Eco.Conectar();
 Eco.Desconectar();
-Eco.Desconectar(1f);
+Eco.Desconectar(float retraso);
 ```
 
-También existe `Eco.Conectar()` para conectar al servidor local iniciado por Eco/`Servidor`.
-
-<Steps>
-  <Step>
-    ### Preparar nombre y datos [#preparar-nombre-y-datos]
-
-    Establece `Eco.NombreJugador` y, si procede, los datos iniciales del jugador antes de conectar.
-  </Step>
-
-  <Step>
-    ### Conectar [#conectar]
-
-    Llama a `Eco.Conectar(...)` y espera `Eco.alConectar`.
-  </Step>
-
-  <Step>
-    ### Entrar en un canal [#entrar-en-un-canal]
-
-    Utiliza `Eco.UnirseACanal(...)`, `Eco.CrearCanal(...)` o `Eco.UnirseACanalAleatorio(...)`.
-  </Step>
-
-  <Step>
-    ### Operar sobre la sesión [#operar-sobre-la-sesión]
-
-    Consulta canales, crea objetos, sincroniza estado o envía RFC.
-  </Step>
-</Steps>
+`Eco.Conectar()` se utiliza cuando la sesión local ya tiene disponible el servidor correspondiente.
 
 ## Canales [#canales]
 
 ```csharp
-Eco.UnirseACanal(10, "Mundo", true, 100, null);
-Eco.UnirseACanalAleatorio("Arena", false, 4, null);
-Eco.CrearCanal("Arena", false, 4, null);
-Eco.SalirDeCanal(10);
+Eco.UnirseACanal(int idCanal, string nombreNivel, bool persistente, int limiteJugadores, string contraseña);
+Eco.SalirDeCanal(int idCanal);
 Eco.SalirDeTodosLosCanales();
+Eco.ObtenerCanal(int idCanal);
+Eco.EstaEnCanal(int idCanal);
 ```
 
-La API permite administrar también el estado del canal:
+Para crear o buscar una partida existen además las operaciones de creación y selección aleatoria de canal.
 
-```csharp
-Eco.CerrarCanal(10);
-Eco.BloquearCanal(10, true);
-Eco.EstablecerLimiteJugadores(10, 8);
-Eco.CargarEscena(10, "Arena");
-```
+<Callout title="Multicanal" type="warning">
+  No utilices `idUltimoCanal` como sustituto de `idCanal` en una arquitectura multicanal. Pasa siempre el contexto de canal a las operaciones que lo necesiten.
+</Callout>
 
-## Datos de servidor, canal y jugador [#datos-de-servidor-canal-y-jugador]
+## Datos [#datos]
 
-Eco mantiene tres ámbitos de datos además de los datos propios de cada `Objeto`:
+Eco dispone de tres ámbitos de datos antes de llegar a los datos de `Objeto`:
 
 ```text
-Servidor
-└── DatosServidor
-
-Canal
-└── DatosCanal
-
-Jugador
-└── DatosJugador
+Servidor → datos globales
+Canal    → datos del ámbito de partida
+Jugador  → datos del participante
 ```
 
-Ejemplos:
+Ejemplo:
 
 ```csharp
 Eco.EstablecerDatosJugador("Perfil/Nivel", 25);
@@ -112,30 +70,42 @@ int nivel = Eco.ObtenerDatosJugador<int>("Perfil/Nivel", 1);
 
 Eco.EstablecerDatosCanal(10, "Reglas/Modo", "Arena");
 string modo = Eco.ObtenerDatosCanal<string>(10, "Reglas/Modo", "Normal");
-
-int maxJugadores = Eco.ObtenerDatosServidor<int>("MaxJugadores", 64);
 ```
 
-Los datos de servidor requieren privilegios de administrador para modificarse.
+Los datos globales del servidor están sujetos a autorización cuando se modifican.
 
-## Objetos de red [#objetos-de-red]
+## Objetos [#objetos]
 
 ```csharp
-Eco.Instanciar(10, "CreateAtPosition", "Player", false, posicion, rotacion);
+Eco.Instanciar(
+    10,
+    "CreateAtPosition",
+    "Player",
+    false,
+    posicion,
+    rotacion
+);
 ```
 
-También existen operaciones de exportación/importación:
+Para operaciones persistentes existen además exportación e importación de objetos.
+
+## Retorno y coordinación [#retorno-y-coordinación]
 
 ```csharp
-Eco.ExportarObjetos(objetos, datos => { /* ... */ });
-Eco.ImportarObjetos(10, datos, ids => { /* ... */ });
+Eco.EnviarConRetorno(() =>
+{
+    // Procesamiento remoto anterior ha alcanzado su retorno.
+});
+
+yield return Eco.EsperarRetorno();
 ```
 
-## Transporte y diagnóstico [#transporte-y-diagnóstico]
+Utiliza estos mecanismos para coordinar operaciones concretas, no para reemplazar la sincronización de estado.
+
+## Diagnóstico [#diagnóstico]
 
 ```csharp
-Eco.IniciarUDP(12000);
-Eco.PuedeUsarUDP;
+Eco.Ping;
 Eco.PaquetesEnviados;
 Eco.PaquetesRecibidos;
 Eco.BytesEnviados;
@@ -144,46 +114,15 @@ Eco.DimensionPaqueteEntrada;
 Eco.DimensionPaqueteDisponible;
 ```
 
-Para diagnóstico avanzado también están `Eco.PuntoTcp`, `Eco.JugadorOrigenPaquete` e `Eco.IdOrigenPaquete`.
+Son especialmente útiles para construir una pantalla de diagnóstico o registrar telemetría de red.
 
-## Paquetes personalizados [#paquetes-personalizados]
+## Archivos y caché [#archivos-y-caché]
 
-```csharp
-Eco.EstablecerControlPaquete(Paquete.RequestPing, MiControlador);
-```
+Eco también expone operaciones para el servicio de archivos y caché asociada al servidor. Son independientes de la persistencia lógica de objetos.
 
-También puede registrarse un ID de byte propio para extensiones de protocolo.
+## Eventos [#eventos]
 
-## Archivos [#archivos]
-
-```csharp
-Eco.GuardarArchivo("Partidas/slot1.dat", datos);
-Eco.CargarArchivo("Partidas/slot1.dat", (nombre, contenido) => { /* ... */ });
-Eco.EliminarArchivo("Partidas/slot1.dat");
-```
-
-Existe además una caché local asociada al servidor mediante `EscribirCache` y `LeerCache`.
-
-## Coordinación [#coordinación]
-
-Para confirmar que las operaciones enviadas anteriormente han llegado al servidor:
-
-```csharp
-Eco.EnviarConRetorno(() =>
-{
-    Debug.Log("El servidor ha procesado el callback");
-});
-```
-
-Y en una corrutina:
-
-```csharp
-yield return Eco.EsperarRetorno();
-```
-
-## Eventos principales [#eventos-principales]
-
-Eco expone eventos para conexión, desconexión, canales, jugadores y datos:
+Los eventos de conexión, canales, jugadores y datos permiten reaccionar sin consultar cada frame:
 
 ```csharp
 Eco.alConectar += OnConectar;
@@ -193,14 +132,22 @@ Eco.alEntrarJugador += OnJugador;
 Eco.alCambiarDatosJugador += OnDatosJugador;
 ```
 
-Suscríbete normalmente en `OnEnable` y desuscríbete en `OnDisable`.
+Suscríbete y desuscríbete en el ciclo de vida del sistema que consume los eventos.
 
-## Código fuente [#código-fuente]
+## Integración avanzada [#integración-avanzada]
+
+`Eco.Cliente` expone `ClienteJuego` para acceder a estado interno de sesión. Los paquetes personalizados y `IConnection` son mecanismos de infraestructura y deben documentarse junto con transporte y protocolo.
+
+## Fuente [#fuente]
 
 <Card title="Eco.cs" href="https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Sistemas/Eco.cs">
   Implementación de la fachada principal.
 </Card>
 
 <Card title="ClienteJuego.cs" href="https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/ClienteJuego.cs">
-  Implementación del cliente interno utilizado por Eco.
+  Runtime cliente utilizado internamente por Eco.
+</Card>
+
+<Card title="Inicio rápido" href="/docs/red/v1">
+  Ruta recomendada para la primera integración.
 </Card>

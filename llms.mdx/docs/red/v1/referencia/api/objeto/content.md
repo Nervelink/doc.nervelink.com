@@ -4,7 +4,7 @@
 
 # Objeto [#objeto]
 
-`Objeto` es la identidad de red asociada a una entidad de Unity. Eco lo utiliza para localizar componentes, mantener ownership, asociar datos y enrutar RFC.
+`Objeto` representa una entidad de red concreta. Vincula la identidad del objeto de Unity con un canal, un propietario, datos sincronizados y el despacho de llamadas remotas.
 
 ## Identidad [#identidad]
 
@@ -14,59 +14,55 @@ ulong uid = objeto.uid;
 int canal = objeto.channelID;
 ```
 
-El objeto mantiene además información de registro y destrucción:
+`id` pertenece al contexto del canal. `uid` combina la identidad necesaria para resolver el objeto entre contextos de red.
 
-```csharp
-objeto.hasBeenRegistered;
-objeto.hasBeenDestroyed;
-```
+| Miembro             | Uso                                         |
+| ------------------- | ------------------------------------------- |
+| `id`                | Identificador del objeto dentro del canal   |
+| `uid`               | Identificador global de red                 |
+| `channelID`         | Canal actual                                |
+| `hasBeenRegistered` | Registro completado                         |
+| `hasBeenDestroyed`  | Destrucción procesada                       |
+| `isMine`            | El propietario es el jugador local          |
+| `ownerID`           | ID del propietario                          |
+| `owner`             | `Jugador` propietario                       |
+| `PuedeEnviar`       | El objeto puede realizar operaciones de red |
 
-## Ownership [#ownership]
-
-```csharp
-bool local = objeto.isMine;
-Jugador propietario = objeto.owner;
-int idPropietario = objeto.ownerID;
-```
-
-El cambio de propietario debe hacerse sobre objetos dinámicos y el nuevo propietario debe pertenecer al canal correspondiente.
-
-```csharp
-if (objeto.id >= 32768)
-{
-    objeto.ownerID = nuevoJugador.id;
-}
-```
-
-## Estado [#estado]
-
-`Objeto` contiene un `Nodo` de datos específico:
+## Estado y datos [#estado-y-datos]
 
 ```csharp
 objeto.Set("vida", 100);
 int vida = objeto.Get<int>("vida", 100);
+Nodo nodo = objeto.Get("vida");
 ```
 
-`Set` actualiza el dato localmente y, cuando procede, genera la comunicación necesaria. Las solicitudes de un cliente que no es propietario se encaminan al propietario.
+El patrón es clave/valor sobre `Nodo`. `Set` actualiza localmente y genera la sincronización cuando la autoridad y el estado de conexión permiten transmitirla.
 
-## Capacidad de envío [#capacidad-de-envío]
+## Autoridad [#autoridad]
+
+```csharp
+if (objeto.isMine)
+{
+    objeto.Set("vida", nuevaVida);
+}
+```
+
+Cuando el emisor no es propietario, el cambio puede requerir una solicitud al propietario. No utilices `isMine` como sistema de seguridad: las reglas críticas deben validarse en el lado con autoridad.
+
+## PuedeEnviar [#puedeenviar]
 
 ```csharp
 if (objeto.PuedeEnviar)
 {
-    objeto.Send("Actualizar", Objetivo.Otros, datos);
+    objeto.Send("Actualizar", Objetivo.Otros, valor);
 }
 ```
 
-`PuedeEnviar` considera conectividad, ID válido, destrucción, pertenencia al canal y unión pendiente.
-
-<Callout title="Comprueba PuedeEnviar en transiciones" type="warn">
-  No asumas que un objeto creado localmente puede comunicarse inmediatamente. Las entradas de canal y cargas de nivel generan estados transitorios.
-</Callout>
+Esta propiedad evita enviar cuando el objeto todavía no está registrado, está destruido, no pertenece a un canal válido o atraviesa una transición en la que el protocolo no admite todavía la operación.
 
 ## RFC [#rfc]
 
-Los componentes asociados al objeto pueden declarar métodos remotos y el objeto proporciona el contexto necesario para enviarlos.
+Los métodos remotos se declaran en `Componente` y se ejecutan dentro del contexto del `Objeto`:
 
 ```csharp
 public class Unidad : Componente
@@ -74,54 +70,74 @@ public class Unidad : Componente
     [RMR]
     void RecibirDaño(int cantidad)
     {
-        // ...
+        // validar y aplicar
     }
 }
 ```
 
-## Persistencia [#persistencia]
+El objeto proporciona identidad y destinatario; el componente proporciona el método remoto.
 
-El servidor puede almacenar RFC y datos de objetos dinámicos según la forma de creación y el objetivo del mensaje. Un objeto dinámico persistente puede sobrevivir a la salida de su propietario.
+## Instanciación y destrucción [#instanciación-y-destrucción]
 
-## Transferencia [#transferencia]
+Desde la fachada:
 
-Los objetos dinámicos pueden trasladarse a otro canal. Durante la operación el ID puede cambiar; `onTransfer` permite reaccionar localmente.
+```csharp
+Eco.Instanciar(canal, rcrID, nombreRcr, prefab, persistente, parametros);
+```
+
+Desde un componente:
+
+```csharp
+Instantiate("CrearUnidad", "Units/Soldier", false, posicion);
+DestroySelf();
+```
+
+Las operaciones de destrucción deben respetar la autoridad correspondiente.
+
+## Ownership [#ownership]
+
+El propietario puede cambiarse únicamente bajo las reglas de Eco para objetos dinámicos y jugadores del mismo canal. No edites directamente `ownerID` para simular una transferencia sin ejecutar el flujo de ownership correspondiente.
+
+## Transferencia de canal [#transferencia-de-canal]
+
+La transferencia entre canales cambia el contexto del objeto y puede producir un nuevo `id`. `onTransfer` permite actualizar referencias locales:
 
 ```csharp
 objeto.onTransfer += (nuevoCanal, nuevoID) =>
 {
-    // actualizar referencias locales
+    // Invalidar referencias basadas en el ID anterior.
 };
 ```
 
-## Destrucción [#destrucción]
+## Persistencia [#persistencia]
 
-```csharp
-objeto.onDestroy += () =>
-{
-    // limpieza previa
-};
+Un objeto persistente y un objeto estático de escena no son equivalentes. Los objetos persistentes del servidor se reconstruyen a partir del estado guardado del canal y de las operaciones necesarias para restaurarlos.
 
-objeto.DestroySelf();
-```
+## Eventos [#eventos]
+
+Entre los eventos relevantes están la destrucción y transferencia. Suscríbelos para sincronizar sistemas locales que dependen del ciclo de vida del objeto.
 
 ## Búsqueda [#búsqueda]
 
-La implementación permite localizar objetos por canal e ID y resolver identificadores globales para operaciones internas de Eco.
+Cuando el código debe resolver una entidad recibida por protocolo, utiliza el identificador y el canal con los mecanismos de búsqueda de Eco en lugar de mantener referencias globales a `GameObject`.
 
-## Referencia con TNet [#referencia-con-tnet]
+<Callout title="No guardes GameObject como identidad de red" type="warn">
+  Una referencia de Unity no sustituye a `id`, `uid` y `channelID`. Durante carga de escenas, creación, transferencia y destrucción, el `GameObject` puede cambiar mientras la identidad de red sigue un ciclo controlado por Eco.
+</Callout>
 
-| Eco          | TNet          |
-| ------------ | ------------- |
-| `Objeto`     | `TNObject`    |
-| `Componente` | `TNBehaviour` |
-| `isMine`     | `isMine`      |
-| `ownerID`    | `ownerID`     |
+## Equivalencia TNet [#equivalencia-tnet]
+
+| Eco          | TNet                                    |
+| ------------ | --------------------------------------- |
+| `Objeto`     | `TNObject`                              |
+| `Componente` | `TNBehaviour`                           |
+| `uid`        | `fullID` / `uid` según versión upstream |
+| `ownerID`    | `ownerID`                               |
 
 <Card title="Objeto.cs" href="https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/Objeto.cs">
-  Fuente de la API actual.
+  Implementación actual.
 </Card>
 
 <Card title="Objetos" href="/docs/red/v1/modelo/objetos">
-  Explicación conceptual del modelo de objetos.
+  Modelo conceptual y ciclo de vida.
 </Card>

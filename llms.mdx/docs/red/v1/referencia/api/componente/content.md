@@ -4,81 +4,69 @@
 
 # Componente [#componente]
 
-`Componente` es la clase base que simplifica la creación de comportamientos de Unity que necesitan comunicarse mediante Eco.
+`Componente` es la clase base para comportamientos de Unity que necesitan identidad de red, estado sincronizado, RFC, instanciación o destrucción.
+
+## Herencia [#herencia]
 
 ```csharp
 public class MiUnidad : Componente
 {
-    // lógica de gameplay y red
 }
 ```
 
-El componente busca automáticamente un `Objeto` en su jerarquía y mantiene una referencia a él.
+El componente busca un `Objeto` en su jerarquía durante `Awake()` y prepara su tabla de métodos remotos.
 
-## Relación con Unity [#relación-con-unity]
+## API principal [#api-principal]
 
-```text
-GameObject
-├── Objeto
-└── MiUnidad : Componente
-```
+| Miembro                    | Propósito                                              |
+| -------------------------- | ------------------------------------------------------ |
+| `ero`                      | `Objeto` asociado, creado/resuelto cuando es necesario |
+| `Get<T>(nombre, defecto)`  | Leer un dato                                           |
+| `Set(nombre, valor, sync)` | Escribir un dato                                       |
+| `immediateSync`            | Sincronización por defecto de `Set`                    |
+| `Instantiate(...)`         | Crear un objeto en el canal del componente             |
+| `DestroySelf()`            | Destruir la entidad de red                             |
+| `RemoveAllSavedRFCs()`     | Eliminar RFC guardadas asociadas                       |
 
-Si el `Componente` no encuentra un `Objeto`, Eco puede crear uno automáticamente, aunque esto no sustituye a configurar correctamente el prefab para una instancia de red.
-
-<Callout title="Prefabs de red" type="warn">
-  Para un prefab que vaya a utilizar comunicación de red, añade explícitamente `Objeto` a la jerarquía del prefab. La creación automática es una red de seguridad, no una configuración recomendada de producción.
-</Callout>
-
-## Acceso al objeto [#acceso-al-objeto]
-
-La referencia se obtiene mediante la propiedad `ero`.
-
-```csharp
-Objeto objeto = ero;
-
-if (ero.isMine)
-{
-    ero.Set("vida", 100);
-}
-```
-
-## Datos [#datos]
-
-`Componente` expone accesos de conveniencia a `Get` y `Set`:
+## Obtener datos [#obtener-datos]
 
 ```csharp
 int vida = Get<int>("vida", 100);
-Set("vida", vida - 10);
+Nodo nodo = Get("vida");
 ```
 
-También admite la sintaxis textual:
+La sobrecarga con valor por defecto evita depender de la existencia previa del nodo.
+
+## Establecer datos [#establecer-datos]
+
+```csharp
+Set("vida", 100);
+Set("vida", 100, sync: false);
+immediateSync = false;
+```
+
+También acepta una expresión textual de la forma `clave = valor`:
 
 ```csharp
 Set("vida = 100");
 ```
 
-Esta sintaxis utiliza `Nodo` para interpretar el valor.
-
-## Sincronización inmediata [#sincronización-inmediata]
-
-`immediateSync` determina si las llamadas a `Set` deben pedir sincronización inmediatamente por defecto.
-
-```csharp
-immediateSync = false;
-Set("contador", contador, sync: true);
-```
-
-El parámetro `sync` y `immediateSync` permiten separar modificación local de sincronización.
+La conversión textual depende del sistema `Nodo` y no es la opción recomendada para datos de alto rendimiento.
 
 ## Instanciación [#instanciación]
 
-Desde un `Componente` puedes instanciar un objeto en el mismo canal del objeto asociado:
+La instancia se crea en el canal del `Objeto` asociado:
 
 ```csharp
-Instantiate("CreateAtPosition", "Units/Soldier", true, transform.position, transform.rotation);
+Instantiate(
+    "CrearUnidad",
+    "Units/Soldier",
+    persistent: false,
+    transform.position
+);
 ```
 
-También puedes utilizar un ID de RCR.
+Existe además la variante que recibe el ID de una RCR.
 
 ## Destrucción [#destrucción]
 
@@ -87,36 +75,44 @@ DestroySelf();
 DestroySelf(2f);
 ```
 
-La segunda variante puede limitar la destrucción a determinados propietarios.
+La variante con retraso permite programar la destrucción manteniendo las reglas de ownership establecidas por Eco.
 
-## RMR guardadas [#rmr-guardadas]
+## Inicio diferido [#inicio-diferido]
 
-`RemoveAllSavedRFCs()` elimina las RFC guardadas asociadas a los métodos marcados para persistencia en el componente.
-
-Es útil cuando un objeto persistente necesita reconstruir su estado desde cero.
-
-## Ciclo de inicialización [#ciclo-de-inicialización]
+`Componente` utiliza `ActualizadorRed` para diferir `OnStart()` y evitar depender del `Start()` estándar de Unity para la preparación del objeto de red.
 
 ```text
-Awake
+Awake()
   ↓
-buscar Objeto
+Objeto asociado
   ↓
 ActualizadorRed
   ↓
-OnStart
+OnStart()
   ↓
-Objeto registrado
+Métodos remotos preparados
 ```
 
-`Componente` utiliza `ActualizadorRed` para diferir parte de la inicialización hasta el momento adecuado del runtime.
+Esto es especialmente importante en jerarquías y prefabs que se registran durante cambios de escena.
+
+## Prefabs [#prefabs]
+
+La configuración recomendada es colocar explícitamente `Objeto` en el prefab que represente una entidad de red. La creación automática de `Objeto` es una red de seguridad y no una sustitución del setup del prefab.
+
+## RFC guardadas [#rfc-guardadas]
+
+`RemoveAllSavedRFCs()` inspecciona métodos marcados como RFC persistentes y elimina sus entradas guardadas para el objeto.
 
 ## Código fuente [#código-fuente]
 
 <Card title="Componente.cs" href="https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/Componente.cs">
-  Implementación actual de `Componente`.
+  Implementación actual.
 </Card>
 
 <Card title="Objeto" href="/docs/red/v1/referencia/api/objeto">
-  Identidad de red que respalda al componente.
+  Identidad de red asociada al componente.
+</Card>
+
+<Card title="ActualizadorRed" href="/docs/red/v1/avanzado/actualizador-red">
+  Scheduler que controla el ciclo de inicio y actualización.
 </Card>

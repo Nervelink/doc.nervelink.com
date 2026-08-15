@@ -22,7 +22,7 @@ Cuando `channelID` es menor que `1`, utiliza el último canal registrado por Eco
   <Step>
     ### Resolver canal [#resolver-canal]
 
-    Si no se ha indicado un canal, toma `Eco.idUltimoCanal`.
+    Si no se ha indicado un canal, toma el último canal registrado por Eco.
   </Step>
 
   <Step>

@@ -4,59 +4,99 @@
 
 # Referencia API [#referencia-api]
 
-Esta sección documenta la API que utilizarás directamente desde el código del juego. A diferencia de las guías, aquí el objetivo es responder rápidamente a tres preguntas: qué representa un tipo, qué operaciones expone y cuándo debe utilizarse.
+La referencia API responde a una pregunta distinta de las guías: **qué expone cada tipo y cómo utilizarlo correctamente**. Cada página debe indicar la firma relevante, el estado que modifica, las restricciones y un ejemplo mínimo.
 
-<Callout title="La API de Eco es más amplia que TNet histórico" type="info">
-  Eco conserva la base de TNet, pero la fachada actual incorpora nombres, utilidades y operaciones propias de Nervelink. La referencia debe leerse junto con el código actual de `Nervelink/eco`.
+<Callout title="Fuente normativa" type="info">
+  La documentación resume el comportamiento de Eco, pero la implementación de `Nervelink/eco` es la fuente final para firmas, sobrecargas, atributos y detalles que dependan de la versión del código.
 </Callout>
 
-## Punto de entrada habitual [#punto-de-entrada-habitual]
+## Mapa rápido [#mapa-rápido]
 
-En la mayoría de los sistemas de gameplay no necesitas instanciar `Eco` ni trabajar directamente con `ClienteJuego`.
-
-```csharp
-Eco.Conectar("127.0.0.1", 5127);
-Eco.UnirseACanal(1, "Game", false, 4, null);
-Eco.EstaConectado;
-Eco.EstaEnCanal(1);
+```text
+Eco
+├── ClienteJuego
+│   ├── Canales
+│   ├── Jugadores
+│   └── Objetos
+│       └── Componente
+│
+├── ServidorJuego
+│   ├── Servidor
+│   ├── Canales
+│   └── Jugadores
+│
+└── Infraestructura
+    ├── Objetivo
+    ├── Paquete
+    ├── Buffer
+    ├── Nodo
+    └── IConnection
 ```
 
-Para operaciones avanzadas, Eco expone el cliente interno mediante `Eco.Cliente`.
+## Por dónde empezar [#por-dónde-empezar]
 
-## Cómo leer esta referencia [#cómo-leer-esta-referencia]
+<Cards>
+  <Card title="Eco" href="/docs/red/v1/referencia/api/eco">
+    Entrada habitual para conexión, canales, datos, objetos y diagnóstico.
+  </Card>
 
-<Card title="Eco" href="/docs/red/v1/referencia/api/eco">
-  Fachada principal y API estática de la red.
+  <Card title="Objeto" href="/docs/red/v1/referencia/api/objeto">
+    Identidad, ownership, datos y ciclo de vida de una entidad de red.
+  </Card>
+
+  <Card title="Componente" href="/docs/red/v1/referencia/api/componente">
+    Integración entre `MonoBehaviour` y `Objeto`.
+  </Card>
+
+  <Card title="ClienteJuego" href="/docs/red/v1/referencia/api/cliente-juego">
+    Runtime de cliente para integraciones avanzadas.
+  </Card>
+</Cards>
+
+## Convención de lectura [#convención-de-lectura]
+
+Cada referencia utiliza este orden:
+
+| Bloque        | Qué responde                                       |
+| ------------- | -------------------------------------------------- |
+| Identidad     | Qué representa el tipo y qué estado posee          |
+| Propiedades   | Qué puedes consultar                               |
+| Métodos       | Qué operaciones puedes solicitar                   |
+| Restricciones | Cuándo la operación puede fallar o estar bloqueada |
+| Ejemplo       | Uso mínimo y copiables                             |
+| Relación      | Qué otros tipos intervienen                        |
+| Fuente        | Dónde vive la implementación                       |
+
+## API de alto nivel [#api-de-alto-nivel]
+
+`Eco`, `Objeto` y `Componente` cubren la mayor parte del gameplay. Son preferibles porque mantienen autoridad, canales, serialización y ciclo de vida dentro de las reglas de Eco.
+
+## API de infraestructura [#api-de-infraestructura]
+
+Cuando una integración necesita acceder al protocolo, utiliza [APIs de bajo nivel](/docs/red/v1/referencia/api/bajo-nivel). Ahí entran `Paquete`, `Buffer`, handlers personalizados, `IConnection` y métricas.
+
+<Callout title="No conviertas el gameplay en protocolo" type="warn">
+  Manipular `Buffer` directamente para implementar una acción normal aumenta el acoplamiento y hace más difícil mantener compatibilidad. Utiliza RFC, estado y la API de objetos siempre que sea suficiente.
+</Callout>
+
+## Comparación con TNet [#comparación-con-tnet]
+
+La referencia mantiene enlaces de equivalencia para facilitar la migración desde TNet, pero la firma que debes utilizar es siempre la de Eco:
+
+```text
+TNet                     Eco
+────────────────────────────────────
+TNManager             →  Eco
+TNObject              →  Objeto
+TNBehaviour           →  Componente
+Channel               →  Canal
+Player                →  Jugador
+Packet                →  Paquete
+DataNode              →  Nodo
+TNServerInstance      →  Servidor / ServidorJuego
+GameClient            →  ClienteJuego
+```
+
+<Card title="Equivalencias Eco ↔ TNet" href="/docs/red/v1/referencia/equivalencias">
+  Tabla de nombres y diferencias de comportamiento.
 </Card>
-
-<Card title="Objeto" href="/docs/red/v1/referencia/api/objeto">
-  Identidad de red, ownership, estado y ciclo de vida.
-</Card>
-
-<Card title="Componente" href="/docs/red/v1/referencia/api/componente">
-  Base para comportamientos de Unity asociados a un `Objeto`.
-</Card>
-
-<Card title="Canal" href="/docs/red/v1/referencia/api/canal">
-  Estado, jugadores, objetos persistentes y RFC guardadas de un canal.
-</Card>
-
-<Card title="Jugador" href="/docs/red/v1/referencia/api/jugador">
-  Identidad y datos sincronizados de un participante.
-</Card>
-
-<Card title="Objetivo" href="/docs/red/v1/referencia/api/objetivo">
-  Destinatarios y persistencia del envío.
-</Card>
-
-<Card title="ClienteJuego" href="/docs/red/v1/referencia/api/cliente-juego">
-  Implementación de la sesión cliente.
-</Card>
-
-<Card title="ServidorJuego" href="/docs/red/v1/referencia/api/servidor-juego">
-  Implementación del runtime del servidor.
-</Card>
-
-## Fuente de verdad [#fuente-de-verdad]
-
-La referencia API de este sitio es deliberadamente práctica. Para firmas completas, sobrecargas, atributos y detalles de implementación, utiliza el código fuente enlazado desde cada página.

@@ -4,97 +4,96 @@
 
 # Canal [#canal]
 
-`Canal` representa el ámbito de estado compartido en el servidor. Además de contener jugadores, mantiene información necesaria para reconstruir objetos y RFC persistentes.
+`Canal` representa un ámbito lógico de estado compartido. Un mismo cliente puede pertenecer a varios canales y un canal puede contener jugadores, objetos dinámicos, datos y operaciones persistentes.
 
-## Propiedades principales [#propiedades-principales]
+## Identidad y estado [#identidad-y-estado]
 
-| Propiedad      | Función                                      |
-| -------------- | -------------------------------------------- |
-| `id`           | Identificador del canal.                     |
-| `level`        | Nivel/escena asociado.                       |
-| `password`     | Protección de entrada.                       |
-| `isPersistent` | Mantiene el canal aunque quede vacío.        |
-| `isClosed`     | Impide nuevas entradas.                      |
-| `isLocked`     | Impide determinadas operaciones de guardado. |
-| `isLeaving`    | Estado transitorio del cliente al salir.     |
-| `playerLimit`  | Máximo de jugadores.                         |
-| `jugadores`    | Jugadores presentes.                         |
-| `rfcs`         | RFC persistentes registradas en el canal.    |
-| `created`      | Objetos dinámicos guardados.                 |
-| `destroyed`    | Objetos marcados como destruidos.            |
-| `host`         | Anfitrión actual del canal.                  |
+| Miembro        | Propósito                            |
+| -------------- | ------------------------------------ |
+| `id`           | Identidad del canal                  |
+| `level`        | Nivel asociado                       |
+| `password`     | Protección de entrada                |
+| `isPersistent` | Mantener el canal aunque quede vacío |
+| `isClosed`     | Bloquear nuevas entradas             |
+| `isLocked`     | Estado de bloqueo del canal          |
+| `playerLimit`  | Límite de jugadores                  |
+| `jugadores`    | Participantes actuales               |
+| `host`         | Anfitrión actual                     |
+| `rfcs`         | RFC guardadas                        |
+| `created`      | Objetos dinámicos persistentes       |
+| `destroyed`    | Objetos dinámicos destruidos         |
 
-## Capacidad de entrada [#capacidad-de-entrada]
+## Entrada [#entrada]
 
-`isOpen` indica si el canal no está cerrado y todavía dispone de plazas.
+Un canal abierto y con plazas disponibles puede aceptar nuevos jugadores.
 
 ```csharp
 if (canal.isOpen)
 {
-    // Puede aceptar una entrada.
+    // El canal puede aceptar una entrada.
 }
 ```
 
+El hecho de que un canal exista no implica que un cliente concreto ya haya terminado de entrar en él.
+
 ## Objetos dinámicos [#objetos-dinámicos]
 
-Los objetos creados en runtime utilizan un espacio de IDs distinto al de los objetos de escena. `GetUniqueID()` genera identificadores dinámicos libres.
+Eco separa los objetos estáticos de escena de los objetos creados durante el runtime. Los dinámicos necesitan IDs libres dentro del canal y pueden entrar en `created` cuando se persisten.
 
 ```text
-1 ───────── 32767
-   objetos estáticos
-
-32768 ───── 16777215
-   objetos dinámicos
+Canal
+├── Objetos de escena
+└── Objetos dinámicos
+    ├── creados
+    └── destruidos
 ```
 
-Los objetos dinámicos se almacenan en `created` cuando deben persistir en el servidor.
+## Jugadores y ownership [#jugadores-y-ownership]
 
-## Propiedad al salir un jugador [#propiedad-al-salir-un-jugador]
+Cuando un jugador abandona un canal, los objetos que posee pueden seguir destinos diferentes según su configuración: destrucción, transferencia o persistencia.
 
-Cuando un jugador abandona el canal, Eco revisa sus objetos dinámicos. Según el tipo de persistencia:
+Por eso la salida de un jugador debe tratarse como una operación sobre el estado del canal, no sólo sobre la conexión.
 
-* algunos objetos se destruyen;
-* otros transfieren la propiedad a otro jugador;
-* los objetos persistentes permanecen asociados al canal.
+## RFC persistentes [#rfc-persistentes]
 
-Este comportamiento es una de las razones por las que `Canal` no puede tratarse sólo como una lista de jugadores.
+`rfcs` conserva operaciones necesarias para reconstruir estado del canal. El orden es importante: si una RFC guardada se modifica, Eco puede reubicarla para mantener la secuencia de reconstrucción correcta.
 
-## RFC guardadas [#rfc-guardadas]
+## Transferencia [#transferencia]
 
-`rfcs` contiene llamadas remotas persistentes asociadas al canal. Cuando una RFC guardada se actualiza, Eco puede moverla al final de la lista para conservar el orden de reconstrucción.
-
-## Transferencia de objetos [#transferencia-de-objetos]
-
-`TransferObject` mueve un objeto dinámico a otro canal, asigna un nuevo ID y mueve también sus RFC guardadas. Eco mantiene temporalmente un registro de redirección para absorber paquetes que todavía lleguen con el identificador anterior.
+La transferencia de un objeto dinámico entre canales cambia su contexto y puede asignarle otro ID. El protocolo debe aceptar durante la transición referencias que todavía utilicen el identificador antiguo.
 
 <Callout title="Sólo objetos dinámicos" type="warn">
-  La transferencia entre canales sólo funciona con objetos creados dinámicamente. Los objetos estáticos de escena no pueden transferirse de esta forma.
+  Los objetos estáticos de escena no utilizan el mismo mecanismo de transferencia.
 </Callout>
 
-## Persistencia y memoria [#persistencia-y-memoria]
+## Sleep y Wake [#sleep-y-wake]
 
-Los canales vacíos pueden pasar a estado de reposo mediante `Sleep()` y recuperar sus datos con `Wake()`. Esto permite reducir el consumo de memoria del servidor manteniendo el estado persistente en una representación serializada.
+Los canales vacíos pueden pasar a un estado de reposo:
 
 ```text
 Canal activo
-   ↓ jugadores salen
-Canal vacío
-   ↓ Sleep()
-Datos comprimidos/serializados
-   ↓ Wake()
+    ↓ último jugador abandona
+Sleep()
+    ↓
+Estado descargado / serializado
+    ↓ siguiente entrada
+Wake()
+    ↓
 Canal activo
 ```
+
+Esto reduce memoria a costa de trabajo adicional cuando el canal vuelve a utilizarse.
 
 ## API relacionada [#api-relacionada]
 
 <Card title="Canales" href="/docs/red/v1/modelo/canales">
-  Modelo conceptual y uso desde el cliente.
+  Uso de canales desde cliente y gameplay.
 </Card>
 
-<Card title="Persistencia de canales" href="/docs/red/v1/persistencia/canales">
-  Cómo se conserva el estado entre sesiones.
+<Card title="Persistencia" href="/docs/red/v1/persistencia">
+  Conservación del estado del canal y sus objetos.
 </Card>
 
 <Card title="Canal.cs" href="https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Comun/Canal.cs">
-  Implementación actual de `Canal`.
+  Implementación actual.
 </Card>

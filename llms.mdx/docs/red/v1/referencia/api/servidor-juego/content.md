@@ -4,26 +4,36 @@
 
 # ServidorJuego [#servidorjuego]
 
-`ServidorJuego` concentra la ejecución del servidor de partidas. Administra jugadores, canales, paquetes, persistencia y conexiones TCP/UDP.
+`ServidorJuego` concentra el runtime de una instancia de servidor de partidas. Administra conexiones, jugadores, canales, paquetes, persistencia y extensiones.
 
 ## Responsabilidades [#responsabilidades]
 
 ```text
 ServidorJuego
-├── Conexiones
+├── Conexiones TCP / UDP
 ├── Jugadores
 ├── Canales
-├── Paquetes / RFC
+├── Paquetes y RFC
 ├── Persistencia
-├── Administración
-└── Lobby / extensiones
+├── Datos de servidor
+├── Archivos
+└── Extensiones
 ```
 
-## Ciclo de vida [#ciclo-de-vida]
+## Estado y ciclo de vida [#estado-y-ciclo-de-vida]
 
-El servidor prepara su configuración, escucha conexiones y procesa paquetes hasta recibir una orden de parada.
+```csharp
+servidor.isRunning;
+servidor.isMultiThreaded;
+servidor.saveFile;
+servidor.serverData;
+```
 
-Los callbacks principales son:
+El servidor prepara la configuración, escucha conexiones y entra en su ciclo de procesamiento hasta la orden de parada.
+
+## Eventos [#eventos]
+
+Los puntos de extensión más importantes incluyen conexión, desconexión, administración y apagado:
 
 ```csharp
 servidor.onPlayerConnect += OnConnect;
@@ -31,45 +41,67 @@ servidor.onPlayerDisconnect += OnDisconnect;
 servidor.onShutdown += OnShutdown;
 ```
 
+El conjunto exacto de callbacks debe consultarse en `ServidorJuego.cs`, porque forma parte de la API de runtime y puede evolucionar.
+
 ## Persistencia [#persistencia]
 
-`saveFile` identifica el archivo de mundo utilizado por el servidor. Las funciones de lectura y escritura pueden sustituirse para almacenar el mundo en otro backend.
+`saveFile` identifica el almacenamiento utilizado para el estado del servidor. `readFunc` y `writeFunc` permiten sustituir el mecanismo de lectura y escritura.
 
-`Sleep()` y `Wake()` permiten reducir la memoria utilizada por canales vacíos.
+Los canales vacíos pueden utilizar `Sleep()` y `Wake()` para descargar o recuperar su representación persistente.
 
 ## Multihilo [#multihilo]
 
-`ServidorJuego.isMultiThreaded` indica si está habilitada la ejecución multihilo. El servidor dispone de `SINGLE_THREADED` como modo alternativo.
+`isMultiThreaded` permite saber si el runtime utiliza procesamiento concurrente. Existe una configuración `SINGLE_THREADED` para integraciones que requieren evitar el hilo de red dedicado.
 
-<Callout title="Hilo del servidor" type="warn">
-  No des por supuesto que todos los callbacks del servidor se ejecutan en el hilo principal de Unity. Las extensiones que interactúen con APIs de Unity deben respetar las restricciones de thread safety.
+<Callout title="Unity y servidor" type="warn">
+  No asumas que un callback del servidor puede tocar directamente cualquier API de Unity. El trabajo recibido desde hilos de red debe trasladarse al contexto apropiado antes de manipular objetos de Unity.
 </Callout>
 
 ## Paquetes personalizados [#paquetes-personalizados]
 
-Los paquetes que no son procesados por el núcleo pueden llegar a `onCustomPacket`.
+Los paquetes no consumidos por el núcleo pueden procesarse mediante `onCustomPacket`:
 
 ```csharp
 servidor.onCustomPacket = (jugador, buffer, reader, id, fiable) =>
 {
-    // procesar extensión
+    // validar origen
+    // leer Buffer
+    // ejecutar operación
 };
 ```
 
-## Estado global [#estado-global]
+La validación del jugador y del canal debe realizarse antes de ejecutar acciones que afecten al estado de la partida.
 
-El servidor mantiene `serverData` para datos globales que no pertenecen a un canal o jugador concreto.
+## Datos de servidor [#datos-de-servidor]
 
-## Integración de almacenamiento [#integración-de-almacenamiento]
+`serverData` representa el estado global que no pertenece a un canal o jugador concreto. Para datos específicos de una partida utiliza `Canal`; para datos del participante utiliza `Jugador`.
 
-Las funciones `readFunc` y `writeFunc` permiten sustituir el backend de persistencia del mundo. Esto permite conectar el servidor a almacenamiento propio, nube o sistemas de archivos específicos.
+## Arquitectura [#arquitectura]
 
-## Referencia [#referencia]
+```text
+ClienteJuego
+     │
+ TCP/UDP/IConnection
+     ↓
+ServidorJuego
+ ├── Sesiones
+ ├── Canales
+ │    ├── Jugadores
+ │    ├── Objetos
+ │    └── Estado persistente
+ └── Protocolo
+```
+
+## Fuente [#fuente]
 
 <Card title="ServidorJuego.cs" href="https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Servidor/ServidorJuego.cs">
-  Código fuente actual.
+  Implementación actual.
+</Card>
+
+<Card title="Servidor.cs" href="https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Servidor/Servidor.cs">
+  Capa de servidor y gestión del runtime.
 </Card>
 
 <Card title="Servidor en profundidad" href="/docs/red/v1/runtime/servidor-en-profundidad">
-  Explicación arquitectónica del runtime del servidor.
+  Arquitectura interna del servidor.
 </Card>

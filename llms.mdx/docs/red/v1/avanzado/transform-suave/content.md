@@ -33,12 +33,7 @@ Transform visual
 
 ## Cuándo usarlo [#cuándo-usarlo]
 
-Es apropiado para:
-
-* personajes remotos;
-* proyectiles visuales;
-* objetos decorativos;
-* cámaras o elementos que sólo deben seguir una posición remota.
+Es apropiado para personajes remotos, proyectiles visuales, objetos decorativos y cámaras que sólo deben seguir una posición remota.
 
 Para un `Rigidbody` utiliza [Sincronizar Rigidbody](/docs/red/v1/avanzado/sincronizar-rigidbody).
 
@@ -49,8 +44,6 @@ Para un `Rigidbody` utiliza [Sincronizar Rigidbody](/docs/red/v1/avanzado/sincro
 <Callout title="Interpolación no es corrección de estado" type="info">
   El suavizado puede ocultar pequeños errores visuales, pero no corrige una discrepancia lógica. La autoridad y sincronización deben estar resueltas antes de interpolar.
 </Callout>
-
-## Fuente [#fuente]
 
 <Card title="TransformSuave.cs" href="https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/TransformSuave.cs">
   Implementación actual.
