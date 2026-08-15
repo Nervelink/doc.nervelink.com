@@ -1,5 +1,26 @@
 # Docs
 
+- Camara
+  - Cámara
+    - [Cámara](/docs/camara/v1): Documentación del sistema Cámara.
+- Cid
+  - CID
+    - [CID](/docs/cid/v1): Documentación del sistema CID.
+- Dev
+  - Dev
+    - [Dev](/docs/dev/v1): Documentación del sistema Dev.
+- Dialogo
+  - Diálogo
+    - [Diálogo](/docs/dialogo/v1): Documentación del sistema Diálogo.
+- Inventario
+  - Inventario
+    - [Inventario](/docs/inventario/v1): Documentación del sistema Inventario.
+- Misiones
+  - Misiones
+    - [Misiones](/docs/misiones/v1): Documentación del sistema Misiones.
+- Motor
+  - Motor
+    - [Motor](/docs/motor/v1): Documentación del sistema Motor.
 - Nucleo
   - Nucleo
 
@@ -18,6 +39,9 @@
 - Nvs
   - NVS
     - [NVS](/docs/nvs/v1): Documentación de NVS.
+- Personaje
+  - Personaje
+    - [Personaje](/docs/personaje/v1): Documentación del sistema Personaje.
 - Red
   - Red
 
@@ -140,6 +164,9 @@
       - [Equivalencias Eco ↔ TNet](/docs/red/v1/referencia/equivalencias): Mapa de nomenclatura entre Eco y la implementación de TNet.
       - [DeepWiki · TNet](/docs/red/v1/referencia/deepwiki): Referencia generada para explorar la arquitectura del TNet upstream.
       - [Diferencias de Eco](/docs/red/v1/referencia/diferencias): Cambios de Eco respecto a la arquitectura heredada de TNet.
+- Tactico
+  - Táctico
+    - [Táctico](/docs/tactico/v1): Documentación del sistema Táctico.
 - Ui
   - UI
     - [UI - Nerve Docs](/docs/ui/v1): Sistemas principales

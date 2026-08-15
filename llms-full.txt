@@ -1,67 +1,78 @@
-# Inicio Rápido (/docs/nucleo/v1)
+# Cámara (/docs/camara/v1)
 
 
 
-## Compatibilidad [#compatibilidad]
+# Cámara [#cámara]
 
-En primer lugar, asegúrar que se cumplen los requisitos.
+Documentación del sistema Cámara.
 
-<Tabs items="['Versión Unity', 'Plataformas', 'Sistema Entrada', 'Renderizado']">
-  <Tab value="Versión Unity">
-    Totalmente compatible con:<br />
-    ✅ Unity 6 (6000.x)<br /><br />
-    No compatible con:<br />
-    🟥 Unity 2022.3 y versiones anteriores
-  </Tab>
-
-  <Tab value="Plataformas">
-    ✅ Todas las plataformas
-  </Tab>
-
-  <Tab value="Sistema Entrada">
-    ✅ Rewired<br />
-    🟥 Sistema de entrada (nuevo)<br />
-    ✅ Sistema de entrada (viejo)<br />
-  </Tab>
-
-  <Tab value="Renderizado">
-    ✅ Integrado<br />
-    ✅ URP<br />
-    ✅ HDRP<br />
-  </Tab>
-</Tabs>
-
-## Configuración inicial [#configuración-inicial]
-
-Como todo sistema, antes de iniciar hay que configurar unos mínimos en el motor de Unity. En esta sección se expone todo lo necesarios, si hay algún sistema que no se usa en cada una de las secciones del sistema habrá un apartado de configuración en donde aparece lo necesario para revertir esa parte.
-
-## sad [#sad]
-
-### sad [#sad-1]
-
-asdasdasd
-
-### sad [#sad-2]
-
-asdsad
+Esta sección está preparada para incorporar conceptos, guías, API, ejemplos y referencia técnica.
 
 
-# Sistemas (/docs/nucleo/v1/sistemas)
+# CID (/docs/cid/v1)
 
 
 
-# sadsad [#sadsad]
+# CID [#cid]
 
-asdsd
+Documentación del sistema CID.
 
-
-# Inicio (/docs/nucleo/v2)
-
+Esta sección está preparada para incorporar conceptos, guías, API, ejemplos y referencia técnica.
 
 
-# Núcleo v2 (Preview) [#núcleo-v2-preview]
+# Dev (/docs/dev/v1)
 
-Esta versión está en desarrollo.
+
+
+# Dev [#dev]
+
+Documentación del sistema Dev.
+
+Esta sección está preparada para incorporar conceptos, guías, API, ejemplos y referencia técnica.
+
+
+# Diálogo (/docs/dialogo/v1)
+
+
+
+# Diálogo [#diálogo]
+
+Documentación del sistema Diálogo.
+
+Esta sección está preparada para incorporar conceptos, guías, API, ejemplos y referencia técnica.
+
+
+# Inventario (/docs/inventario/v1)
+
+
+
+# Inventario [#inventario]
+
+Documentación del sistema Inventario.
+
+Esta sección está preparada para incorporar conceptos, guías, API, ejemplos y referencia técnica.
+
+
+# Misiones (/docs/misiones/v1)
+
+
+
+# Misiones [#misiones]
+
+Documentación del sistema Misiones.
+
+Esta sección está preparada para incorporar conceptos, guías, API, ejemplos y referencia técnica.
+
+
+# Motor (/docs/motor/v1)
+
+
+
+# Motor [#motor]
+
+Documentación del sistema Motor.
+
+Esta sección está preparada para incorporar conceptos, guías, API, ejemplos y referencia técnica.
 
 
 # NVH (/docs/nvh/v1)
@@ -84,6 +95,17 @@ Esta sección está preparada para organizar la documentación por fundamentos, 
 Documentación de NVS.
 
 Esta sección está preparada para organizar la documentación por fundamentos, guías, referencia y funciones avanzadas.
+
+
+# Personaje (/docs/personaje/v1)
+
+
+
+# Personaje [#personaje]
+
+Documentación del sistema Personaje.
+
+Esta sección está preparada para incorporar conceptos, guías, API, ejemplos y referencia técnica.
 
 
 # Inicio Rápido (/docs/red/v1)
@@ -625,6 +647,17 @@ TNet / DeepWiki como referencia
 </Cards>
 
 
+# Táctico (/docs/tactico/v1)
+
+
+
+# Táctico [#táctico]
+
+Documentación del sistema Táctico.
+
+Esta sección está preparada para incorporar conceptos, guías, API, ejemplos y referencia técnica.
+
+
 # UI - Nerve Docs (/docs/ui/v1)
 
 
@@ -634,45 +667,70 @@ TNet / DeepWiki como referencia
 Texto aquí.
 
 
-# Alexandria (/docs/nucleo/v1/sistemas/alexandria)
+# Inicio Rápido (/docs/nucleo/v1)
 
 
 
-# Alexandria [#alexandria]
+## Compatibilidad [#compatibilidad]
 
-Alexandria es el núcleo de inicialización del motor. Su función es descubrir, instanciar y coordinar todos los sistemas del juego de forma automática mediante reflexión.
+En primer lugar, asegúrar que se cumplen los requisitos.
 
-## Responsabilidad principal [#responsabilidad-principal]
+<Tabs items="['Versión Unity', 'Plataformas', 'Sistema Entrada', 'Renderizado']">
+  <Tab value="Versión Unity">
+    Totalmente compatible con:<br />
+    ✅ Unity 6 (6000.x)<br /><br />
+    No compatible con:<br />
+    🟥 Unity 2022.3 y versiones anteriores
+  </Tab>
 
-* Descubrir sistemas marcados con `SistemaAttribute`
-* Instanciar sistemas como `MonoBehaviour`
-* Ordenar la inicialización por prioridad
-* Garantizar ciclo de vida controlado (Init / Update / Shutdown)
+  <Tab value="Plataformas">
+    ✅ Todas las plataformas
+  </Tab>
 
-***
+  <Tab value="Sistema Entrada">
+    ✅ Rewired<br />
+    🟥 Sistema de entrada (nuevo)<br />
+    ✅ Sistema de entrada (viejo)<br />
+  </Tab>
 
-## Sistema de descubrimiento [#sistema-de-descubrimiento]
+  <Tab value="Renderizado">
+    ✅ Integrado<br />
+    ✅ URP<br />
+    ✅ HDRP<br />
+  </Tab>
+</Tabs>
 
-Alexandria utiliza reflexión sobre el ensamblado actual:
+## Configuración inicial [#configuración-inicial]
 
-* Filtra clases concretas (no abstractas)
-* Requiere `MonoBehaviour`
-* Requiere implementación de `ISistema`
-* Requiere `SistemaAttribute`
+Como todo sistema, antes de iniciar hay que configurar unos mínimos en el motor de Unity. En esta sección se expone todo lo necesarios, si hay algún sistema que no se usa en cada una de las secciones del sistema habrá un apartado de configuración en donde aparece lo necesario para revertir esa parte.
 
-Esto permite registro automático sin configuración manual.
+## sad [#sad]
 
-***
+### sad [#sad-1]
 
-## Sistema de atributos [#sistema-de-atributos]
+asdasdasd
 
-### SistemaAttribute [#sistemaattribute]
+### sad [#sad-2]
 
-Define metadata del sistema.
+asdsad
 
-```csharp
-[Sistema(int prioridad, string nombre)]
-```
+
+# Sistemas (/docs/nucleo/v1/sistemas)
+
+
+
+# sadsad [#sadsad]
+
+asdsd
+
+
+# Inicio (/docs/nucleo/v2)
+
+
+
+# Núcleo v2 (Preview) [#núcleo-v2-preview]
+
+Esta versión está en desarrollo.
 
 
 # ActualizadorRed (/docs/red/v1/avanzado/actualizador-red)
@@ -3038,704 +3096,6 @@ La documentación histórica de TNet ya contemplaba múltiples canales, pero Eco
 <Card title="Eco" href="/docs/red/v1/referencia/api/eco">
   API de la fachada para trabajar con varios canales.
 </Card>
-
-
-# Arquitectura (/docs/red/v1/fundamentos/arquitectura)
-
-
-
-# Arquitectura [#arquitectura]
-
-Eco es la capa de red utilizada por Pandora. Parte de la arquitectura de TNet, pero utiliza la nomenclatura, organización y extensiones propias de Nervelink.
-
-<Callout title="Regla fundamental" type="info">
-  Piensa en Eco como un sistema por capas. `Canal`, `Objeto`, `Jugador`, `RFC`, `Paquete` y `Buffer` resuelven problemas distintos; no son sustitutos entre sí.
-</Callout>
-
-## Mapa de la arquitectura [#mapa-de-la-arquitectura]
-
-```text
-┌─────────────────────────────────────────────────────────────┐
-│                         Gameplay                            │
-└────────────────────────────┬────────────────────────────────┘
-                             │
-                    Objeto / Componente
-                             │
-              ┌──────────────┴──────────────┐
-              │                             │
-             RFC                         Estado
-              │                             │
-              └──────────────┬──────────────┘
-                             │
-                          Canal
-                             │
-                  Paquete / Protocolo
-                             │
-                           Buffer
-                             │
-                    TCP / UDP / custom
-                             │
-              ┌──────────────┴──────────────┐
-              │                             │
-           Cliente                       Servidor
-```
-
-## Las cuatro capas que debes distinguir [#las-cuatro-capas-que-debes-distinguir]
-
-<Cards>
-  <Card title="Modelo de red" href="/docs/red/v1/modelo">
-    Define quién participa, qué objetos existen y en qué canal viven.
-  </Card>
-
-  <Card title="Comunicación" href="/docs/red/v1/comunicacion">
-    Define qué se quiere comunicar y quién debe recibirlo.
-  </Card>
-
-  <Card title="Transporte" href="/docs/red/v1/transporte">
-    Convierte la operación en un mensaje serializado y lo transporta.
-  </Card>
-
-  <Card title="Runtime" href="/docs/red/v1/runtime">
-    Ejecuta cliente y servidor y mantiene sus ciclos de vida.
-  </Card>
-</Cards>
-
-## Modelo de red [#modelo-de-red]
-
-### Canal [#canal]
-
-Un `Canal` delimita un ámbito de jugadores y estado. Una conexión puede pertenecer a varios canales simultáneamente; esto es una propiedad del modelo de Eco, no una conexión física adicional.
-
-### Jugador [#jugador]
-
-`Jugador` representa una participación en la sesión. Su identidad es independiente de la conexión física y dispone de datos propios que pueden sincronizarse.
-
-### Objeto [#objeto]
-
-`Objeto` aporta identidad de red, ownership, canal, datos y ciclo de vida. Su `uid` combina el contexto del canal con la identidad del objeto.
-
-### Componente [#componente]
-
-`Componente` es la capa de integración con `MonoBehaviour`: permite acceder cómodamente al objeto de red y es el punto habitual desde el que se declaran RFC, datos y operaciones de instanciación.
-
-## Comunicación [#comunicación]
-
-Una operación empieza en gameplay y acaba convertida en un mensaje de protocolo.
-
-```text
-Componente
-   │
-   ├── RFC ────────────────┐
-   │                       │
-   └── Set / Sync ─────────┤
-                           ▼
-                        Objeto
-                           │
-                        Paquete
-                           │
-                         Buffer
-                           │
-                      Transporte
-```
-
-La selección de destinatario se realiza antes de que el mensaje abandone el contexto de Eco. Por eso [Destinatarios](/docs/red/v1/comunicacion/destinatarios) pertenece conceptualmente a Comunicación y no a Transporte.
-
-## Runtime [#runtime]
-
-El cliente mantiene su conexión y representación local. El servidor mantiene el estado compartido, administra jugadores y canales y procesa las solicitudes que requieren autoridad del servidor.
-
-```text
-ClienteJuego
-├── Conexión TCP
-├── UDP opcional
-├── Canales
-├── Jugador local
-└── Cola / procesamiento de paquetes
-
-ServidorJuego
-├── Listener TCP
-├── UDP opcional
-├── Jugadores
-├── Canales
-├── Persistencia
-└── Procesamiento de paquetes
-```
-
-## Flujo de una operación [#flujo-de-una-operación]
-
-<div className="fd-steps">
-  <div className="fd-step">
-    ### Gameplay \[step] [#1-gameplay-step]
-
-    Tu código decide qué quiere hacer: cambiar estado, ejecutar una acción, crear un objeto o cambiar de canal.
-  </div>
-
-  <div className="fd-step">
-    ### Modelo de red \[step] [#2-modelo-de-red-step]
-
-    Eco determina el `Objeto`, `Canal`, propietario y contexto de la operación.
-  </div>
-
-  <div className="fd-step">
-    ### Comunicación \[step] [#3-comunicación-step]
-
-    Se selecciona RFC, sincronización o una operación de protocolo existente y se determinan sus destinatarios.
-  </div>
-
-  <div className="fd-step">
-    ### Serialización \[step] [#4-serialización-step]
-
-    Los parámetros se convierten a una representación binaria mediante `Buffer` y las herramientas de serialización.
-  </div>
-
-  <div className="fd-step">
-    ### Transporte \[step] [#5-transporte-step]
-
-    El mensaje viaja mediante TCP, UDP cuando corresponde, o una conexión personalizada.
-  </div>
-
-  <div className="fd-step">
-    ### Aplicación remota \[step] [#6-aplicación-remota-step]
-
-    El receptor procesa el paquete, actualiza el estado correspondiente y ejecuta los callbacks asociados.
-  </div>
-</div>
-
-## Relación con TNet [#relación-con-tnet]
-
-| TNet          | Eco          | Responsabilidad                |
-| ------------- | ------------ | ------------------------------ |
-| `TNManager`   | `Eco`        | Fachada y operaciones globales |
-| `TNObject`    | `Objeto`     | Identidad y estado de red      |
-| `TNBehaviour` | `Componente` | Integración con Unity          |
-| `Channel`     | `Canal`      | Ámbito compartido              |
-| `Packet`      | `Paquete`    | Protocolo                      |
-| `Buffer`      | `Buffer`     | Datos binarios                 |
-| `Player`      | `Jugador`    | Participante                   |
-
-<Callout title="No copies el workflow antiguo de TNet literalmente" type="warn">
-  Los ejemplos históricos suelen asumir un único canal activo y una API distinta. En Eco debes seguir el comportamiento actual del repositorio y utilizar las páginas de [Modelo de red](/docs/red/v1/modelo) y [Guías](/docs/red/v1/guias) como referencia práctica.
-</Callout>
-
-## Fuentes [#fuentes]
-
-<Cards>
-  <Card title="Eco" href="https://github.com/Nervelink/eco">
-    Implementación actual.
-  </Card>
-
-  <Card title="TNet upstream" href="https://github.com/tasharen/tnet">
-    Código del que procede la arquitectura base.
-  </Card>
-
-  <Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
-    Índice externo útil para comparar la arquitectura upstream.
-  </Card>
-</Cards>
-
-
-# Ciclo de vida (/docs/red/v1/fundamentos/ciclo-de-vida)
-
-
-
-# Ciclo de vida [#ciclo-de-vida]
-
-Una parte importante de la arquitectura de Eco ocurre fuera de las llamadas que haces desde gameplay. El sistema mantiene instancias de cliente, servidor, actualizadores y colas para evitar que cada componente tenga que implementar su propio ciclo de red.
-
-## Arranque del sistema [#arranque-del-sistema]
-
-`Eco` se integra con el arranque de Pandora y se inicializa como sistema. Su `Iniciar()` registra sus RCR, instala los eventos internos y crea el servidor local cuando corresponde.
-
-```text
-Alexandria
-    │
-    └── Eco.Iniciar()
-          ├── Registrar RCR
-          ├── Inicializar eventos
-          ├── Crear / iniciar Servidor
-          └── Activar cliente y procesamiento
-```
-
-No necesitas llamar manualmente a `Eco.Iniciar()` en el uso normal.
-
-## Componente y ActualizadorRed [#componente-y-actualizadorred]
-
-`Componente` no depende exclusivamente de los callbacks estándar de `MonoBehaviour` para integrar el objeto de red. En `Awake()` obtiene o prepara el `Objeto` asociado y registra el componente en `ActualizadorRed`.
-
-Esto permite centralizar varias operaciones que de otro modo acabarían repartidas entre cientos de `Update`, `LateUpdate` y `Start`.
-
-```text
-Componente
-    │
-    ├── Awake()
-    │     ├── localizar Objeto
-    │     └── ActualizadorRed.AddStart(this)
-    │
-    └── OnStart()
-          └── asegurar Objeto y métodos remotos
-```
-
-`ActualizadorRed` también admite `IUpdateable`, `ILateUpdateable`, `IInfrequentUpdateable`, callbacks de un solo uso, invocaciones retardadas y coroutines.
-
-## Procesamiento de paquetes [#procesamiento-de-paquetes]
-
-El cliente recibe bytes del transporte, los convierte en `Buffer` y procesa los paquetes dentro del ciclo de actualización de Eco.
-
-```text
-TCP / UDP
-   ↓
-Buffer recibido
-   ↓
-Paquete
-   ↓
-ClienteJuego
-   ↓
-Despacho
-   ├── evento de conexión/canal/jugador
-   ├── creación / destrucción de Objeto
-   ├── cambio de propietario
-   ├── datos
-   └── RFC
-```
-
-El método `Eco.ProcesarPaquetes` es reemplazable para integraciones avanzadas. En la configuración normal procesa la cola del `ClienteJuego` una vez que las condiciones de carga de escena lo permiten.
-
-## Carga de escenas [#carga-de-escenas]
-
-La carga de escena está coordinada con el canal. Cuando el servidor solicita un cambio de nivel, Eco registra el canal como “en carga”, limpia los objetos de ese canal y espera a que el `AsyncOperation` llegue al punto seguro antes de activar la escena.
-
-Esto explica por qué crear objetos inmediatamente durante un cambio de escena puede ser rechazado: el objetivo es evitar que un objeto se cree en una representación del canal que todavía está cambiando.
-
-## Apagado [#apagado]
-
-El apagado sigue el camino inverso:
-
-```text
-Application Quit / Alexandria
-        ↓
-Eco.Apagar()
-        ↓
-Desconectar cliente
-        ↓
-Detener UDP
-        ↓
-Apagar Servidor
-        ↓
-Eliminar referencias globales
-```
-
-Eco marca internamente el estado de apagado para impedir nuevas operaciones de red mientras Unity está destruyendo objetos.
-
-<Callout title="No fuerces el ciclo de vida" type="warn">
-  Crear manualmente otro `Eco`, llamar `Iniciar()` varias veces o mantener referencias a objetos de red durante el apagado puede romper las garantías de singleton y de limpieza.
-</Callout>
-
-## Qué aporta esta arquitectura [#qué-aporta-esta-arquitectura]
-
-La idea procede del patrón de TNet de centralizar la actualización y el procesamiento, pero en Eco el vocabulario y los puntos de entrada son propios. DeepWiki identifica este patrón como parte de la arquitectura de cliente de TNet; en Eco se refleja en `Eco`, `ClienteJuego`, `Objeto`, `Componente` y `ActualizadorRed`.
-
-<Card title="ActualizadorRed" href="/docs/red/v1/avanzado/actualizador-red">
-  Referencia detallada del scheduler de actualización.
-</Card>
-
-<Card title="Arquitectura" href="/docs/red/v1/fundamentos/arquitectura">
-  Visión general de todas las capas.
-</Card>
-
-
-# Cliente y servidor (/docs/red/v1/fundamentos/cliente-y-servidor)
-
-
-
-# Cliente y servidor [#cliente-y-servidor]
-
-La arquitectura de Eco distingue claramente el estado local del cliente de la autoridad del servidor. Esta separación aparece como una de las ideas centrales del análisis de TNet y es especialmente importante al diseñar gameplay multijugador.
-
-## Cliente [#cliente]
-
-`ClienteJuego` mantiene la sesión desde el lado de Unity:
-
-```text
-ClienteJuego
-├── conexión
-├── jugador local
-├── canales locales
-├── recepción de paquetes
-├── estado de UDP
-├── callbacks
-└── objetos visibles
-```
-
-`Eco` actúa como fachada pública para que el código de juego no tenga que manipular directamente todos esos detalles.
-
-## Servidor [#servidor]
-
-El servidor mantiene el estado compartido y aplica operaciones que requieren autoridad:
-
-```text
-ServidorJuego
-├── jugadores
-├── canales
-├── objetos registrados
-├── persistencia
-├── administración
-├── recepción de paquetes
-└── reenvío / procesamiento
-```
-
-El servidor no es simplemente “otro cliente con más permisos”. Es el punto que mantiene la representación compartida del mundo de red.
-
-## Flujo cliente → servidor → clientes [#flujo-cliente--servidor--clientes]
-
-```text
-Cliente A
-   │
-   │ solicitud / RFC / datos
-   ▼
-Servidor
-   │
-   ├── valida
-   ├── modifica estado
-   ├── persiste cuando corresponde
-   └── distribuye
-        ├──────────────► Cliente A
-        ├──────────────► Cliente B
-        └──────────────► Cliente C
-```
-
-Esta es la razón por la que una operación local no debe considerarse automáticamente una operación sincronizada.
-
-## Canal como unidad de aislamiento [#canal-como-unidad-de-aislamiento]
-
-Los canales permiten que el servidor procese grupos independientes de jugadores y objetos. Un jugador puede pertenecer a varios canales, pero cada entidad de red sigue ligada a un contexto concreto.
-
-```text
-Servidor
-├── Canal 10
-│   ├── Jugador A
-│   └── Objetos 1..20
-│
-└── Canal 20
-    ├── Jugador B
-    └── Objetos 21..40
-```
-
-Las operaciones de objeto deben incluir el canal correcto; no conviene inferirlo a partir de un único “canal actual” cuando hay múltiples canales activos.
-
-## Persistencia del servidor [#persistencia-del-servidor]
-
-En canales persistentes, Eco puede mantener información más allá de la presencia inmediata de un jugador. Los objetos persistentes forman parte de ese estado y se restauran para participantes que entran posteriormente cuando el modelo de canal lo requiere.
-
-Esto hace que red y persistencia estén relacionadas, pero no significa que Eco sustituya el sistema de guardado específico del juego.
-
-## Autoridad [#autoridad]
-
-El servidor puede verificar permisos, propietario, canal y datos antes de aplicar una operación.
-
-```csharp
-// Conceptual: la solicitud llega al servidor.
-// El servidor decide si la operación es válida.
-```
-
-No debes enviar desde el cliente el resultado final de una operación crítica cuando el servidor puede calcularlo por sí mismo.
-
-## Errores de diseño frecuentes [#errores-de-diseño-frecuentes]
-
-| Error                                | Consecuencia                                  |
-| ------------------------------------ | --------------------------------------------- |
-| confiar en cualquier RFC recibida    | clientes pueden falsificar acciones           |
-| mantener autoridad sólo en UI/local  | divergencia entre jugadores                   |
-| usar estado local como verdad global | desincronización                              |
-| asumir un único canal                | operaciones dirigidas al contexto equivocado  |
-| guardar todo como objeto persistente | crecimiento de estado y coste de restauración |
-
-<Callout title="Cliente = intención; servidor = autoridad" type="idea">
-  No es una regla absoluta para todas las simulaciones, pero es un excelente punto de partida para diseñar juegos cooperativos y competitivos con Eco.
-</Callout>
-
-<Card title="Canales" href="/docs/red/v1/modelo/canales">
-  Aislamiento y pertenencia de jugadores.
-</Card>
-
-<Card title="Persistencia" href="/docs/red/v1/persistencia">
-  Datos y objetos que sobreviven a la sesión inmediata.
-</Card>
-
-
-# Conceptos (/docs/red/v1/fundamentos/conceptos)
-
-
-
-# Conceptos [#conceptos]
-
-Eco organiza la red alrededor de unas pocas piezas fundamentales. Entender su relación evita confundir conexión, canal, jugador, objeto y componente.
-
-<Callout title="Regla general" type="info">
-  Una conexión representa la comunicación con el servidor; un jugador representa a un participante; un canal define un ámbito de estado compartido; un objeto representa una entidad de red; y sus componentes implementan el comportamiento.
-</Callout>
-
-## Conexión [#conexión]
-
-La conexión representa el vínculo de transporte entre una instancia del juego y el servidor. No define por sí sola qué objetos o estado debe conocer el cliente.
-
-## Jugador [#jugador]
-
-Un `Jugador` representa a un participante de la sesión dentro de la infraestructura de red. Sirve para identificar presencia, propiedad y destinatarios.
-
-## Canal [#canal]
-
-Un `Canal` define un ámbito de estado compartido. Un mismo jugador puede participar simultáneamente en varios canales.
-
-```text
-Servidor
-  ├── Canal A → Jugador 1, Jugador 2
-  └── Canal B → Jugador 2, Jugador 3
-```
-
-## Objeto [#objeto]
-
-Un `Objeto` es una identidad de red que Eco puede registrar, localizar, sincronizar y destruir.
-
-```text
-Objeto
-├── ID de red
-├── Propietario
-├── Estado
-├── Canal(es)
-└── Componentes
-```
-
-## Componente [#componente]
-
-Un `Componente` contiene comportamiento de red asociado a un `Objeto`. Esta separación permite mantener la identidad de red independiente de la funcionalidad concreta.
-
-## Propietario [#propietario]
-
-El propietario identifica al jugador que tiene autoridad sobre determinadas operaciones del objeto. La propiedad no implica que el objeto sea invisible para los demás participantes.
-
-## Paquete [#paquete]
-
-Un `Paquete` representa una unidad del protocolo de Eco. Transporta comandos, eventos y datos entre clientes y servidor.
-
-## Buffer [#buffer]
-
-Un `Buffer` proporciona las operaciones de lectura y escritura utilizadas para serializar los datos que Eco intercambia.
-
-## Estado [#estado]
-
-Eco distingue entre comunicar una acción y mantener un estado. Una RFC puede comunicar que algo ocurrió; un mecanismo de sincronización mantiene valores que deben converger entre participantes.
-
-## Relación entre conceptos [#relación-entre-conceptos]
-
-```text
-Servidor
- │
- ├── Conexiones
- │     └── Jugadores
- │
- └── Canales
-       └── Objetos
-             └── Componentes
-                   ├── RFC
-                   ├── Sync
-                   └── Datos
-                         ↓
-                      Paquetes
-                         ↓
-                      Transporte
-```
-
-## Correspondencia con TNet [#correspondencia-con-tnet]
-
-| Eco          | TNet                    | Función                           |
-| ------------ | ----------------------- | --------------------------------- |
-| `Eco`        | `TNManager`             | Gestión principal del cliente     |
-| `Jugador`    | `Player`                | Participante de la sesión         |
-| `Canal`      | `Channel` / `TNChannel` | Ámbito de estado compartido       |
-| `Objeto`     | `TNObject`              | Identidad de red                  |
-| `Componente` | `TNBehaviour`           | Comportamiento asociado al objeto |
-| `Paquete`    | `Packet` / `TNPacket`   | Mensaje del protocolo             |
-| `Buffer`     | `TNBuffer`              | Serialización binaria             |
-
-## Referencias [#referencias]
-
-<Card title="TNet en GitHub" href="https://github.com/tasharen/tnet">
-  Repositorio upstream y fuente de referencia de la implementación heredada.
-</Card>
-
-<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
-  Vista generada de la arquitectura actual de TNet.
-</Card>
-
-
-# Fundamentos (/docs/red/v1/fundamentos)
-
-
-
-# Fundamentos [#fundamentos]
-
-Esta sección establece el modelo mental necesario para trabajar con Eco antes de entrar en sus mecanismos concretos.
-
-<Card title="Arquitectura" href="/docs/red/v1/fundamentos/arquitectura">
-  Cómo se organiza Eco y cómo fluye la información entre sus capas.
-</Card>
-
-<Card title="Conceptos" href="/docs/red/v1/fundamentos/conceptos">
-  Conexiones, jugadores, canales, objetos, componentes, estado y mensajes.
-</Card>
-
-
-# Mapa completo del sistema (/docs/red/v1/fundamentos/mapa-completo)
-
-
-
-# Mapa completo del sistema [#mapa-completo-del-sistema]
-
-DeepWiki separa TNet en gestión de cliente, objetos, sincronización, servidor, transporte, serialización, herramientas, ejemplos y extensiones. Esa clasificación es útil para entender Eco, pero debe reinterpretarse con los nombres y responsabilidades actuales del proyecto.
-
-## Correspondencia conceptual [#correspondencia-conceptual]
-
-| Concepto upstream                 | Eco                                  | Función actual                                                   |
-| --------------------------------- | ------------------------------------ | ---------------------------------------------------------------- |
-| `TNManager`                       | `Eco`                                | Fachada global del cliente y operaciones de red                  |
-| `TNObject`                        | `Objeto`                             | Identidad, ownership, canal, datos y comunicación de una entidad |
-| `TNBehaviour`                     | `Componente`                         | Integración de `MonoBehaviour` con `Objeto`                      |
-| `TNPlayer`                        | `Jugador`                            | Identidad y datos del participante                               |
-| `Channel`                         | `Canal`                              | Ámbito lógico de jugadores y objetos                             |
-| `Packet`                          | `Paquete`                            | Tipo de mensaje del protocolo                                    |
-| `Buffer`                          | `Buffer`                             | Lectura y escritura binaria                                      |
-| `DataNode`                        | `Nodo`                               | Datos jerárquicos y serialización estructurada                   |
-| `GameClient`                      | `ClienteJuego`                       | Estado y comunicación del cliente                                |
-| `TNServerInstance` / `GameServer` | `Servidor` / `ServidorJuego`         | Hosting y lógica de servidor                                     |
-| `TNUpdater`                       | `ActualizadorRed`                    | Scheduler central de callbacks y actualización                   |
-| `Target`                          | `Objetivo`                           | Destino de una comunicación                                      |
-| `TNSyncRigidbody`                 | `SincronizarRB`                      | Sincronización específica de física                              |
-| `IConnection`                     | `IConnection`                        | Transporte personalizado                                         |
-| `TNServerInstance` editor         | `Servidor` + herramientas de Pandora | Integración de servidor dentro del proyecto                      |
-
-## Capas [#capas]
-
-```text
-┌────────────────────────────────────────────────────────┐
-│ Gameplay                                               │
-├────────────────────────────────────────────────────────┤
-│ Eco / Componente / Objeto                              │
-├────────────────────────────────────────────────────────┤
-│ RFC · Sync · Datos · Objetivo                          │
-├────────────────────────────────────────────────────────┤
-│ Paquete · Buffer · Serialización                       │
-├────────────────────────────────────────────────────────┤
-│ TCP · UDP · IConnection                                │
-├────────────────────────────────────────────────────────┤
-│ ClienteJuego              ServidorJuego                │
-└────────────────────────────────────────────────────────┘
-```
-
-## Subsystems que conviene conocer [#subsystems-que-conviene-conocer]
-
-### Gestión de sesión [#gestión-de-sesión]
-
-`Eco` expone conexión, desconexión, estado de red, nombre e identidad del jugador, canales, administración, aliases y callbacks.
-
-### Entidades de red [#entidades-de-red]
-
-`Objeto` representa una entidad sincronizada. `Componente` es la fachada Unity que facilita acceder a ella y registrar comportamiento remoto.
-
-### Comunicación [#comunicación]
-
-Las RFC permiten ejecutar métodos remotos. Los métodos de datos y sincronización mantienen estado. `Objetivo` decide el ámbito de distribución.
-
-### Persistencia [#persistencia]
-
-Los canales persistentes y los objetos persistentes permiten que el servidor conserve estado de una sesión y lo reproduzca cuando corresponde. Esto no debe confundirse con guardar la partida completa de gameplay.
-
-### Transporte [#transporte]
-
-TCP proporciona el canal fiable principal. UDP se utiliza para tráfico donde perder un mensaje concreto puede ser preferible a acumular latencia. `IConnection` permite sustituir el transporte sin cambiar la API de alto nivel.
-
-### Serialización [#serialización]
-
-`Buffer` es la representación binaria de trabajo. `Nodo` ofrece una representación jerárquica para datos estructurados. Las interfaces de serialización permiten soportar tipos propios cuando una simple escritura de primitivas no es suficiente.
-
-### Runtime [#runtime]
-
-`ActualizadorRed` concentra `OnStart`, `OnUpdate`, `OnLateUpdate`, actualizaciones infrecuentes, callbacks de un solo uso, invocaciones retardadas y tareas basadas en enumeradores.
-
-### Herramientas y extensiones [#herramientas-y-extensiones]
-
-El sistema incluye integración con Steam, UPnP, runtime C#, lobby y transportes personalizados. Estos son extensiones de Eco, no requisitos del núcleo.
-
-## Orden recomendado para aprender Eco [#orden-recomendado-para-aprender-eco]
-
-<Steps>
-  <Step>
-    <div className="fd-steps">
-      <div className="fd-step">
-        ### Modelo de red [#1-modelo-de-red]
-
-        Aprende `Jugador`, `Canal`, `Objeto` y `Componente`.
-      </div>
-    </div>
-  </Step>
-
-  <Step>
-    <div className="fd-steps">
-      <div className="fd-step">
-        ### Comunicación [#2-comunicación]
-
-        Aprende RFC, sincronización y `Objetivo`.
-      </div>
-    </div>
-  </Step>
-
-  <Step>
-    <div className="fd-steps">
-      <div className="fd-step">
-        ### Transporte [#3-transporte]
-
-        Aprende `Paquete`, `Buffer`, serialización y la diferencia entre TCP y UDP.
-      </div>
-    </div>
-  </Step>
-
-  <Step>
-    <div className="fd-steps">
-      <div className="fd-step">
-        ### Runtime [#4-runtime]
-
-        Comprende `Eco`, `ClienteJuego`, `ServidorJuego` y `ActualizadorRed`.
-      </div>
-    </div>
-  </Step>
-
-  <Step>
-    <div className="fd-steps">
-      <div className="fd-step">
-        ### Persistencia y extensiones [#5-persistencia-y-extensiones]
-
-        Añade datos persistentes, múltiples canales, Steam, UPnP o `IConnection` cuando el proyecto lo necesite.
-      </div>
-    </div>
-  </Step>
-</Steps>
-
-<Callout title="Esta página no es una copia de DeepWiki" type="info">
-  DeepWiki se utiliza como índice de arquitectura de TNet. Las definiciones de Eco se basan en la implementación actual del repositorio `Nervelink/eco`; cuando una idea upstream no coincide con Eco, prevalece el código de Eco.
-</Callout>
-
-<Cards>
-  <Card title="Arquitectura" href="/docs/red/v1/fundamentos/arquitectura">
-    Flujo entre las capas.
-  </Card>
-
-  <Card title="Ciclo de vida" href="/docs/red/v1/fundamentos/ciclo-de-vida">
-    Arranque, actualización, escenas y apagado.
-  </Card>
-
-  <Card title="Referencia API" href="/docs/red/v1/referencia">
-    Búsqueda por clases y miembros públicos.
-  </Card>
-</Cards>
 
 
 # Cambiar el nivel de un canal (/docs/red/v1/guias/cambiar-nivel)
@@ -9234,6 +8594,745 @@ El modelo corresponde al de los protocolos TCP y UDP de TNet, pero Eco utiliza `
 <Card title="TNet" href="https://github.com/tasharen/tnet">
   Repositorio upstream.
 </Card>
+
+
+# Alexandria (/docs/nucleo/v1/sistemas/alexandria)
+
+
+
+# Alexandria [#alexandria]
+
+Alexandria es el núcleo de inicialización del motor. Su función es descubrir, instanciar y coordinar todos los sistemas del juego de forma automática mediante reflexión.
+
+## Responsabilidad principal [#responsabilidad-principal]
+
+* Descubrir sistemas marcados con `SistemaAttribute`
+* Instanciar sistemas como `MonoBehaviour`
+* Ordenar la inicialización por prioridad
+* Garantizar ciclo de vida controlado (Init / Update / Shutdown)
+
+***
+
+## Sistema de descubrimiento [#sistema-de-descubrimiento]
+
+Alexandria utiliza reflexión sobre el ensamblado actual:
+
+* Filtra clases concretas (no abstractas)
+* Requiere `MonoBehaviour`
+* Requiere implementación de `ISistema`
+* Requiere `SistemaAttribute`
+
+Esto permite registro automático sin configuración manual.
+
+***
+
+## Sistema de atributos [#sistema-de-atributos]
+
+### SistemaAttribute [#sistemaattribute]
+
+Define metadata del sistema.
+
+```csharp
+[Sistema(int prioridad, string nombre)]
+```
+
+
+# Arquitectura (/docs/red/v1/fundamentos/arquitectura)
+
+
+
+# Arquitectura [#arquitectura]
+
+Eco es la capa de red utilizada por Pandora. Parte de la arquitectura de TNet, pero utiliza la nomenclatura, organización y extensiones propias de Nervelink.
+
+<Callout title="Regla fundamental" type="info">
+  Piensa en Eco como un sistema por capas. `Canal`, `Objeto`, `Jugador`, `RFC`, `Paquete` y `Buffer` resuelven problemas distintos; no son sustitutos entre sí.
+</Callout>
+
+## Mapa de la arquitectura [#mapa-de-la-arquitectura]
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│                         Gameplay                            │
+└────────────────────────────┬────────────────────────────────┘
+                             │
+                    Objeto / Componente
+                             │
+              ┌──────────────┴──────────────┐
+              │                             │
+             RFC                         Estado
+              │                             │
+              └──────────────┬──────────────┘
+                             │
+                          Canal
+                             │
+                  Paquete / Protocolo
+                             │
+                           Buffer
+                             │
+                    TCP / UDP / custom
+                             │
+              ┌──────────────┴──────────────┐
+              │                             │
+           Cliente                       Servidor
+```
+
+## Las cuatro capas que debes distinguir [#las-cuatro-capas-que-debes-distinguir]
+
+<Cards>
+  <Card title="Modelo de red" href="/docs/red/v1/modelo">
+    Define quién participa, qué objetos existen y en qué canal viven.
+  </Card>
+
+  <Card title="Comunicación" href="/docs/red/v1/comunicacion">
+    Define qué se quiere comunicar y quién debe recibirlo.
+  </Card>
+
+  <Card title="Transporte" href="/docs/red/v1/transporte">
+    Convierte la operación en un mensaje serializado y lo transporta.
+  </Card>
+
+  <Card title="Runtime" href="/docs/red/v1/runtime">
+    Ejecuta cliente y servidor y mantiene sus ciclos de vida.
+  </Card>
+</Cards>
+
+## Modelo de red [#modelo-de-red]
+
+### Canal [#canal]
+
+Un `Canal` delimita un ámbito de jugadores y estado. Una conexión puede pertenecer a varios canales simultáneamente; esto es una propiedad del modelo de Eco, no una conexión física adicional.
+
+### Jugador [#jugador]
+
+`Jugador` representa una participación en la sesión. Su identidad es independiente de la conexión física y dispone de datos propios que pueden sincronizarse.
+
+### Objeto [#objeto]
+
+`Objeto` aporta identidad de red, ownership, canal, datos y ciclo de vida. Su `uid` combina el contexto del canal con la identidad del objeto.
+
+### Componente [#componente]
+
+`Componente` es la capa de integración con `MonoBehaviour`: permite acceder cómodamente al objeto de red y es el punto habitual desde el que se declaran RFC, datos y operaciones de instanciación.
+
+## Comunicación [#comunicación]
+
+Una operación empieza en gameplay y acaba convertida en un mensaje de protocolo.
+
+```text
+Componente
+   │
+   ├── RFC ────────────────┐
+   │                       │
+   └── Set / Sync ─────────┤
+                           ▼
+                        Objeto
+                           │
+                        Paquete
+                           │
+                         Buffer
+                           │
+                      Transporte
+```
+
+La selección de destinatario se realiza antes de que el mensaje abandone el contexto de Eco. Por eso [Destinatarios](/docs/red/v1/comunicacion/destinatarios) pertenece conceptualmente a Comunicación y no a Transporte.
+
+## Runtime [#runtime]
+
+El cliente mantiene su conexión y representación local. El servidor mantiene el estado compartido, administra jugadores y canales y procesa las solicitudes que requieren autoridad del servidor.
+
+```text
+ClienteJuego
+├── Conexión TCP
+├── UDP opcional
+├── Canales
+├── Jugador local
+└── Cola / procesamiento de paquetes
+
+ServidorJuego
+├── Listener TCP
+├── UDP opcional
+├── Jugadores
+├── Canales
+├── Persistencia
+└── Procesamiento de paquetes
+```
+
+## Flujo de una operación [#flujo-de-una-operación]
+
+<div className="fd-steps">
+  <div className="fd-step">
+    ### Gameplay \[step] [#1-gameplay-step]
+
+    Tu código decide qué quiere hacer: cambiar estado, ejecutar una acción, crear un objeto o cambiar de canal.
+  </div>
+
+  <div className="fd-step">
+    ### Modelo de red \[step] [#2-modelo-de-red-step]
+
+    Eco determina el `Objeto`, `Canal`, propietario y contexto de la operación.
+  </div>
+
+  <div className="fd-step">
+    ### Comunicación \[step] [#3-comunicación-step]
+
+    Se selecciona RFC, sincronización o una operación de protocolo existente y se determinan sus destinatarios.
+  </div>
+
+  <div className="fd-step">
+    ### Serialización \[step] [#4-serialización-step]
+
+    Los parámetros se convierten a una representación binaria mediante `Buffer` y las herramientas de serialización.
+  </div>
+
+  <div className="fd-step">
+    ### Transporte \[step] [#5-transporte-step]
+
+    El mensaje viaja mediante TCP, UDP cuando corresponde, o una conexión personalizada.
+  </div>
+
+  <div className="fd-step">
+    ### Aplicación remota \[step] [#6-aplicación-remota-step]
+
+    El receptor procesa el paquete, actualiza el estado correspondiente y ejecuta los callbacks asociados.
+  </div>
+</div>
+
+## Relación con TNet [#relación-con-tnet]
+
+| TNet          | Eco          | Responsabilidad                |
+| ------------- | ------------ | ------------------------------ |
+| `TNManager`   | `Eco`        | Fachada y operaciones globales |
+| `TNObject`    | `Objeto`     | Identidad y estado de red      |
+| `TNBehaviour` | `Componente` | Integración con Unity          |
+| `Channel`     | `Canal`      | Ámbito compartido              |
+| `Packet`      | `Paquete`    | Protocolo                      |
+| `Buffer`      | `Buffer`     | Datos binarios                 |
+| `Player`      | `Jugador`    | Participante                   |
+
+<Callout title="No copies el workflow antiguo de TNet literalmente" type="warn">
+  Los ejemplos históricos suelen asumir un único canal activo y una API distinta. En Eco debes seguir el comportamiento actual del repositorio y utilizar las páginas de [Modelo de red](/docs/red/v1/modelo) y [Guías](/docs/red/v1/guias) como referencia práctica.
+</Callout>
+
+## Fuentes [#fuentes]
+
+<Cards>
+  <Card title="Eco" href="https://github.com/Nervelink/eco">
+    Implementación actual.
+  </Card>
+
+  <Card title="TNet upstream" href="https://github.com/tasharen/tnet">
+    Código del que procede la arquitectura base.
+  </Card>
+
+  <Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
+    Índice externo útil para comparar la arquitectura upstream.
+  </Card>
+</Cards>
+
+
+# Ciclo de vida (/docs/red/v1/fundamentos/ciclo-de-vida)
+
+
+
+# Ciclo de vida [#ciclo-de-vida]
+
+Una parte importante de la arquitectura de Eco ocurre fuera de las llamadas que haces desde gameplay. El sistema mantiene instancias de cliente, servidor, actualizadores y colas para evitar que cada componente tenga que implementar su propio ciclo de red.
+
+## Arranque del sistema [#arranque-del-sistema]
+
+`Eco` se integra con el arranque de Pandora y se inicializa como sistema. Su `Iniciar()` registra sus RCR, instala los eventos internos y crea el servidor local cuando corresponde.
+
+```text
+Alexandria
+    │
+    └── Eco.Iniciar()
+          ├── Registrar RCR
+          ├── Inicializar eventos
+          ├── Crear / iniciar Servidor
+          └── Activar cliente y procesamiento
+```
+
+No necesitas llamar manualmente a `Eco.Iniciar()` en el uso normal.
+
+## Componente y ActualizadorRed [#componente-y-actualizadorred]
+
+`Componente` no depende exclusivamente de los callbacks estándar de `MonoBehaviour` para integrar el objeto de red. En `Awake()` obtiene o prepara el `Objeto` asociado y registra el componente en `ActualizadorRed`.
+
+Esto permite centralizar varias operaciones que de otro modo acabarían repartidas entre cientos de `Update`, `LateUpdate` y `Start`.
+
+```text
+Componente
+    │
+    ├── Awake()
+    │     ├── localizar Objeto
+    │     └── ActualizadorRed.AddStart(this)
+    │
+    └── OnStart()
+          └── asegurar Objeto y métodos remotos
+```
+
+`ActualizadorRed` también admite `IUpdateable`, `ILateUpdateable`, `IInfrequentUpdateable`, callbacks de un solo uso, invocaciones retardadas y coroutines.
+
+## Procesamiento de paquetes [#procesamiento-de-paquetes]
+
+El cliente recibe bytes del transporte, los convierte en `Buffer` y procesa los paquetes dentro del ciclo de actualización de Eco.
+
+```text
+TCP / UDP
+   ↓
+Buffer recibido
+   ↓
+Paquete
+   ↓
+ClienteJuego
+   ↓
+Despacho
+   ├── evento de conexión/canal/jugador
+   ├── creación / destrucción de Objeto
+   ├── cambio de propietario
+   ├── datos
+   └── RFC
+```
+
+El método `Eco.ProcesarPaquetes` es reemplazable para integraciones avanzadas. En la configuración normal procesa la cola del `ClienteJuego` una vez que las condiciones de carga de escena lo permiten.
+
+## Carga de escenas [#carga-de-escenas]
+
+La carga de escena está coordinada con el canal. Cuando el servidor solicita un cambio de nivel, Eco registra el canal como “en carga”, limpia los objetos de ese canal y espera a que el `AsyncOperation` llegue al punto seguro antes de activar la escena.
+
+Esto explica por qué crear objetos inmediatamente durante un cambio de escena puede ser rechazado: el objetivo es evitar que un objeto se cree en una representación del canal que todavía está cambiando.
+
+## Apagado [#apagado]
+
+El apagado sigue el camino inverso:
+
+```text
+Application Quit / Alexandria
+        ↓
+Eco.Apagar()
+        ↓
+Desconectar cliente
+        ↓
+Detener UDP
+        ↓
+Apagar Servidor
+        ↓
+Eliminar referencias globales
+```
+
+Eco marca internamente el estado de apagado para impedir nuevas operaciones de red mientras Unity está destruyendo objetos.
+
+<Callout title="No fuerces el ciclo de vida" type="warn">
+  Crear manualmente otro `Eco`, llamar `Iniciar()` varias veces o mantener referencias a objetos de red durante el apagado puede romper las garantías de singleton y de limpieza.
+</Callout>
+
+## Qué aporta esta arquitectura [#qué-aporta-esta-arquitectura]
+
+La idea procede del patrón de TNet de centralizar la actualización y el procesamiento, pero en Eco el vocabulario y los puntos de entrada son propios. DeepWiki identifica este patrón como parte de la arquitectura de cliente de TNet; en Eco se refleja en `Eco`, `ClienteJuego`, `Objeto`, `Componente` y `ActualizadorRed`.
+
+<Card title="ActualizadorRed" href="/docs/red/v1/avanzado/actualizador-red">
+  Referencia detallada del scheduler de actualización.
+</Card>
+
+<Card title="Arquitectura" href="/docs/red/v1/fundamentos/arquitectura">
+  Visión general de todas las capas.
+</Card>
+
+
+# Cliente y servidor (/docs/red/v1/fundamentos/cliente-y-servidor)
+
+
+
+# Cliente y servidor [#cliente-y-servidor]
+
+La arquitectura de Eco distingue claramente el estado local del cliente de la autoridad del servidor. Esta separación aparece como una de las ideas centrales del análisis de TNet y es especialmente importante al diseñar gameplay multijugador.
+
+## Cliente [#cliente]
+
+`ClienteJuego` mantiene la sesión desde el lado de Unity:
+
+```text
+ClienteJuego
+├── conexión
+├── jugador local
+├── canales locales
+├── recepción de paquetes
+├── estado de UDP
+├── callbacks
+└── objetos visibles
+```
+
+`Eco` actúa como fachada pública para que el código de juego no tenga que manipular directamente todos esos detalles.
+
+## Servidor [#servidor]
+
+El servidor mantiene el estado compartido y aplica operaciones que requieren autoridad:
+
+```text
+ServidorJuego
+├── jugadores
+├── canales
+├── objetos registrados
+├── persistencia
+├── administración
+├── recepción de paquetes
+└── reenvío / procesamiento
+```
+
+El servidor no es simplemente “otro cliente con más permisos”. Es el punto que mantiene la representación compartida del mundo de red.
+
+## Flujo cliente → servidor → clientes [#flujo-cliente--servidor--clientes]
+
+```text
+Cliente A
+   │
+   │ solicitud / RFC / datos
+   ▼
+Servidor
+   │
+   ├── valida
+   ├── modifica estado
+   ├── persiste cuando corresponde
+   └── distribuye
+        ├──────────────► Cliente A
+        ├──────────────► Cliente B
+        └──────────────► Cliente C
+```
+
+Esta es la razón por la que una operación local no debe considerarse automáticamente una operación sincronizada.
+
+## Canal como unidad de aislamiento [#canal-como-unidad-de-aislamiento]
+
+Los canales permiten que el servidor procese grupos independientes de jugadores y objetos. Un jugador puede pertenecer a varios canales, pero cada entidad de red sigue ligada a un contexto concreto.
+
+```text
+Servidor
+├── Canal 10
+│   ├── Jugador A
+│   └── Objetos 1..20
+│
+└── Canal 20
+    ├── Jugador B
+    └── Objetos 21..40
+```
+
+Las operaciones de objeto deben incluir el canal correcto; no conviene inferirlo a partir de un único “canal actual” cuando hay múltiples canales activos.
+
+## Persistencia del servidor [#persistencia-del-servidor]
+
+En canales persistentes, Eco puede mantener información más allá de la presencia inmediata de un jugador. Los objetos persistentes forman parte de ese estado y se restauran para participantes que entran posteriormente cuando el modelo de canal lo requiere.
+
+Esto hace que red y persistencia estén relacionadas, pero no significa que Eco sustituya el sistema de guardado específico del juego.
+
+## Autoridad [#autoridad]
+
+El servidor puede verificar permisos, propietario, canal y datos antes de aplicar una operación.
+
+```csharp
+// Conceptual: la solicitud llega al servidor.
+// El servidor decide si la operación es válida.
+```
+
+No debes enviar desde el cliente el resultado final de una operación crítica cuando el servidor puede calcularlo por sí mismo.
+
+## Errores de diseño frecuentes [#errores-de-diseño-frecuentes]
+
+| Error                                | Consecuencia                                  |
+| ------------------------------------ | --------------------------------------------- |
+| confiar en cualquier RFC recibida    | clientes pueden falsificar acciones           |
+| mantener autoridad sólo en UI/local  | divergencia entre jugadores                   |
+| usar estado local como verdad global | desincronización                              |
+| asumir un único canal                | operaciones dirigidas al contexto equivocado  |
+| guardar todo como objeto persistente | crecimiento de estado y coste de restauración |
+
+<Callout title="Cliente = intención; servidor = autoridad" type="idea">
+  No es una regla absoluta para todas las simulaciones, pero es un excelente punto de partida para diseñar juegos cooperativos y competitivos con Eco.
+</Callout>
+
+<Card title="Canales" href="/docs/red/v1/modelo/canales">
+  Aislamiento y pertenencia de jugadores.
+</Card>
+
+<Card title="Persistencia" href="/docs/red/v1/persistencia">
+  Datos y objetos que sobreviven a la sesión inmediata.
+</Card>
+
+
+# Conceptos (/docs/red/v1/fundamentos/conceptos)
+
+
+
+# Conceptos [#conceptos]
+
+Eco organiza la red alrededor de unas pocas piezas fundamentales. Entender su relación evita confundir conexión, canal, jugador, objeto y componente.
+
+<Callout title="Regla general" type="info">
+  Una conexión representa la comunicación con el servidor; un jugador representa a un participante; un canal define un ámbito de estado compartido; un objeto representa una entidad de red; y sus componentes implementan el comportamiento.
+</Callout>
+
+## Conexión [#conexión]
+
+La conexión representa el vínculo de transporte entre una instancia del juego y el servidor. No define por sí sola qué objetos o estado debe conocer el cliente.
+
+## Jugador [#jugador]
+
+Un `Jugador` representa a un participante de la sesión dentro de la infraestructura de red. Sirve para identificar presencia, propiedad y destinatarios.
+
+## Canal [#canal]
+
+Un `Canal` define un ámbito de estado compartido. Un mismo jugador puede participar simultáneamente en varios canales.
+
+```text
+Servidor
+  ├── Canal A → Jugador 1, Jugador 2
+  └── Canal B → Jugador 2, Jugador 3
+```
+
+## Objeto [#objeto]
+
+Un `Objeto` es una identidad de red que Eco puede registrar, localizar, sincronizar y destruir.
+
+```text
+Objeto
+├── ID de red
+├── Propietario
+├── Estado
+├── Canal(es)
+└── Componentes
+```
+
+## Componente [#componente]
+
+Un `Componente` contiene comportamiento de red asociado a un `Objeto`. Esta separación permite mantener la identidad de red independiente de la funcionalidad concreta.
+
+## Propietario [#propietario]
+
+El propietario identifica al jugador que tiene autoridad sobre determinadas operaciones del objeto. La propiedad no implica que el objeto sea invisible para los demás participantes.
+
+## Paquete [#paquete]
+
+Un `Paquete` representa una unidad del protocolo de Eco. Transporta comandos, eventos y datos entre clientes y servidor.
+
+## Buffer [#buffer]
+
+Un `Buffer` proporciona las operaciones de lectura y escritura utilizadas para serializar los datos que Eco intercambia.
+
+## Estado [#estado]
+
+Eco distingue entre comunicar una acción y mantener un estado. Una RFC puede comunicar que algo ocurrió; un mecanismo de sincronización mantiene valores que deben converger entre participantes.
+
+## Relación entre conceptos [#relación-entre-conceptos]
+
+```text
+Servidor
+ │
+ ├── Conexiones
+ │     └── Jugadores
+ │
+ └── Canales
+       └── Objetos
+             └── Componentes
+                   ├── RFC
+                   ├── Sync
+                   └── Datos
+                         ↓
+                      Paquetes
+                         ↓
+                      Transporte
+```
+
+## Correspondencia con TNet [#correspondencia-con-tnet]
+
+| Eco          | TNet                    | Función                           |
+| ------------ | ----------------------- | --------------------------------- |
+| `Eco`        | `TNManager`             | Gestión principal del cliente     |
+| `Jugador`    | `Player`                | Participante de la sesión         |
+| `Canal`      | `Channel` / `TNChannel` | Ámbito de estado compartido       |
+| `Objeto`     | `TNObject`              | Identidad de red                  |
+| `Componente` | `TNBehaviour`           | Comportamiento asociado al objeto |
+| `Paquete`    | `Packet` / `TNPacket`   | Mensaje del protocolo             |
+| `Buffer`     | `TNBuffer`              | Serialización binaria             |
+
+## Referencias [#referencias]
+
+<Card title="TNet en GitHub" href="https://github.com/tasharen/tnet">
+  Repositorio upstream y fuente de referencia de la implementación heredada.
+</Card>
+
+<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
+  Vista generada de la arquitectura actual de TNet.
+</Card>
+
+
+# Fundamentos (/docs/red/v1/fundamentos)
+
+
+
+# Fundamentos [#fundamentos]
+
+Esta sección establece el modelo mental necesario para trabajar con Eco antes de entrar en sus mecanismos concretos.
+
+<Card title="Arquitectura" href="/docs/red/v1/fundamentos/arquitectura">
+  Cómo se organiza Eco y cómo fluye la información entre sus capas.
+</Card>
+
+<Card title="Conceptos" href="/docs/red/v1/fundamentos/conceptos">
+  Conexiones, jugadores, canales, objetos, componentes, estado y mensajes.
+</Card>
+
+
+# Mapa completo del sistema (/docs/red/v1/fundamentos/mapa-completo)
+
+
+
+# Mapa completo del sistema [#mapa-completo-del-sistema]
+
+DeepWiki separa TNet en gestión de cliente, objetos, sincronización, servidor, transporte, serialización, herramientas, ejemplos y extensiones. Esa clasificación es útil para entender Eco, pero debe reinterpretarse con los nombres y responsabilidades actuales del proyecto.
+
+## Correspondencia conceptual [#correspondencia-conceptual]
+
+| Concepto upstream                 | Eco                                  | Función actual                                                   |
+| --------------------------------- | ------------------------------------ | ---------------------------------------------------------------- |
+| `TNManager`                       | `Eco`                                | Fachada global del cliente y operaciones de red                  |
+| `TNObject`                        | `Objeto`                             | Identidad, ownership, canal, datos y comunicación de una entidad |
+| `TNBehaviour`                     | `Componente`                         | Integración de `MonoBehaviour` con `Objeto`                      |
+| `TNPlayer`                        | `Jugador`                            | Identidad y datos del participante                               |
+| `Channel`                         | `Canal`                              | Ámbito lógico de jugadores y objetos                             |
+| `Packet`                          | `Paquete`                            | Tipo de mensaje del protocolo                                    |
+| `Buffer`                          | `Buffer`                             | Lectura y escritura binaria                                      |
+| `DataNode`                        | `Nodo`                               | Datos jerárquicos y serialización estructurada                   |
+| `GameClient`                      | `ClienteJuego`                       | Estado y comunicación del cliente                                |
+| `TNServerInstance` / `GameServer` | `Servidor` / `ServidorJuego`         | Hosting y lógica de servidor                                     |
+| `TNUpdater`                       | `ActualizadorRed`                    | Scheduler central de callbacks y actualización                   |
+| `Target`                          | `Objetivo`                           | Destino de una comunicación                                      |
+| `TNSyncRigidbody`                 | `SincronizarRB`                      | Sincronización específica de física                              |
+| `IConnection`                     | `IConnection`                        | Transporte personalizado                                         |
+| `TNServerInstance` editor         | `Servidor` + herramientas de Pandora | Integración de servidor dentro del proyecto                      |
+
+## Capas [#capas]
+
+```text
+┌────────────────────────────────────────────────────────┐
+│ Gameplay                                               │
+├────────────────────────────────────────────────────────┤
+│ Eco / Componente / Objeto                              │
+├────────────────────────────────────────────────────────┤
+│ RFC · Sync · Datos · Objetivo                          │
+├────────────────────────────────────────────────────────┤
+│ Paquete · Buffer · Serialización                       │
+├────────────────────────────────────────────────────────┤
+│ TCP · UDP · IConnection                                │
+├────────────────────────────────────────────────────────┤
+│ ClienteJuego              ServidorJuego                │
+└────────────────────────────────────────────────────────┘
+```
+
+## Subsystems que conviene conocer [#subsystems-que-conviene-conocer]
+
+### Gestión de sesión [#gestión-de-sesión]
+
+`Eco` expone conexión, desconexión, estado de red, nombre e identidad del jugador, canales, administración, aliases y callbacks.
+
+### Entidades de red [#entidades-de-red]
+
+`Objeto` representa una entidad sincronizada. `Componente` es la fachada Unity que facilita acceder a ella y registrar comportamiento remoto.
+
+### Comunicación [#comunicación]
+
+Las RFC permiten ejecutar métodos remotos. Los métodos de datos y sincronización mantienen estado. `Objetivo` decide el ámbito de distribución.
+
+### Persistencia [#persistencia]
+
+Los canales persistentes y los objetos persistentes permiten que el servidor conserve estado de una sesión y lo reproduzca cuando corresponde. Esto no debe confundirse con guardar la partida completa de gameplay.
+
+### Transporte [#transporte]
+
+TCP proporciona el canal fiable principal. UDP se utiliza para tráfico donde perder un mensaje concreto puede ser preferible a acumular latencia. `IConnection` permite sustituir el transporte sin cambiar la API de alto nivel.
+
+### Serialización [#serialización]
+
+`Buffer` es la representación binaria de trabajo. `Nodo` ofrece una representación jerárquica para datos estructurados. Las interfaces de serialización permiten soportar tipos propios cuando una simple escritura de primitivas no es suficiente.
+
+### Runtime [#runtime]
+
+`ActualizadorRed` concentra `OnStart`, `OnUpdate`, `OnLateUpdate`, actualizaciones infrecuentes, callbacks de un solo uso, invocaciones retardadas y tareas basadas en enumeradores.
+
+### Herramientas y extensiones [#herramientas-y-extensiones]
+
+El sistema incluye integración con Steam, UPnP, runtime C#, lobby y transportes personalizados. Estos son extensiones de Eco, no requisitos del núcleo.
+
+## Orden recomendado para aprender Eco [#orden-recomendado-para-aprender-eco]
+
+<Steps>
+  <Step>
+    <div className="fd-steps">
+      <div className="fd-step">
+        ### Modelo de red [#1-modelo-de-red]
+
+        Aprende `Jugador`, `Canal`, `Objeto` y `Componente`.
+      </div>
+    </div>
+  </Step>
+
+  <Step>
+    <div className="fd-steps">
+      <div className="fd-step">
+        ### Comunicación [#2-comunicación]
+
+        Aprende RFC, sincronización y `Objetivo`.
+      </div>
+    </div>
+  </Step>
+
+  <Step>
+    <div className="fd-steps">
+      <div className="fd-step">
+        ### Transporte [#3-transporte]
+
+        Aprende `Paquete`, `Buffer`, serialización y la diferencia entre TCP y UDP.
+      </div>
+    </div>
+  </Step>
+
+  <Step>
+    <div className="fd-steps">
+      <div className="fd-step">
+        ### Runtime [#4-runtime]
+
+        Comprende `Eco`, `ClienteJuego`, `ServidorJuego` y `ActualizadorRed`.
+      </div>
+    </div>
+  </Step>
+
+  <Step>
+    <div className="fd-steps">
+      <div className="fd-step">
+        ### Persistencia y extensiones [#5-persistencia-y-extensiones]
+
+        Añade datos persistentes, múltiples canales, Steam, UPnP o `IConnection` cuando el proyecto lo necesite.
+      </div>
+    </div>
+  </Step>
+</Steps>
+
+<Callout title="Esta página no es una copia de DeepWiki" type="info">
+  DeepWiki se utiliza como índice de arquitectura de TNet. Las definiciones de Eco se basan en la implementación actual del repositorio `Nervelink/eco`; cuando una idea upstream no coincide con Eco, prevalece el código de Eco.
+</Callout>
+
+<Cards>
+  <Card title="Arquitectura" href="/docs/red/v1/fundamentos/arquitectura">
+    Flujo entre las capas.
+  </Card>
+
+  <Card title="Ciclo de vida" href="/docs/red/v1/fundamentos/ciclo-de-vida">
+    Arranque, actualización, escenas y apagado.
+  </Card>
+
+  <Card title="Referencia API" href="/docs/red/v1/referencia">
+    Búsqueda por clases y miembros públicos.
+  </Card>
+</Cards>
 
 
 # APIs de bajo nivel (/docs/red/v1/referencia/api/bajo-nivel)
