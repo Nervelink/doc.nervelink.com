@@ -29,6 +29,8 @@
 
     - **Objetos**
     - [Objetos](/docs/red/v1/objetos): Identidad, ciclo de vida y propiedad de los objetos de red de Eco.
+
+    - **Comunicación**
     - [Comunicación](/docs/red/v1/comunicacion): Cómo Eco representa, dirige y procesa la comunicación entre objetos, componentes, clientes y servidor.
 - Ui
   - UI
