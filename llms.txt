@@ -26,6 +26,7 @@
 
     - **Canales**
     - [Canales](/docs/red/v1/canales): Ámbitos de estado compartido en Eco y gestión de la pertenencia de los jugadores.
+    - [Objetos](/docs/red/v1/objetos): Identidad, ciclo de vida y propiedad de los objetos de red de Eco.
 - Ui
   - UI
     - [UI - Nerve Docs](/docs/ui/v1): Sistemas principales
