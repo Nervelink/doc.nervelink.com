@@ -119,9 +119,14 @@
         - [Nodo](/docs/red/v1/referencia/api/nodo): Estructura jerárquica de datos utilizada por Eco para estado, configuración y serialización.
         - [Buffer](/docs/red/v1/referencia/api/buffer): Lectura y escritura binaria de bajo nivel utilizada por el protocolo de Eco.
         - [Paquete](/docs/red/v1/referencia/api/paquete): Catálogo de mensajes que forman el protocolo de comunicación de Eco.
+        - [Protocolo de paquetes](/docs/red/v1/referencia/api/protocolo-paquetes): Referencia organizada de las familias de Paquete que forman el protocolo de Eco.
+        - [Paquetes de datos](/docs/red/v1/referencia/api/paquetes-datos): Paquetes relacionados con datos de servidor, canal y jugador.
         - [Serialización](/docs/red/v1/referencia/api/serializacion): Conversión de tipos de C# a las representaciones binarias y jerárquicas utilizadas por Eco.
         - [Datagrama](/docs/red/v1/referencia/api/datagrama): Unidad mínima de datos asociada al transporte de Eco.
         - [IConnection](/docs/red/v1/referencia/api/iconnection): Abstracción de transporte para conectar Eco con sockets o servicios de red personalizados.
+        - [FuncionCacheada](/docs/red/v1/referencia/api/funcion-cacheada): Caché de métodos reflejados utilizada para ejecutar funciones con parámetros de red.
+        - [Contador](/docs/red/v1/referencia/api/contador): Valor que evoluciona con el tiempo y puede serializarse como estado de red o persistencia.
+        - [CampoOPropiedad](/docs/red/v1/referencia/api/campo-o-propiedad): Abstracción de reflexión para leer y escribir campos y propiedades de C#.
         - [ClienteJuego](/docs/red/v1/referencia/api/cliente-juego): Runtime interno del cliente de Eco para conexiones, canales, paquetes y estado de sesión.
         - [ServidorJuego](/docs/red/v1/referencia/api/servidor-juego): Runtime del servidor de Eco para conexiones, canales, jugadores, persistencia y procesamiento de paquetes.
         - [APIs de bajo nivel](/docs/red/v1/referencia/api/bajo-nivel): Primitivas internas de Eco para paquetes, buffers, callbacks, caché, serialización y transporte personalizado.
