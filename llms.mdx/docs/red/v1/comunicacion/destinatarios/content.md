@@ -67,20 +67,40 @@ No debe utilizarse persistencia sólo porque un mensaje se considere importante:
         └── Ahora + futuros ───────► persistente
 ```
 
+## Listas de jugadores [#listas-de-jugadores]
+
+La arquitectura de TNet/Eco también contempla el envío a una lista concreta de jugadores, no sólo a un único ID. Esta opción es especialmente útil para grupos seleccionados que no coinciden con todos los miembros del canal.
+
+## Echo y llamadas reenviadas [#echo-y-llamadas-reenviadas]
+
+El protocolo distingue comunicaciones como `ForwardToAll`, `ForwardToOthers` y sus variantes persistentes. Estas operaciones permiten que el servidor reenvíe el contenido sin que el cliente tenga que construir manualmente un paquete distinto para cada receptor.
+
+## Relación con persistencia [#relación-con-persistencia]
+
+Hay que separar dos preguntas:
+
+```text
+¿Quién lo recibe ahora?
+        ↓
+¿Debe estar disponible para quien llegue después?
+```
+
+La primera es una decisión de destinatario. La segunda es una decisión de persistencia. Pueden combinarse, pero no son el mismo concepto.
+
 ## Relación con TNet [#relación-con-tnet]
 
-Eco conserva el modelo de objetivos de TNet, pero utiliza la nomenclatura propia del proyecto. Las equivalencias deben comprobarse siempre contra la implementación actual de `Eco` y `Objeto`.
+Eco conserva el modelo de objetivos de TNet, pero utiliza la nomenclatura propia del proyecto. Las equivalencias deben comprobarse siempre contra la implementación actual de `Eco`, `Objeto` y `Paquete`.
 
 ## Referencias [#referencias]
 
-<Card title="Eco" href="https://github.com/Nervelink/eco">
-  Implementación actual.
+<Card title="RFC avanzadas" href="/docs/red/v1/comunicacion/rfc-avanzadas">
+  Cómo construir llamadas remotas y decidir su comportamiento.
+</Card>
+
+<Card title="Varios canales simultáneos" href="/docs/red/v1/guias/multiples-canales">
+  Aplicación práctica del alcance por canal.
 </Card>
 
 <Card title="TNet" href="https://github.com/tasharen/tnet">
   Repositorio upstream.
-</Card>
-
-<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
-  Referencia generada para contrastar el diseño upstream.
 </Card>

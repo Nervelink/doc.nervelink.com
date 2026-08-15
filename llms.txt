@@ -31,20 +31,28 @@
       - [Objetos](/docs/red/v1/modelo/objetos): Identidad, ciclo de vida y propiedad de los objetos de red de Eco.
     - Comunicación
       - [Comunicación](/docs/red/v1/comunicacion): Cómo Eco envía acciones, mantiene estado y dirige mensajes a sus destinatarios.
-      - [Destinatarios](/docs/red/v1/comunicacion/destinatarios): Cómo Eco determina quién recibe un mensaje dentro de un canal.
       - [RFC](/docs/red/v1/comunicacion/rfc): Llamadas de funciones remotas en Eco.
+      - [RFC avanzadas](/docs/red/v1/comunicacion/rfc-avanzadas): RFC, llamadas persistentes, respuesta y patrones de comunicación de Eco.
       - [Sincronización](/docs/red/v1/comunicacion/sincronizacion): Cómo Eco mantiene el estado de los objetos coherente entre clientes y servidor.
+      - [Sincronización avanzada](/docs/red/v1/comunicacion/sincronizacion-avanzada): Cómo tratar cambios de estado, colas pendientes y autoridad en objetos de red.
+      - [Destinatarios](/docs/red/v1/comunicacion/destinatarios): Cómo Eco determina quién recibe un mensaje dentro de un canal.
     - Transporte
       - [Transporte](/docs/red/v1/transporte): Cómo Eco empaqueta, serializa y transporta datos entre clientes y servidor.
       - [Paquetes](/docs/red/v1/transporte/paquetes): Los mensajes que forman el protocolo de comunicación de Eco.
+      - [Paquetes y protocolo](/docs/red/v1/transporte/paquetes-protocolo): Cómo Eco clasifica y enruta las operaciones de red.
       - [Buffers](/docs/red/v1/transporte/buffers): El contenedor binario que Eco utiliza para leer y escribir datos de red.
+      - [Buffer en profundidad](/docs/red/v1/transporte/buffer-en-profundidad): Ciclo de escritura, lectura, reciclado y uso seguro de Buffer.
       - [Serialización](/docs/red/v1/transporte/serializacion): Cómo Eco convierte datos entre representaciones estructuradas y binarias.
+      - [Serialización avanzada](/docs/red/v1/transporte/serializacion-avanzada): Principios para serializar datos de Eco de forma compatible y eficiente.
       - [TCP y UDP](/docs/red/v1/transporte/tcp-udp): Cómo Eco combina transporte fiable y transporte de baja latencia.
+      - [TCP y UDP en profundidad](/docs/red/v1/transporte/tcp-udp-en-profundidad): Diferencias prácticas entre los transportes fiables y no fiables de Eco.
     - Runtime
       - [Runtime](/docs/red/v1/runtime): Los componentes que mantienen Eco en ejecución en el cliente y el servidor.
       - [Cliente](/docs/red/v1/runtime/cliente): Ciclo de vida del cliente de Eco, conexión, transporte y gestión de la sesión.
-      - [Servidor local](/docs/red/v1/runtime/servidor-local)
+      - [Cliente avanzado](/docs/red/v1/runtime/cliente-avanzado): Estados de conexión, canales, datos de jugador y extensiones del cliente de Eco.
       - [Servidor](/docs/red/v1/runtime/servidor): Estado autoritativo, jugadores, canales y procesamiento del lado servidor.
+      - [Servidor en profundidad](/docs/red/v1/runtime/servidor-en-profundidad): Ciclo de vida, canales, persistencia y concurrencia de ServidorJuego.
+      - [Servidor local](/docs/red/v1/runtime/servidor-local)
     - Guías
       - [Guías](/docs/red/v1/guias): Recorridos prácticos para integrar y utilizar Eco en un proyecto de Unity.
       - [Primer cliente](/docs/red/v1/guias/primer-cliente)
@@ -63,6 +71,11 @@
       - [Transferir archivos](/docs/red/v1/guias/transferir-archivos): Utiliza las funciones de archivos de Eco para solicitar listados y cargar contenido desde el servidor.
       - [Desconectar y limpiar la sesión](/docs/red/v1/guias/desconectar-limpiar): Cierra una sesión de Eco y evita conservar estado de una conexión anterior.
       - [Diagnosticar una conexión](/docs/red/v1/guias/diagnosticar-conexion): Identifica problemas de conexión, canales, paquetes y transporte utilizando el estado expuesto por Eco.
+    - Persistencia
+      - [Persistencia](/docs/red/v1/persistencia): Cómo Eco conserva, restaura y reduce el estado de una sesión de juego.
+      - [Estado persistente](/docs/red/v1/persistencia/estado)
+      - [Canales persistentes](/docs/red/v1/persistencia/canales)
+      - [Objetos persistentes](/docs/red/v1/persistencia/objetos)
     - Referencia
       - [Referencia](/docs/red/v1/referencia): Fuentes, equivalencias y material de consulta para trabajar con Eco.
       - [TNet upstream](/docs/red/v1/referencia/upstream): Relación de Eco con la implementación original de TNet.
