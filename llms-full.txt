@@ -1,14 +1,3 @@
-# Cámara (/docs/camara/v1)
-
-
-
-# Cámara [#cámara]
-
-Documentación del sistema Cámara.
-
-Esta sección está preparada para incorporar conceptos, guías, API, ejemplos y referencia técnica.
-
-
 # CID (/docs/cid/v1)
 
 
@@ -170,17 +159,6 @@ Esta sección está preparada para organizar la documentación por fundamentos, 
 # Personaje [#personaje]
 
 Documentación del sistema Personaje.
-
-Esta sección está preparada para incorporar conceptos, guías, API, ejemplos y referencia técnica.
-
-
-# Táctico (/docs/tactico/v1)
-
-
-
-# Táctico [#táctico]
-
-Documentación del sistema Táctico.
 
 Esta sección está preparada para incorporar conceptos, guías, API, ejemplos y referencia técnica.
 
@@ -724,6 +702,17 @@ TNet / DeepWiki como referencia
 </Cards>
 
 
+# Táctico (/docs/tactico/v1)
+
+
+
+# Táctico [#táctico]
+
+Documentación del sistema Táctico.
+
+Esta sección está preparada para incorporar conceptos, guías, API, ejemplos y referencia técnica.
+
+
 # UI - Nerve Docs (/docs/ui/v1)
 
 
@@ -731,6 +720,17 @@ TNet / DeepWiki como referencia
 # Núcleo [#núcleo]
 
 Texto aquí.
+
+
+# Cámara (/docs/camara/v1)
+
+
+
+# Cámara [#cámara]
+
+Documentación del sistema Cámara.
+
+Esta sección está preparada para incorporar conceptos, guías, API, ejemplos y referencia técnica.
 
 
 # Alexandria (/docs/nucleo/v1/sistemas/alexandria)
@@ -772,979 +772,6 @@ Define metadata del sistema.
 ```csharp
 [Sistema(int prioridad, string nombre)]
 ```
-
-
-# ActualizadorRed (/docs/red/v1/avanzado/actualizador-red)
-
-
-
-# ActualizadorRed [#actualizadorred]
-
-`ActualizadorRed` es un scheduler centralizado utilizado por Eco para ejecutar `OnStart`, `OnUpdate`, `OnLateUpdate`, actualizaciones poco frecuentes, callbacks de una sola ejecución y pequeñas coroutines.
-
-## Por qué existe [#por-qué-existe]
-
-Unity ejecuta `Update` y `LateUpdate` de cada `MonoBehaviour` habilitado. Cuando un proyecto contiene cientos o miles de componentes pequeños, centralizar parte de esos ciclos puede reducir overhead y mejorar el control del scheduler.
-
-```text
-MonoBehaviour A ─┐
-MonoBehaviour B ─┼──► ActualizadorRed ─► OnUpdate()
-MonoBehaviour C ─┘
-```
-
-## Contratos [#contratos]
-
-```csharp
-public interface IStartable
-{
-    void OnStart();
-}
-
-public interface IUpdateable
-{
-    void OnUpdate();
-}
-
-public interface ILateUpdateable
-{
-    void OnLateUpdate();
-}
-
-public interface IInfrequentUpdateable
-{
-    void InfrequentUpdate();
-}
-```
-
-## Alta y baja [#alta-y-baja]
-
-```csharp
-ActualizadorRed.AddUpdate(this);
-ActualizadorRed.AddLateUpdate(this);
-ActualizadorRed.AddInfrequentUpdate(this, 0.25f);
-
-ActualizadorRed.RemoveUpdate(this);
-ActualizadorRed.RemoveLateUpdate(this);
-ActualizadorRed.RemoveInfrequentUpdate(this);
-```
-
-La implementación utiliza conjuntos para las actualizaciones normales y colas auxiliares cuando un objeto se elimina durante el propio recorrido.
-
-## Una sola ejecución [#una-sola-ejecución]
-
-```csharp
-ActualizadorRed.AddOneShot(() =>
-{
-    Debug.Log("Ejecutado en el siguiente Update");
-});
-```
-
-Esto es útil para diferir una operación al siguiente ciclo sin crear un `MonoBehaviour` adicional.
-
-## Invoke sin MonoBehaviour [#invoke-sin-monobehaviour]
-
-```csharp
-ActualizadorRed.Invoke(() =>
-{
-    Debug.Log("Han pasado 2 segundos");
-}, 2f);
-```
-
-## Coroutines [#coroutines]
-
-El scheduler también puede mantener coroutines basadas en `TareaParalela.EnumFunc` y procesarlas fuera del `MonoBehaviour` que las originó.
-
-## Thread safety [#thread-safety]
-
-La implementación actual permite `THREAD_SAFE_UPDATER`, protegiendo las colecciones internas con lock. Esto es especialmente importante cuando una tarea de red o worker registra callbacks desde otro hilo.
-
-<Callout title="No mezclar con Unity API desde cualquier hilo" type="warn">
-  Que el scheduler sea seguro para registrar callbacks no significa que `UnityEngine` sea thread-safe. Los callbacks que toquen objetos de Unity deben ejecutarse en el hilo de Unity.
-</Callout>
-
-## Relación con Componente [#relación-con-componente]
-
-`Componente.Awake()` registra su inicialización mediante `ActualizadorRed.AddStart(this)`. Por eso la documentación de `Componente` no debe asumir que toda la inicialización de red ocurre directamente en `Start()`.
-
-<Card title="Componente" href="/docs/red/v1/referencia/api/componente">
-  Clase base que utiliza `ActualizadorRed` durante la inicialización.
-</Card>
-
-<Card title="ActualizadorRed.cs" href="https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/ActualizadorRed.cs">
-  Implementación actual del scheduler.
-</Card>
-
-
-# Editor y herramientas (/docs/red/v1/avanzado/editor-y-herramientas)
-
-
-
-# Editor y herramientas [#editor-y-herramientas]
-
-Eco no es sólo el runtime que ejecuta la red. El ecosistema conserva varias herramientas pensadas para acelerar la configuración, depuración, serialización y análisis del tráfico.
-
-<Callout title="Runtime y editor son cosas distintas" type="info">
-  Una herramienta de editor puede ayudar a generar, inspeccionar o preparar datos, pero no sustituye al runtime de `Eco`, `ClienteJuego` o `ServidorJuego`.
-</Callout>
-
-## Qué entra en esta categoría [#qué-entra-en-esta-categoría]
-
-El material heredado de TNet agrupa aquí varias capacidades:
-
-| Área          | Uso                                                                   |
-| ------------- | --------------------------------------------------------------------- |
-| Configuración | Preparar proyectos y requisitos de ejecución.                         |
-| Diagnóstico   | Inspeccionar estado, paquetes, ancho de banda y errores.              |
-| Serialización | Convertir datos complejos a formatos persistibles.                    |
-| Runtime Code  | Compilar código en tiempo de ejecución cuando el proyecto lo permite. |
-| Profiling     | Detectar operaciones o paquetes demasiado frecuentes.                 |
-
-## Diagnóstico desde Eco [#diagnóstico-desde-eco]
-
-La propia fachada expone información útil para herramientas internas:
-
-```csharp
-int enviados = Eco.PaquetesEnviados;
-int recibidos = Eco.PaquetesRecibidos;
-int bytesEnviados = Eco.BytesEnviados;
-int bytesRecibidos = Eco.BytesRecibidos;
-int ping = Eco.Ping;
-```
-
-Esto permite construir paneles de diagnóstico sin acceder directamente al protocolo.
-
-## Perfilado de paquetes [#perfilado-de-paquetes]
-
-El upstream incluye mecanismos de perfilado y contadores de paquetes. Eco mantiene parte de este enfoque y además expone contadores de tráfico a través de `Eco`.
-
-Un patrón útil durante desarrollo es medir:
-
-```text
-frecuencia de RFC
-      ↓
-bytes enviados / recibidos
-      ↓
-frecuencia de sincronización
-      ↓
-coste de serialización
-      ↓
-impacto en CPU
-```
-
-<Callout title="No confundas más paquetes con más rendimiento" type="warn">
-  Reducir paquetes puede disminuir tráfico, pero también puede aumentar el tamaño de cada mensaje o retrasar información. La optimización debe medirse con latencia, ancho de banda y CPU.
-</Callout>
-
-## Serialización y herramientas de datos [#serialización-y-herramientas-de-datos]
-
-El sistema `Nodo` puede utilizarse para datos jerárquicos y persistencia. El upstream también documenta formatos de texto, binario y compresión LZMA. En Eco, estas capacidades deben considerarse parte de la capa de datos, no del transporte TCP/UDP.
-
-```text
-Nodo
- ↓
-Serialización
- ├── texto
- ├── binario
- └── binario comprimido
-```
-
-## Runtime Code [#runtime-code]
-
-El soporte de `RuntimeCode` permite compilar código durante la ejecución cuando esta funcionalidad está incluida y configurada en el proyecto.
-
-No debe utilizarse como mecanismo normal para lógica de gameplay. Su utilidad está más relacionada con herramientas, extensibilidad y escenarios donde el código no puede distribuirse previamente.
-
-<Card title="Runtime Code" href="/docs/red/v1/avanzado/runtime-code">
-  Guía de integración y límites del código ejecutado dinámicamente.
-</Card>
-
-## Relación con TNet [#relación-con-tnet]
-
-DeepWiki identifica herramientas de editor para inspeccionar `TNObject`, auto-sincronización, instancias de servidor y exportación de `DataNode`. En Eco, cada una debe considerarse según la implementación que realmente exista en el repositorio; la documentación no asume que una ventana histórica de TNet siga existiendo con el mismo nombre.
-
-<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
-  Usar como referencia histórica de las herramientas upstream.
-</Card>
-
-
-# Funciones avanzadas (/docs/red/v1/avanzado)
-
-
-
-# Funciones avanzadas [#funciones-avanzadas]
-
-Esta sección reúne capacidades que no necesitas para una integración básica, pero que resultan relevantes cuando el proyecto crece o necesita integraciones específicas.
-
-<Card title="ActualizadorRed" href="/docs/red/v1/avanzado/actualizador-red">
-  Centraliza `OnStart`, `Update`, `LateUpdate`, callbacks one-shot, invocaciones y coroutines para reducir el coste de muchos `MonoBehaviour`.
-</Card>
-
-<Card title="Sincronizar Rigidbody" href="/docs/red/v1/avanzado/sincronizar-rigidbody">
-  Sincronización orientada a física de Unity y separación entre propietario y observadores.
-</Card>
-
-<Card title="Runtime Code" href="/docs/red/v1/avanzado/runtime-code">
-  Compilación y ejecución de código C# en runtime para casos de modding y extensibilidad.
-</Card>
-
-<Card title="Lobby" href="/docs/red/v1/avanzado/lobby">
-  Descubrimiento y anuncio de servidores mediante el sistema de lobby de Eco.
-</Card>
-
-<Card title="Steam y conexiones personalizadas" href="/docs/red/v1/avanzado/steam-y-conexiones">
-  Integración con Steam Networking y sustitución de sockets mediante `IConnection`.
-</Card>
-
-<Card title="UPnP y NAT" href="/docs/red/v1/avanzado/upnp">
-  Herramientas para descubrimiento de direcciones y apertura de puertos en routers compatibles.
-</Card>
-
-<Callout title="No añadas una capa avanzada por defecto" type="info">
-  Estas herramientas existen para resolver necesidades concretas. Empieza por la API normal de `Eco` y añade estas capacidades cuando el problema que intentas resolver realmente las necesite.
-</Callout>
-
-
-# Lobby y descubrimiento (/docs/red/v1/avanzado/lobby-y-discovery)
-
-
-
-# Lobby y descubrimiento [#lobby-y-descubrimiento]
-
-El lobby y el servidor de juego resuelven problemas diferentes. El lobby ayuda a encontrar o anunciar servidores; el servidor de juego mantiene la partida y su estado.
-
-```text
-Cliente
-  │
-  ├── Lobby / Discovery ──► lista de servidores
-  │
-  └── Servidor de juego ──► conexión de gameplay
-```
-
-<Callout title="El lobby no es la partida" type="info">
-  Un servidor de lobby puede actuar como directorio o punto de descubrimiento. La autoridad sobre jugadores, canales y objetos continúa perteneciendo al servidor de juego.
-</Callout>
-
-## Flujo recomendado [#flujo-recomendado]
-
-<Steps>
-  <Step>
-    ### Descubrir servidores [#descubrir-servidores]
-
-    Consulta el servicio de lobby o el mecanismo de descubrimiento disponible.
-  </Step>
-
-  <Step>
-    ### Elegir un servidor [#elegir-un-servidor]
-
-    Selecciona el endpoint de gameplay según latencia, región, capacidad o estado anunciado.
-  </Step>
-
-  <Step>
-    ### Conectar directamente [#conectar-directamente]
-
-    Usa `Eco.Conectar(...)` contra el servidor de juego elegido.
-  </Step>
-
-  <Step>
-    ### Entrar en un canal [#entrar-en-un-canal]
-
-    Una vez conectada la sesión, la lógica de partida pasa a los canales de Eco.
-  </Step>
-</Steps>
-
-## Heartbeats y estado anunciado [#heartbeats-y-estado-anunciado]
-
-El material upstream describe mecanismos de lobby que utilizan mensajes de control, ping y actualizaciones del estado de los servidores. El objetivo es evitar que el directorio necesite replicar todo el estado de la partida.
-
-```text
-Servidor de juego
-   │
-   ├── nombre
-   ├── jugadores
-   ├── capacidad
-   ├── estado
-   └── endpoint
-          ↓
-       Lobby
-          ↓
-       Clientes
-```
-
-## Cuándo necesitas un lobby [#cuándo-necesitas-un-lobby]
-
-No todos los proyectos lo requieren.
-
-| Arquitectura               | Lobby                                 |
-| -------------------------- | ------------------------------------- |
-| Cliente → IP fija          | No                                    |
-| Servidor dedicado listado  | Normalmente sí                        |
-| Matchmaking propio         | Depende                               |
-| LAN                        | Puede sustituirse por discovery local |
-| Steam / plataforma externa | Puede recaer en la plataforma         |
-
-## Discovery no equivale a NAT traversal [#discovery-no-equivale-a-nat-traversal]
-
-Encontrar un servidor y conseguir que un cliente pueda alcanzarlo son problemas diferentes. UPnP, port forwarding, Steam Networking y otras técnicas pertenecen a la segunda parte.
-
-<Card title="UPnP y NAT" href="/docs/red/v1/avanzado/upnp">
-  Conectividad y exposición del servidor.
-</Card>
-
-<Card title="Steam y conexiones" href="/docs/red/v1/avanzado/steam-y-conexiones">
-  Transportes de plataforma y conexiones personalizadas.
-</Card>
-
-## Relación con TNet [#relación-con-tnet]
-
-DeepWiki mantiene páginas separadas para lobby cliente, lobby servidor y discovery. En Eco la documentación debe conservar esa separación conceptual, pero las APIs deben seguir las implementaciones reales disponibles en el repositorio de Eco.
-
-<Card title="DeepWiki · Lobby y discovery" href="https://deepwiki.com/tasharen/tnet">
-  Referencia upstream para arquitectura de lobby y descubrimiento.
-</Card>
-
-
-# Lobby (/docs/red/v1/avanzado/lobby)
-
-
-
-# Lobby [#lobby]
-
-La carpeta `Sala` implementa la comunicación entre servidores de juego y un servicio de lobby. Su objetivo es anunciar servidores disponibles y permitir que los clientes consulten la lista sin conocer de antemano sus endpoints.
-
-## Arquitectura [#arquitectura]
-
-```text
-ServidorJuego
-     │
-     ▼
-EnlaceLobby
-     │
-     ▼
-LobbyServidor
-     ▲
-     │
-LobbyCliente
-     │
-     ▼
-Juego
-```
-
-La implementación incluye variantes TCP y UDP para el enlace.
-
-## Cuándo utilizarlo [#cuándo-utilizarlo]
-
-Un lobby tiene sentido cuando el juego necesita:
-
-* lista pública de partidas;
-* descubrimiento de servidores;
-* actualización automática de jugadores y endpoints;
-* separación entre el servicio de descubrimiento y el servidor de gameplay.
-
-No necesitas lobby para una conexión directa a IP.
-
-## Datos publicados [#datos-publicados]
-
-El servidor puede anunciar información como nombre, número de jugadores, ID de juego y endpoints de conexión. La comunicación entre lobby y game server no debe confundirse con el canal donde sucede la partida.
-
-<Callout title="Lobby ≠ canal" type="info">
-  El lobby descubre servidores. El canal organiza jugadores y estado dentro de un servidor de juego. Son dos niveles diferentes.
-</Callout>
-
-## Componentes [#componentes]
-
-```text
-Sala/
-├── EnlaceLobby
-├── EnlaceLobbyTcp
-├── EnlaceLobbyUdp
-├── LobbyCliente
-├── LobbyClienteTcp
-├── LobbyClienteUdp
-└── LobbyServidor
-```
-
-<Card title="Sistema de lobby" href="https://github.com/Nervelink/eco/tree/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Sala">
-  Código fuente actual del subsistema.
-</Card>
-
-<Card title="ServidorJuego" href="/docs/red/v1/referencia/api/servidor-juego">
-  Integración del lobby desde el servidor.
-</Card>
-
-
-# Runtime Code (/docs/red/v1/avanzado/runtime-code)
-
-
-
-# Runtime Code [#runtime-code]
-
-Eco incluye una carpeta `RuntimeCode` para compilar y cargar código C# durante la ejecución. Es una capacidad especializada y debe tratarse como una superficie de extensibilidad, no como una forma habitual de implementar gameplay.
-
-## Arquitectura [#arquitectura]
-
-```text
-Código fuente
-    ↓
-CodeCompiler
-    ↓
-Compilación
-    ↓
-Assembly dinámico
-    ↓
-RuntimeBehaviour / driver
-    ↓
-Juego
-```
-
-La solución incluye infraestructura para compilación, carga de assemblies y reporte de errores.
-
-## Cuándo utilizarlo [#cuándo-utilizarlo]
-
-Casos razonables:
-
-* modding;
-* herramientas internas;
-* contenido definido por usuarios;
-* scripts dinámicos que no pueden compilarse con el proyecto principal.
-
-No es una buena opción para sustituir el código normal de un sistema que conoces de antemano.
-
-<Callout title="Seguridad" type="warn">
-  Ejecutar C# generado o recibido externamente equivale a ejecutar código con los permisos del proceso. Nunca trates código de mods desconocidos como contenido de datos inocente.
-</Callout>
-
-## Flujo recomendado [#flujo-recomendado]
-
-<Steps>
-  <Step>
-    ### Validar origen [#validar-origen]
-
-    Comprueba que el código procede de una fuente de confianza.
-  </Step>
-
-  <Step>
-    ### Compilar [#compilar]
-
-    Utiliza `CodeCompiler` y registra los errores de compilación.
-  </Step>
-
-  <Step>
-    ### Cargar [#cargar]
-
-    Añade el assembly al runtime mediante el sistema de carga correspondiente.
-  </Step>
-
-  <Step>
-    ### Crear comportamiento [#crear-comportamiento]
-
-    Utiliza `RuntimeBehaviour` o el driver dinámico para asociar el código a un objeto.
-  </Step>
-</Steps>
-
-## Fuente [#fuente]
-
-<Card title="RuntimeCode" href="https://github.com/Nervelink/eco/tree/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/RuntimeCode">
-  Implementación de la infraestructura de código dinámico.
-</Card>
-
-
-# Servidor interno (/docs/red/v1/avanzado/servidor-interno)
-
-
-
-# Servidor interno [#servidor-interno]
-
-`Servidor` y `ServidorJuego` forman el lado servidor del runtime de Eco. El primero integra el servidor con Unity; el segundo contiene la lógica de juego y gestión de clientes, canales y estado.
-
-## Capas [#capas]
-
-```text
-Eco
- │
- └── Servidor
-       │
-       └── ServidorJuego
-             ├── Jugadores
-             ├── Canales
-             ├── Objetos
-             ├── Datos
-             ├── Persistencia
-             └── Protocolos TCP / UDP
-```
-
-`ServidorJuego` puede funcionar como servidor local o como núcleo independiente dentro de un proceso servidor.
-
-## Flujo de una conexión [#flujo-de-una-conexión]
-
-<Steps>
-  <Step>
-    ### Aceptar la conexión [#aceptar-la-conexión]
-
-    El protocolo TCP establece la conexión inicial y crea el contexto del cliente.
-  </Step>
-
-  <Step>
-    ### Verificar al jugador [#verificar-al-jugador]
-
-    Se negocian versión, identidad y datos iniciales antes de entrar en la lógica normal de juego.
-  </Step>
-
-  <Step>
-    ### Crear o recuperar la participación [#crear-o-recuperar-la-participación]
-
-    El servidor representa al cliente como `Jugador` y gestiona su pertenencia a `Canal`.
-  </Step>
-
-  <Step>
-    ### Procesar paquetes [#procesar-paquetes]
-
-    Las solicitudes se convierten en operaciones de canal, objetos, datos, RFC, archivos o control del servidor.
-  </Step>
-</Steps>
-
-## Canales y autoridad [#canales-y-autoridad]
-
-El servidor mantiene los canales como unidades lógicas aisladas. Cada canal tiene sus propios jugadores, objetos y datos.
-
-```text
-Servidor
-├── Canal 100
-│   ├── Jugadores
-│   ├── Objetos
-│   └── Datos
-│
-└── Canal 200
-    ├── Jugadores
-    ├── Objetos
-    └── Datos
-```
-
-La conexión de un jugador puede participar en varios canales, por lo que el servidor no debe modelar un jugador como perteneciente exclusivamente a una única sala.
-
-## Persistencia [#persistencia]
-
-El servidor puede guardar estado de canales, objetos persistentes, datos de jugadores y operaciones remotas guardadas. Esto explica por qué Eco no trata la red y la persistencia como dos sistemas completamente separados.
-
-<Callout title="Persistencia por capas" type="idea">
-  No todo lo que existe en memoria debe guardarse. La persistencia depende de si el canal, objeto, dato o RFC ha sido marcado para conservarse.
-</Callout>
-
-## Modo de baja memoria [#modo-de-baja-memoria]
-
-El material de TNet documenta un modo de bajo consumo de memoria que descarga datos de canales vacíos para reducir el footprint del servidor. En Eco debe considerarse una característica dependiente de la implementación actual del servidor antes de habilitarse en producción.
-
-La idea es:
-
-```text
-Último jugador abandona
-        ↓
-Canal sin participantes
-        ↓
-Guardar estado
-        ↓
-Liberar memoria de la representación activa
-        ↓
-Recargar cuando vuelva un jugador
-```
-
-## Servidor local [#servidor-local]
-
-El servidor interno también puede ejecutarse dentro del mismo proceso de Unity. Esto permite conectar un `ClienteJuego` contra el servidor local sin depender de sockets externos.
-
-<Card title="Servidor local" href="/docs/red/v1/guias/servidor-local">
-  Workflow práctico para pruebas locales.
-</Card>
-
-## Código fuente [#código-fuente]
-
-<Card title="ServidorJuego.cs" href="https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Servidor/ServidorJuego.cs">
-  Implementación principal del servidor de juego.
-</Card>
-
-<Card title="Servidor.cs" href="https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Servidor/Servidor.cs">
-  Integración del servidor con el runtime de Unity.
-</Card>
-
-
-# Sincronizar Rigidbody (/docs/red/v1/avanzado/sincronizar-rigidbody)
-
-
-
-# Sincronizar Rigidbody [#sincronizar-rigidbody]
-
-`SincronizarRB` está orientado a objetos cuyo movimiento depende de la física de Unity. El objetivo no es transmitir cada detalle del motor físico, sino mantener una representación suficientemente próxima entre propietario y observadores.
-
-## Modelo [#modelo]
-
-```text
-Propietario
-Rigidbody local
-    │
-    ├── posición
-    ├── rotación
-    ├── velocidad
-    └── velocidad angular
-           │
-           ▼
-       Eco / red
-           │
-     ┌─────┴─────┐
-     ▼           ▼
- Observador A  Observador B
-```
-
-## Autoridad [#autoridad]
-
-El propietario es quien debe producir el estado físico autoritativo. Los demás clientes reciben actualizaciones y las aplican a su copia.
-
-Esto evita que dos motores de física distintos intenten corregir simultáneamente el mismo objeto.
-
-## Suavizado [#suavizado]
-
-Las actualizaciones de red llegan discretamente, mientras que Unity simula continuamente. Por ello un sincronizador físico normalmente combina:
-
-* recepción de muestras;
-* interpolación;
-* corrección cuando la diferencia supera un umbral;
-* actualización de velocidad para continuar la simulación local.
-
-## Cuándo utilizarlo [#cuándo-utilizarlo]
-
-Es adecuado para:
-
-* vehículos;
-* proyectiles físicos;
-* objetos arrastrables;
-* props dinámicos;
-* cuerpos que necesitan continuidad visual.
-
-No es la mejor solución para entidades que realmente deberían ser controladas por un estado lógico determinista.
-
-<Callout title="No sincronices física sin diseñar autoridad" type="warn">
-  Enviar posición, velocidad y rotación desde todos los clientes crea una lucha de autoridades. Decide primero quién controla el cuerpo y qué datos son realmente necesarios.
-</Callout>
-
-## Relación con TransformSuave [#relación-con-transformsuave]
-
-Para objetos sin simulación física, `TransformSuave` cubre una necesidad similar con una estrategia más sencilla de interpolación visual.
-
-<Card title="SincronizarRB.cs" href="https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/SincronizarRB.cs">
-  Implementación actual.
-</Card>
-
-<Card title="TransformSuave" href="/docs/red/v1/avanzado/transform-suave">
-  Consulta el suavizado de transformaciones no físicas.
-</Card>
-
-
-# Steam y conexiones personalizadas (/docs/red/v1/avanzado/steam-y-conexiones)
-
-
-
-# Steam y conexiones personalizadas [#steam-y-conexiones-personalizadas]
-
-Eco separa la lógica de cliente/servidor de la implementación física de la conexión mediante `IConnection`. Esto permite integrar transportes alternativos sin reescribir el protocolo superior.
-
-## Modelo [#modelo]
-
-```text
-Eco / ClienteJuego
-        │
-        ▼
-    IConnection
-      /     \
-   TCP       Steam
-```
-
-El protocolo superior sigue trabajando con paquetes y buffers mientras cambia la capa de transporte.
-
-## Conexión personalizada [#conexión-personalizada]
-
-La fachada de Eco expone `ProtocoloPersonalizado`:
-
-```csharp
-Eco.ProtocoloPersonalizado = miConexion;
-```
-
-Al asignar una implementación, Eco pasa al estado de verificación y envía el handshake de identidad sobre la conexión proporcionada.
-
-<Callout title="La conexión personalizada no cambia el protocolo" type="info">
-  `IConnection` sustituye el transporte. No convierte automáticamente el protocolo de Eco en otro protocolo ni elimina las reglas de canales, objetos o sincronización.
-</Callout>
-
-## Steam [#steam]
-
-El repositorio incluye un módulo `Steam` y referencias a paquetes standalone de Steam Networking. La integración está diseñada para transportar la comunicación de Eco utilizando la infraestructura de Steam en lugar de depender únicamente de sockets directos.
-
-## Casos de uso [#casos-de-uso]
-
-* juegos distribuidos mediante Steam;
-* NAT traversal gestionado por Steam;
-* conexiones entre usuarios sin publicar endpoints TCP directamente;
-* integración del networking con una API de transporte existente.
-
-## Fuentes [#fuentes]
-
-<Card title="Steam" href="https://github.com/Nervelink/eco/tree/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Steam">
-  Código y material de integración Steam.
-</Card>
-
-<Card title="ClienteJuego" href="/docs/red/v1/referencia/api/cliente-juego">
-  Punto donde se integra `IConnection`.
-</Card>
-
-
-# TransformSuave (/docs/red/v1/avanzado/transform-suave)
-
-
-
-# TransformSuave [#transformsuave]
-
-`TransformSuave` está pensado para ocultar la naturaleza discreta de las actualizaciones de red. En lugar de aplicar cada muestra inmediatamente, utiliza el historial recibido para mover la representación visual de forma continua.
-
-## Problema [#problema]
-
-```text
-Red
-  muestra A──────muestra B──────muestra C
-       ↓              ↓              ↓
-gameObject ──salto───salto──────────salto
-```
-
-La interpolación convierte las muestras discretas en movimiento continuo.
-
-## Patrón [#patrón]
-
-```text
-Estado recibido
-      ↓
-Guardar muestra
-      ↓
-Calcular tiempo objetivo
-      ↓
-Interpolar
-      ↓
-Transform visual
-```
-
-## Cuándo usarlo [#cuándo-usarlo]
-
-Es apropiado para personajes remotos, proyectiles visuales, objetos decorativos y cámaras que sólo deben seguir una posición remota.
-
-Para un `Rigidbody` utiliza [Sincronizar Rigidbody](/docs/red/v1/avanzado/sincronizar-rigidbody).
-
-## Autoridad [#autoridad]
-
-`TransformSuave` no decide quién es propietario. Sólo suaviza la representación local de un estado que procede de la red.
-
-<Callout title="Interpolación no es corrección de estado" type="info">
-  El suavizado puede ocultar pequeños errores visuales, pero no corrige una discrepancia lógica. La autoridad y sincronización deben estar resueltas antes de interpolar.
-</Callout>
-
-<Card title="TransformSuave.cs" href="https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/TransformSuave.cs">
-  Implementación actual.
-</Card>
-
-
-# Transportes personalizados (/docs/red/v1/avanzado/transportes-personalizados)
-
-
-
-# Transportes personalizados [#transportes-personalizados]
-
-Eco separa la API de alto nivel de la conexión física mediante `IConnection`. Esta abstracción es una de las ideas de TNet que conviene conservar porque permite sustituir TCP/UDP o integrar plataformas externas sin reescribir `Eco`, `Objeto` y `Componente`.
-
-## Idea general [#idea-general]
-
-```text
-Gameplay
-   ↓
-Eco / Objeto / Componente
-   ↓
-Paquete / Buffer
-   ↓
-IConnection
-   ↓
-Steam Networking / transporte propio / integración externa
-```
-
-El gameplay no debería saber si un paquete ha viajado por una implementación concreta.
-
-## Activación [#activación]
-
-Eco expone `ProtocoloPersonalizado` para instalar una implementación de `IConnection`.
-
-```csharp
-Eco.ProtocoloPersonalizado = miConexion;
-```
-
-La conexión personalizada debe respetar el contrato de Eco y devolver el comportamiento esperado por el cliente. Una implementación incorrecta puede parecer funcional en conexión inicial y fallar posteriormente con canales, paquetes o cierres.
-
-## Cuándo utilizarlo [#cuándo-utilizarlo]
-
-Un transporte personalizado tiene sentido cuando:
-
-* una plataforma exige una API propia de networking;
-* Steam Networking debe sustituir el socket tradicional;
-* necesitas un relay o servicio externo;
-* quieres integrar una capa de transporte corporativa o de consola;
-* necesitas controlar cómo se crean y consumen los endpoints.
-
-Para un juego estándar LAN/WAN no conviene introducir esta capa sin necesidad.
-
-## Qué no debe cambiar [#qué-no-debe-cambiar]
-
-Aunque cambies el transporte, estas abstracciones deben seguir funcionando igual:
-
-```text
-Canal
-Jugador
-Objeto
-Componente
-RFC
-Objetivo
-Nodo
-Paquete
-```
-
-Si el gameplay necesita conocer detalles de `IConnection`, probablemente la abstracción está filtrándose demasiado arriba.
-
-## Steam [#steam]
-
-La integración con Steam es un caso particular de transporte/plataforma. Steam puede aportar identidad, matchmaking o comunicación, pero no conviene mezclar automáticamente esos conceptos con el modelo de `Canal` de Eco.
-
-Un diseño limpio separa:
-
-```text
-Steam
-├── identidad de plataforma
-├── descubrimiento / sesión
-└── transporte si se utiliza
-
-Eco
-├── Jugador
-├── Canal
-├── Objeto
-├── RFC
-└── estado sincronizado
-```
-
-## Diagnóstico [#diagnóstico]
-
-Cuando una implementación personalizada conecta pero no funciona correctamente, comprueba en este orden:
-
-<Steps>
-  <Step>
-    ### Conectividad [#conectividad]
-
-    Verifica que la conexión alcanza el estado conectado de Eco.
-  </Step>
-
-  <Step>
-    ### Paquetes [#paquetes]
-
-    Verifica que un `Buffer` enviado vuelve al receptor sin truncado ni modificación.
-  </Step>
-
-  <Step>
-    ### Orden [#orden]
-
-    Comprueba que la conexión conserva las garantías esperadas por la parte fiable del protocolo.
-  </Step>
-
-  <Step>
-    ### Cierre [#cierre]
-
-    Prueba desconexión manual, pérdida de enlace, cambio de escena y cierre de aplicación.
-  </Step>
-</Steps>
-
-<Callout title="El transporte no debe reinventar Eco" type="warn">
-  `IConnection` está pensado para sustituir la capa física de comunicación, no para crear un segundo sistema de canales, objetos o RPC paralelo.
-</Callout>
-
-<Card title="Steam y conexiones" href="/docs/red/v1/avanzado/steam-y-conexiones">
-  Integración específica con Steam y plataformas externas.
-</Card>
-
-<Card title="Arquitectura" href="/docs/red/v1/fundamentos/arquitectura">
-  Dónde encaja `IConnection` dentro del sistema.
-</Card>
-
-
-# UPnP y NAT (/docs/red/v1/avanzado/upnp)
-
-
-
-# UPnP y NAT [#upnp-y-nat]
-
-`UPnP` permite a una aplicación solicitar al router la creación de un mapeo de puertos sin que el usuario tenga que configurar manualmente el forwarding.
-
-## El problema [#el-problema]
-
-Un servidor puede escuchar correctamente en su máquina y, sin embargo, no ser accesible desde Internet porque el router utiliza NAT.
-
-```text
-Internet
-   │
-Router NAT
-   │
-   └── PC / servidor
-```
-
-El puerto debe estar accesible desde el exterior para que clientes remotos puedan conectarse directamente.
-
-## Qué aporta UPnP [#qué-aporta-upnp]
-
-```text
-Servidor
-   ↓
-UPnP
-   ↓
-Router
-   ↓
-Regla NAT
-   ↓
-Puerto público → servidor local
-```
-
-No todos los routers admiten UPnP y algunas redes lo deshabilitan por seguridad.
-
-## Flujo recomendado [#flujo-recomendado]
-
-<Steps>
-  <Step>
-    ### Detectar soporte [#detectar-soporte]
-
-    Comprueba que exista un dispositivo UPnP compatible antes de intentar crear reglas.
-  </Step>
-
-  <Step>
-    ### Resolver dirección [#resolver-dirección]
-
-    Determina la dirección LAN y el puerto TCP/UDP que utilizará Eco.
-  </Step>
-
-  <Step>
-    ### Crear mapeo [#crear-mapeo]
-
-    Solicita al router el forwarding para el puerto correspondiente.
-  </Step>
-
-  <Step>
-    ### Verificar desde fuera [#verificar-desde-fuera]
-
-    La existencia de la regla no garantiza que el ISP o firewall permita el tráfico. Prueba desde otra red.
-  </Step>
-</Steps>
-
-<Callout title="UPnP no sustituye un diagnóstico de red" type="warn">
-  CGNAT, firewalls, doble NAT o políticas del router pueden impedir conexiones entrantes aunque la solicitud UPnP sea correcta.
-</Callout>
-
-<Card title="UPnP.cs" href="https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Utilidades/UPnP.cs">
-  Implementación actual de las utilidades UPnP.
-</Card>
 
 
 # Destinatarios (/docs/red/v1/comunicacion/destinatarios)
@@ -7622,6 +6649,711 @@ El destino debe estar en el mismo canal que el objeto. La implementación compru
 </Card>
 
 
+# Autoridad y ownership (/docs/red/v1/ingenieria/autoridad-y-ownership)
+
+
+
+Estos conceptos suelen mezclarse y generan arquitecturas frágiles.
+
+| Concepto              | Significado                                                 |
+| --------------------- | ----------------------------------------------------------- |
+| Autoridad             | Quién puede determinar el estado válido                     |
+| Ownership de red      | Qué participante controla ciertas operaciones de un objeto  |
+| Propiedad de gameplay | A quién pertenece la entidad dentro de las reglas del juego |
+
+No tienen que ser idénticos.
+
+## Ejemplo [#ejemplo]
+
+```text
+Jugador 2
+   │
+   ├── propietario de gameplay de Torre 15
+   └── owner de Eco de Torre 15
+```
+
+Si el jugador abandona, la torre puede seguir perteneciendo al jugador en el modelo de partida mientras el servidor toma control de las operaciones de red.
+
+## Regla de autoridad [#regla-de-autoridad]
+
+Cualquier dato que pueda alterar el resultado de la partida debe poder validarse en la autoridad del juego.
+
+Esto incluye recursos, daño, muerte, construcción, mejoras, objetivos y victoria.
+
+## Transferencia [#transferencia]
+
+Antes de transferir ownership define:
+
+1. quién puede solicitarla;
+2. quién la aprueba;
+3. qué datos siguen siendo válidos;
+4. qué ocurre con acciones pendientes;
+5. qué sucede si el receptor se desconecta.
+
+<Callout title="Error habitual" type="error">
+  Que un objeto sea `isMine` no significa que el cliente deba poder cambiar cualquier aspecto del gameplay. El servidor puede seguir siendo la autoridad final.
+</Callout>
+
+
+# Referencia rápida (/docs/red/v1/ingenieria/cheat-sheet)
+
+
+
+| Necesito...                 | Utiliza...                    |
+| --------------------------- | ----------------------------- |
+| Solicitar una acción        | RFC                           |
+| Sincronizar estado mutable  | Estado sincronizado           |
+| Dirigir una comunicación    | Objetivo                      |
+| Separar ámbitos de juego    | Canal                         |
+| Crear una entidad de red    | Objeto                        |
+| Separar responsabilidades   | Componente                    |
+| Identificar un participante | Jugador                       |
+| Guardar estado              | Persistencia                  |
+| Trabajar con bytes          | Buffer                        |
+| Describir un mensaje        | Paquete                       |
+| Serializar tipos            | Serialización                 |
+| Suavizar movimiento         | Presentación / TransformSuave |
+| Integrar Steam              | Steam                         |
+| Diagnosticar                | Herramientas de diagnóstico   |
+
+## Preguntas de diseño [#preguntas-de-diseño]
+
+Antes de implementar una funcionalidad responde:
+
+1. ¿Quién tiene autoridad?
+2. ¿Es una intención o un estado?
+3. ¿Quién necesita recibirlo?
+4. ¿Debe persistir?
+5. ¿Puede reconstruirse localmente?
+6. ¿Qué ocurre si el propietario se desconecta?
+7. ¿Cuánto costará con 100, 500 o 1000 entidades?
+
+Si no puedes responderlas, todavía falta diseñar la parte de red.
+
+
+# Ciclo de vida (/docs/red/v1/ingenieria/ciclo-de-vida)
+
+
+
+Una sesión de red debe entenderse como un ciclo completo, no como una llamada aislada a conectar.
+
+```text
+Aplicación
+  ↓
+Eco inicializa
+  ↓
+Transporte disponible
+  ↓
+Conexión
+  ↓
+Handshake
+  ↓
+Jugador identificado
+  ↓
+Entrada en canal
+  ↓
+Creación / recepción de objetos
+  ↓
+Sincronización
+  ↓
+Gameplay
+  ↓
+Desconexión
+  ↓
+Limpieza / persistencia
+```
+
+## Arranque [#arranque]
+
+El sistema de red debe inicializarse antes de que otros sistemas dependan de un estado conectado. Los sistemas de gameplay deberían poder representar explícitamente estados como `Desconectado`, `Conectando`, `Conectado` y `EnPartida`.
+
+## Entrada en un canal [#entrada-en-un-canal]
+
+El canal define el ámbito en el que el participante recibe objetos y datos. Entrar en un canal no significa necesariamente estar autorizado para todas las acciones del juego: esa decisión pertenece al dominio.
+
+## Creación de objetos [#creación-de-objetos]
+
+Un cliente que entra tarde debe poder recibir suficiente estado para reconstruir la escena de gameplay. Esto es una de las razones por las que la persistencia y el estado sincronizado deben diseñarse desde el principio.
+
+## Desconexión [#desconexión]
+
+La salida debe provocar una política explícita para cada recurso propiedad del participante: destruir, transferir, conservar temporalmente o convertirlo en propiedad del servidor.
+
+<Callout title="Caso crítico" type="warn">
+  Diseña la desconexión antes de terminar el sistema de ownership. Si no existe una política clara, aparecerán objetos huérfanos, estados inconsistentes o recursos perdidos.
+</Callout>
+
+
+# Compatibilidad (/docs/red/v1/ingenieria/compatibilidad)
+
+
+
+La compatibilidad no depende sólo de que un proyecto compile. Deben comprobarse versión de Unity, backend de scripting, plataformas, transporte y dependencias externas.
+
+## Lista de comprobación [#lista-de-comprobación]
+
+* Versión de Unity utilizada por el proyecto.
+* API de .NET disponible.
+* Plataforma objetivo.
+* Arquitectura x86/x64/ARM cuando corresponda.
+* Transporte seleccionado.
+* Integración de Steam si se utiliza.
+* Plugins de serialización o networking externos.
+* Restricciones de builds dedicadas.
+* Código condicionado por plataforma.
+
+## Eco y TNet upstream [#eco-y-tnet-upstream]
+
+Eco procede de la arquitectura de TNet, pero su documentación y código pueden evolucionar independientemente. Las equivalencias nominales no garantizan equivalencia exacta de comportamiento.
+
+## Regla para actualizar [#regla-para-actualizar]
+
+Después de actualizar Eco, prueba al menos:
+
+```text
+Servidor
+Cliente
+2 clientes
+4 clientes
+Desconexión
+Reconexión
+Persistencia
+Steam, si aplica
+```
+
+<Callout title="Versiones" type="warn">
+  No asumas que una versión histórica de TNet documenta todas las capacidades actuales de Eco. Comprueba siempre la implementación y la documentación de la versión que realmente utilizas.
+</Callout>
+
+
+# Diagnóstico (/docs/red/v1/ingenieria/diagnostico)
+
+
+
+Cuando algo no se sincroniza, no empieces cambiando RFC al azar. Sigue una cadena de comprobaciones.
+
+## Objeto que no aparece [#objeto-que-no-aparece]
+
+```text
+¿El objeto fue creado?
+  ↓
+¿Está en el canal esperado?
+  ↓
+¿Tiene identidad válida?
+  ↓
+¿El cliente participa en ese canal?
+  ↓
+¿El estado se marcó para sincronización?
+  ↓
+¿El prefab / representación local existe?
+```
+
+## RFC que no funciona [#rfc-que-no-funciona]
+
+```text
+¿La RFC está registrada?
+  ↓
+¿Se invoca realmente?
+  ↓
+¿El destinatario es correcto?
+  ↓
+¿El objeto existe en ese extremo?
+  ↓
+¿Los parámetros son serializables?
+  ↓
+¿El servidor la acepta?
+```
+
+## Ownership incorrecto [#ownership-incorrecto]
+
+Comprueba por separado:
+
+1. quién es owner de Eco;
+2. quién es propietario de gameplay;
+3. quién tiene autoridad para ejecutar la acción;
+4. qué ocurre si cambia el owner.
+
+## Canal incorrecto [#canal-incorrecto]
+
+Si dos participantes ven comportamientos diferentes, comprueba primero su pertenencia a canales antes de modificar el código de sincronización.
+
+## Paquetes [#paquetes]
+
+Cuando el problema parece transporte, observa:
+
+* conexión;
+* protocolo utilizado;
+* paquetes enviados;
+* paquetes recibidos;
+* errores de serialización;
+* desconexiones;
+* latencia;
+* tamaño y frecuencia.
+
+<Callout title="Diagnóstico reproducible" type="info">
+  Registra siempre jugador, canal, objeto, ownership, tipo de paquete y estado de conexión. Un log que sólo diga "no sincroniza" no permite reconstruir el fallo.
+</Callout>
+
+
+# Glosario (/docs/red/v1/ingenieria/glosario)
+
+
+
+## Eco [#eco]
+
+Capa principal de gestión y acceso a la red.
+
+## Objeto [#objeto]
+
+Entidad de red con identidad propia dentro de un canal.
+
+## Componente [#componente]
+
+Unidad modular asociada a un objeto para encapsular estado o comportamiento.
+
+## Canal [#canal]
+
+Ámbito lógico de participación y sincronización.
+
+## Jugador [#jugador]
+
+Identidad de un participante conectado a la sesión.
+
+## Objetivo [#objetivo]
+
+Destino o conjunto de destinos de una comunicación.
+
+## RFC [#rfc]
+
+Llamada remota utilizada para solicitar o ejecutar una acción distribuida.
+
+## Ownership [#ownership]
+
+Relación de control de red de un objeto.
+
+## Autoridad [#autoridad]
+
+Entidad que puede determinar el estado válido de una regla de gameplay.
+
+## Persistencia [#persistencia]
+
+Estado que puede sobrevivir al ciclo de vida inmediato de un objeto o sesión.
+
+## Paquete [#paquete]
+
+Unidad estructurada del protocolo de comunicación.
+
+## Buffer [#buffer]
+
+Representación binaria utilizada para leer y escribir datos transportados por el protocolo.
+
+## Serialización [#serialización]
+
+Conversión entre estructuras de runtime y una representación transmisible o persistible.
+
+
+# Ingeniería (/docs/red/v1/ingenieria)
+
+
+
+Esta sección explica cómo tomar decisiones de arquitectura alrededor de Eco. No sustituye la referencia API: responde a una pregunta diferente, **cómo diseñar el sistema para que la red sea mantenible**.
+
+<Cards>
+  <Card title="Modelo mental" href="/docs/red/v1/ingenieria/modelo-mental">
+    Cómo pensar en autoridad, estado, eventos y transporte.
+  </Card>
+
+  <Card title="Sincronización" href="/docs/red/v1/ingenieria/sincronizacion">
+    Cómo decidir qué estado viaja por la red y con qué frecuencia.
+  </Card>
+
+  <Card title="Rendimiento" href="/docs/red/v1/ingenieria/rendimiento">
+    Ancho de banda, frecuencia, entidades y coste de serialización.
+  </Card>
+
+  <Card title="Seguridad" href="/docs/red/v1/ingenieria/seguridad">
+    Validación del cliente y superficie de ataque.
+  </Card>
+
+  <Card title="Testing" href="/docs/red/v1/ingenieria/testing">
+    Pruebas con múltiples clientes, latencia y desconexiones.
+  </Card>
+
+  <Card title="Diagnóstico" href="/docs/red/v1/ingenieria/diagnostico">
+    Método sistemático para encontrar problemas de red.
+  </Card>
+</Cards>
+
+## Principio central [#principio-central]
+
+Eco debe transportar el estado y las decisiones que necesitan distribución. La arquitectura del juego sigue perteneciendo al juego.
+
+```text
+Dominio del juego
+      ↓
+Estado autoritativo
+      ↓
+Adaptador de red
+      ↓
+Eco
+      ↓
+Clientes
+      ↓
+Presentación local
+```
+
+Si una funcionalidad no puede explicar quién es su autoridad, qué estado necesita sincronizar, quién debe recibirlo y qué ocurre al desconectarse un jugador, todavía no está suficientemente diseñada.
+
+
+# Latencia y suavizado (/docs/red/v1/ingenieria/latencia-y-suavizado)
+
+
+
+La red nunca entrega información exactamente cuando se produce. Una arquitectura robusta asume retraso, jitter y pérdida.
+
+## Cuatro estrategias [#cuatro-estrategias]
+
+### Estado remoto [#estado-remoto]
+
+El cliente recibe una nueva muestra y actualiza su representación.
+
+### Interpolación [#interpolación]
+
+Cuando una entidad tiene movimiento continuo, el cliente interpola entre estados conocidos para evitar saltos.
+
+### Predicción [#predicción]
+
+El cliente puede adelantar localmente una acción cuya respuesta visual no necesita esperar al servidor.
+
+### Reconciliación [#reconciliación]
+
+Cuando llega el estado autoritativo, la representación local se corrige hacia ese estado.
+
+## Qué usar en un Tower Defense [#qué-usar-en-un-tower-defense]
+
+La mayoría de torres y enemigos no necesitan predicción compleja. Es preferible:
+
+```text
+Servidor → estado lógico
+Cliente  → interpolación + animación
+```
+
+La predicción tiene más sentido para acciones directamente controladas por el jugador cuando esperar confirmación produce una sensación claramente mala.
+
+<Callout title="No predigas reglas" type="warn">
+  La predicción puede anticipar la presentación de una acción. No convierte al cliente en autoridad sobre daño, recursos, construcción o victoria.
+</Callout>
+
+## TransformSuave [#transformsuave]
+
+Un sistema de suavizado debe considerarse una capa de presentación. No debería convertirse en una segunda simulación autoritativa.
+
+
+# Migración de TNet a Eco (/docs/red/v1/ingenieria/migracion-tnet-eco)
+
+
+
+Eco conserva la arquitectura conceptual de TNet, pero utiliza una terminología propia y puede incorporar cambios de comportamiento respecto al material histórico.
+
+| TNet        | Eco        |
+| ----------- | ---------- |
+| TNManager   | Eco        |
+| TNObject    | Objeto     |
+| TNComponent | Componente |
+| Channel     | Canal      |
+| Packet      | Paquete    |
+| Player      | Jugador    |
+| Target      | Objetivo   |
+| Buffer      | Buffer     |
+| Server      | Servidor   |
+| Client      | Cliente    |
+
+## No es sólo un reemplazo de nombres [#no-es-sólo-un-reemplazo-de-nombres]
+
+Los ejemplos históricos de TNet pueden describir un workflow que ya no representa todas las capacidades disponibles en Eco. La documentación de Eco debe considerarse la referencia de comportamiento de Eco.
+
+## Cómo migrar [#cómo-migrar]
+
+1. Traduce primero los conceptos, no las llamadas literalmente.
+2. Comprueba ownership y canales.
+3. Revisa si existe una funcionalidad moderna equivalente.
+4. Revisa persistencia y destinatarios.
+5. Valida el comportamiento contra el código de Eco.
+
+<Callout title="Upstream" type="info">
+  TNet sigue siendo una referencia útil para comprender el origen de muchas decisiones arquitectónicas. No debe tratarse automáticamente como documentación normativa de Eco.
+</Callout>
+
+
+# Modelo mental (/docs/red/v1/ingenieria/modelo-mental)
+
+
+
+Antes de utilizar la API conviene separar cinco conceptos: **intención, estado, autoridad, transporte y presentación**.
+
+| Concepto     | Pregunta                           |
+| ------------ | ---------------------------------- |
+| Intención    | ¿Qué quiere hacer el jugador?      |
+| Estado       | ¿Qué es cierto ahora mismo?        |
+| Autoridad    | ¿Quién puede decidirlo?            |
+| Transporte   | ¿Cómo llega a otros participantes? |
+| Presentación | ¿Cómo lo mostramos localmente?     |
+
+### Intención [#intención]
+
+Construir, mejorar, vender, activar una habilidad o cambiar una orden son acciones solicitadas por un participante. El cliente expresa la intención; el servidor decide si puede ejecutarse.
+
+### Estado [#estado]
+
+Vida, recursos, nivel, propietario, estado de una unidad u oleada son datos que pueden necesitar sincronización. No deben confundirse con el comando que los cambió.
+
+### Evento [#evento]
+
+Un evento informa de que algo ocurrió. Puede ser útil para efectos que no necesitan convertirse en estado persistente.
+
+### Presentación [#presentación]
+
+Animaciones, VFX, cámara y UI deben reconstruirse a partir del estado siempre que sea posible. Convertirlos en tráfico de red aumenta coste y acoplamiento.
+
+<Callout title="Regla de diseño" type="info">
+  Si puedes eliminar un dato de red y reconstruirlo de forma determinista o a partir del estado recibido, elimínalo de la red.
+</Callout>
+
+## Modelo práctico [#modelo-práctico]
+
+```text
+Jugador
+  │ intención
+  ▼
+Servidor
+  │ valida
+  ▼
+Estado
+  │
+  ▼
+Eco
+  │
+  ├── Cliente A → presentación
+  ├── Cliente B → presentación
+  └── Cliente C → presentación
+```
+
+
+# Rendimiento (/docs/red/v1/ingenieria/rendimiento)
+
+
+
+El rendimiento de una partida conectada depende de cuatro variables principales:
+
+```text
+entidades × frecuencia × tamaño × destinatarios
+```
+
+Reducir cualquiera de ellas puede reducir el coste total.
+
+## Ancho de banda [#ancho-de-banda]
+
+No envíes datos que todos los clientes pueden reconstruir. Agrupa cambios cuando el modelo lo permita y evita mensajes por frame sin necesidad real.
+
+## CPU [#cpu]
+
+Serialización, reflexión, búsqueda de objetivos, pathfinding y procesamiento de callbacks pueden competir con el frame principal. Mide antes de optimizar.
+
+## Memoria [#memoria]
+
+Evita generar buffers, listas y objetos temporales constantemente. En partidas con muchas entidades, pequeñas asignaciones repetidas se convierten en presión de GC.
+
+## Escalabilidad [#escalabilidad]
+
+Un escenario con 4 jugadores y 500 enemigos no debe diseñarse como 4 jugadores y 10 enemigos.
+
+```text
+4 jugadores
+× 500 enemigos
+× frecuencia de actualización
+× bytes por entidad
+× destinatarios
+```
+
+Ese cálculo conceptual debe formar parte del diseño inicial.
+
+## Perfilado [#perfilado]
+
+Mide al menos:
+
+* bytes enviados y recibidos;
+* paquetes por segundo;
+* tamaño medio y máximo de paquete;
+* tiempo de serialización;
+* tiempo de procesamiento de paquetes;
+* número de objetos activos;
+* número de RFC;
+* allocations y GC;
+* latencia observada.
+
+<Callout title="Objetivo" type="info">
+  El objetivo no es minimizar el número de paquetes a cualquier precio. Es transmitir el estado necesario con un coste predecible y una frecuencia adecuada.
+</Callout>
+
+
+# Seguridad (/docs/red/v1/ingenieria/seguridad)
+
+
+
+Eco transporta datos; no sustituye la validación de las reglas del juego.
+
+## Cliente no confiable [#cliente-no-confiable]
+
+Cualquier valor recibido debe considerarse potencialmente manipulado.
+
+El servidor debe validar como mínimo:
+
+* identidad del jugador;
+* ownership;
+* existencia del objeto;
+* canal válido;
+* permisos;
+* costes;
+* rangos;
+* cooldowns;
+* estado actual de la partida;
+* límites de parámetros.
+
+## Ejemplo [#ejemplo]
+
+Una solicitud:
+
+```text
+Construir torre X en celda Y
+```
+
+no significa que el servidor deba ejecutar directamente `Construir(X, Y)`.
+
+Debe convertirse en:
+
+```text
+¿Jugador válido?
+¿Raza permite X?
+¿Tiene recursos?
+¿Celda Y es válida?
+¿Puede construir ahora?
+¿La partida lo permite?
+```
+
+Sólo entonces se modifica el estado.
+
+## Rate limiting [#rate-limiting]
+
+Las acciones que pueden ser abusadas deben tener límites razonables. Un cliente no debería poder provocar trabajo ilimitado enviando RFC a máxima velocidad.
+
+## Datos del cliente [#datos-del-cliente]
+
+El cliente puede enviar identificadores, posiciones solicitadas o parámetros de selección. No debe ser la fuente final de valores económicos o resultados de combate.
+
+<Callout title="Seguridad de gameplay" type="error">
+  Ocultar una opción en UI no es una medida de seguridad. Si una regla importa, debe comprobarse en la autoridad.
+</Callout>
+
+
+# Sincronización (/docs/red/v1/ingenieria/sincronizacion)
+
+
+
+No todo dato que cambia debe enviarse por red. La primera decisión es clasificarlo.
+
+| Tipo        | Ejemplo         | Tratamiento               |
+| ----------- | --------------- | ------------------------- |
+| Intención   | Construir torre | RFC / solicitud           |
+| Estado      | Vida actual     | Sincronización            |
+| Evento      | Torre destruida | Evento o cambio de estado |
+| Persistente | Torre guardada  | Persistencia              |
+| Visual      | Partículas      | Local                     |
+| Derivado    | Barra de vida   | Reconstrucción local      |
+
+## Frecuencia [#frecuencia]
+
+Una entidad no necesita una frecuencia universal. Una unidad en combate puede requerir actualizaciones frecuentes; una torre inactiva puede necesitar muy pocas.
+
+## Tamaño [#tamaño]
+
+Sincroniza identificadores y valores mínimos. Si todos los clientes ya tienen `UnidadAsset`, no envíes nombre, icono, estadísticas estáticas ni prefab.
+
+## Estado frente a evento [#estado-frente-a-evento]
+
+Un evento responde a "qué ocurrió". El estado responde a "qué es cierto ahora".
+
+Si un cliente puede conectarse tarde y necesita conocer el resultado, ese resultado debe existir como estado reconstruible, no sólo como evento histórico.
+
+## Destinatarios [#destinatarios]
+
+Cada actualización debe responder:
+
+```text
+¿Quién necesita conocerla?
+¿Durante cuánto tiempo?
+¿Es persistente?
+¿Puede reconstruirse?
+```
+
+Usa `Objetivo` y el ámbito de `Canal` para expresar el destino. No crees canales nuevos para cada excepción de visibilidad.
+
+## Interpolación [#interpolación]
+
+El estado recibido es una referencia lógica. La representación visual puede interpolarse para ocultar la naturaleza discreta de los paquetes.
+
+<Callout title="No sincronices Transform por reflejo" type="warn">
+  Primero determina qué estado necesita realmente otro cliente. El Transform suele ser una representación de ese estado, no necesariamente el estado que debería viajar directamente.
+</Callout>
+
+
+# Testing (/docs/red/v1/ingenieria/testing)
+
+
+
+Un juego de red debe probarse como sistema distribuido, no sólo como código local.
+
+## Matriz mínima [#matriz-mínima]
+
+| Prueba              | Objetivo                 |
+| ------------------- | ------------------------ |
+| 1 cliente           | Gameplay base            |
+| 2 clientes          | Replicación y ownership  |
+| 4 clientes          | Escala prevista          |
+| Cliente tardío      | Reconstrucción de estado |
+| Desconexión         | Limpieza y ownership     |
+| Reconexión          | Restauración             |
+| Latencia            | Suavizado                |
+| Pérdida             | Robustez                 |
+| Spam de RFC         | Seguridad / carga        |
+| Servidor reiniciado | Recuperación             |
+
+## Orden [#orden]
+
+Empieza por dos clientes. Un problema que sólo aparece con cuatro suele ser más difícil de aislar si la base no está validada.
+
+## Invariantes [#invariantes]
+
+Define reglas que nunca pueden romperse:
+
+```text
+Oro >= 0
+Vida >= 0
+Una torre tiene un único propietario lógico
+Una unidad muerta no puede atacar
+Un jugador desconectado no puede ejecutar acciones
+```
+
+Los tests deben intentar romper esas invariantes desde clientes distintos.
+
+## Latencia y pérdida [#latencia-y-pérdida]
+
+Prueba artificialmente condiciones peores que las esperadas. El objetivo es comprobar que la partida sigue siendo coherente, no que la animación sea idéntica en todos los clientes.
+
+<Callout title="Prueba importante" type="info">
+  Conecta un cliente después de que la partida ya tenga torres, unidades, recursos y oleadas activas. Si no puede reconstruir el estado correcto, la arquitectura depende demasiado de eventos históricos.
+</Callout>
+
+
 # Canales (/docs/red/v1/modelo/canales)
 
 
@@ -9218,6 +8950,552 @@ Consulta [Servidor local](/docs/red/v1/runtime/servidor-local) y [la guía corre
 </Cards>
 
 
+# Callbacks (/docs/red/v1/steam/callbacks)
+
+
+
+Steamworks es un sistema basado en callbacks. Eco encapsula su procesamiento dentro del sistema `Steam`.
+
+## Procesamiento [#procesamiento]
+
+La integración ejecuta `SteamAPI.RunCallbacks()` periódicamente. Cuando hay actividad de servidor o conexión P2P puede procesarlos con mayor frecuencia para reducir el retraso entre la recepción de información y su tratamiento. fileciteturn190file0
+
+## Eventos relevantes [#eventos-relevantes]
+
+La implementación actual registra callbacks relacionados con:
+
+* solicitudes de sesión P2P;
+* fallos de conexión P2P;
+* solicitudes de unión mediante Rich Presence.
+
+Estos callbacks son infraestructura. El gameplay debería reaccionar a los estados de Eco resultantes, no acoplar cada sistema del juego directamente a Steamworks.
+
+<Callout title="Separación" type="info">
+  Steam callback → integración Steam → Eco → sistema de juego.
+
+  Evita Steam callback → Torre, Steam callback → UI, Steam callback → combate, etc.
+</Callout>
+
+
+# Conexión P2P (/docs/red/v1/steam/conexion-p2p)
+
+
+
+Eco implementa una conexión personalizada sobre Steam P2P mediante `IConnection`. La clase interna `P2PConnection` convierte los buffers de Eco en paquetes enviados al Steam ID remoto. fileciteturn190file0
+
+## Flujo [#flujo]
+
+```text
+Cliente A
+   │
+   │ paquete Eco
+   ▼
+P2PConnection
+   │
+   │ Steam Networking
+   ▼
+Steam
+   │
+   ▼
+Steam del jugador B
+   │
+   ▼
+P2PConnection
+   │
+   ▼
+Eco
+```
+
+El gameplay no necesita cambiar su protocolo sólo porque el transporte sea Steam.
+
+## Conectar manualmente [#conectar-manualmente]
+
+La integración expone `Steam.Conectar(string)` para iniciar una conexión P2P mediante el Steam ID del usuario remoto. El README original de la integración utiliza un Steam ID numérico como ejemplo. fileciteturn189file0
+
+```text
+Steam.Conectar("76561198012345678")
+```
+
+Si la cadena no representa un Steam ID válido, la integración no intenta tratarla como una conexión P2P y Eco puede continuar con su flujo normal.
+
+## Sesiones [#sesiones]
+
+La integración registra conexiones abiertas y cerradas y transforma la desconexión P2P en un estado de conexión que Eco puede procesar. fileciteturn190file0
+
+<Callout title="P2P no significa gameplay P2P" type="warn">
+  El transporte puede ser P2P, pero tu juego puede seguir siendo servidor-autoritativo. P2P describe el camino de comunicación, no quién decide el resultado de la partida.
+</Callout>
+
+
+# Configuración (/docs/red/v1/steam/configuracion)
+
+
+
+La integración de Eco debe ejecutarse sólo cuando la plataforma lo permita. El código actual utiliza compilación condicionada para excluir Steam en plataformas no compatibles y en determinados modos de ejecución. fileciteturn190file0
+
+## App ID [#app-id]
+
+Configura el App ID correspondiente al juego en la clase de integración. El valor no debe confundirse con el Steam ID de un usuario.
+
+```text
+App ID       → identifica el juego
+Steam ID     → identifica al usuario
+```
+
+## Inicialización [#inicialización]
+
+Durante el arranque, Eco comprueba la integridad de Steamworks y ejecuta la inicialización de `SteamAPI`. Si Steam no está disponible, la integración se desactiva en lugar de asumir que la plataforma está activa. fileciteturn190file0
+
+## Callbacks [#callbacks]
+
+La API de Steam requiere procesar callbacks. La integración de Eco los ejecuta periódicamente y aumenta su atención cuando existe actividad de red P2P. fileciteturn190file0
+
+## Editor y builds [#editor-y-builds]
+
+No diseñes el flujo suponiendo que Steam siempre está activo. Debe existir una ruta de ejecución sin Steam para desarrollo local, pruebas y plataformas donde la integración no se compile.
+
+<Callout title="Recomendación" type="warn">
+  Prueba siempre una sesión local sin Steam antes de diagnosticar un problema de red como problema de Steam. Primero valida Eco; después añade la capa de plataforma.
+</Callout>
+
+
+# Diagnóstico (/docs/red/v1/steam/diagnostico)
+
+
+
+Diagnostica por capas.
+
+```text
+¿Steam está activo?
+ ↓
+¿Steamworks inicializó correctamente?
+ ↓
+¿Steam ID válido?
+ ↓
+¿Callbacks se procesan?
+ ↓
+¿Existe sesión P2P?
+ ↓
+¿IConnection está activo?
+ ↓
+¿Eco está conectado?
+ ↓
+¿Jugador entra en el canal?
+ ↓
+¿Gameplay funciona?
+```
+
+## Steam no inicializa [#steam-no-inicializa]
+
+Comprueba `Packsize.Test()`, `DllCheck.Test()` y el resultado de `SteamAPI.Init()`. La implementación actual detiene la integración si las comprobaciones fallan. fileciteturn190file0
+
+## El amigo no puede unirse [#el-amigo-no-puede-unirse]
+
+Comprueba:
+
+1. Steam está activo en ambos procesos.
+2. El anfitrión está realmente escuchando.
+3. `PermitirUnirseAmigos(true)` está activo.
+4. Rich Presence contiene `connect`.
+5. Steam arranca el juego con `+connect`.
+6. `ArgumentoAutoConectar` encuentra el valor.
+7. `Steam.Conectar` acepta el Steam ID.
+8. Eco recibe la conexión.
+
+## Conecta Steam pero no entra al juego [#conecta-steam-pero-no-entra-al-juego]
+
+Eso indica que la capa Steam puede estar funcionando y el problema estar después:
+
+```text
+Steam P2P ✓
+      ↓
+Eco connection ?
+      ↓
+Canal ?
+      ↓
+Jugador ?
+      ↓
+Objetos ?
+```
+
+No depures el transporte cuando el fallo ya está en el estado de Eco.
+
+## Problemas intermitentes [#problemas-intermitentes]
+
+Registra Steam ID remoto, estado de la conexión, canal, objeto y tipo de paquete. La integración dispone de estructuras para conexiones abiertas y cerradas que pueden ayudar a separar un fallo P2P de un fallo de gameplay. fileciteturn190file0
+
+
+# Identidad (/docs/red/v1/steam/identidad)
+
+
+
+La integración expone una identidad Steam independiente de la identidad de red de Eco.
+
+## Steam ID [#steam-id]
+
+`Steam.IDUsuario` representa el identificador persistente del usuario dentro de Steam cuando Steam está activo.
+
+## Nombre [#nombre]
+
+`Steam.NombreUsuario` obtiene el nombre de Steam del usuario. El nombre no debe utilizarse como identificador porque puede cambiar y no tiene las propiedades de unicidad del Steam ID.
+
+```text
+Steam ID   → identidad
+Nombre     → presentación
+Jugador    → identidad dentro de Eco
+Objeto     → entidad de red
+```
+
+El código actual distingue explícitamente `IDUsuario`, `NombreUsuario` y el `Jugador` de Eco. fileciteturn190file0
+
+## Uso recomendado [#uso-recomendado]
+
+Utiliza Steam ID para identificar al usuario externamente. Utiliza `Jugador` para la sesión Eco y los IDs de objetos para las entidades de gameplay.
+
+No almacenes el nombre de Steam como clave primaria de una partida.
+
+
+# Steam (/docs/red/v1/steam)
+
+
+
+Eco incluye una integración de Steam que actúa como capa de transporte e identidad sin obligar al gameplay a conocer los detalles de Steam.
+
+<Cards>
+  <Card title="Instalación" href="/docs/red/v1/steam/instalacion">
+    Preparar Steamworks y Eco.
+  </Card>
+
+  <Card title="Conexión P2P" href="/docs/red/v1/steam/conexion-p2p">
+    Transportar una sesión Eco entre usuarios de Steam.
+  </Card>
+
+  <Card title="Unirse a amigos" href="/docs/red/v1/steam/unirse-a-amigos">
+    Invitaciones, Rich Presence y conexión automática.
+  </Card>
+
+  <Card title="Lobby y partidas" href="/docs/red/v1/steam/lobby-y-partidas">
+    Separar Steam, lobby Eco y gameplay.
+  </Card>
+
+  <Card title="Diagnóstico" href="/docs/red/v1/steam/diagnostico">
+    Comprobar Steamworks, callbacks y conectividad.
+  </Card>
+</Cards>
+
+## Arquitectura [#arquitectura]
+
+```text
+Steamworks
+   │
+   ├── identidad
+   ├── amigos
+   ├── Rich Presence
+   └── P2P
+          │
+          ▼
+     Adaptador Steam
+          │
+          ▼
+       IConnection
+          │
+          ▼
+          Eco
+          │
+          ▼
+      Juego / Objetos
+```
+
+El objetivo es que el código de gameplay siga trabajando con Eco aunque el transporte concreto sea Steam.
+
+## Qué aporta Steam [#qué-aporta-steam]
+
+* identidad Steam del jugador;
+* identificación de amigos;
+* conexión P2P;
+* Rich Presence;
+* entrada desde la opción de unirse a una partida;
+* callbacks de Steamworks;
+* transporte de paquetes de Eco.
+
+La integración actual expone además `IDUsuario`, `NombreUsuario`, `ArgumentoAutoConectar`, `Conectar`, `PermitirUnirseAmigos`, `ObtenerAmigosConPartida` y `AbrirOverlayInvitar`. fileciteturn190file0
+
+## Qué no aporta Steam [#qué-no-aporta-steam]
+
+Steam no decide la autoridad de tu partida, el ownership de tus objetos, la lógica de combate ni la estructura de tus canales. Es una capa de plataforma y transporte.
+
+<Callout title="Importante" type="info">
+  Una conexión Steam válida no significa que el jugador esté dentro de una partida Eco. Steam proporciona el camino y la identidad; Eco mantiene la sesión de juego.
+</Callout>
+
+
+# Instalación (/docs/red/v1/steam/instalacion)
+
+
+
+La integración se encuentra dentro del núcleo de red de Eco y depende de Steamworks cuando la compilación de Steam está habilitada. El código actual está protegido mediante compilación condicional para evitar exigir Steam en plataformas donde no corresponde. fileciteturn190file0
+
+<Steps>
+  <Step>
+    Integra Steamworks.NET o la capa Steamworks compatible con tu proyecto.
+  </Step>
+
+  <Step>
+    Configura el App ID del juego en la integración de Steam.
+  </Step>
+
+  <Step>
+    Asegúrate de que Steamworks puede inicializarse correctamente en la build.
+  </Step>
+
+  <Step>
+    Deja que Eco inicialice el sistema Steam durante su ciclo de sistemas.
+  </Step>
+
+  <Step>
+    Comprueba identidad, callbacks y conexión antes de probar el flujo de amigos.
+  </Step>
+</Steps>
+
+## Orden recomendado [#orden-recomendado]
+
+Primero valida:
+
+```text
+Steam inicializa
+      ↓
+Steam ID disponible
+      ↓
+Callbacks funcionando
+      ↓
+Conexión P2P
+      ↓
+Eco conectado
+      ↓
+Lobby
+      ↓
+Partida
+```
+
+No intentes depurar lobby, Rich Presence y gameplay simultáneamente durante la primera integración.
+
+
+# Limitaciones (/docs/red/v1/steam/limitaciones)
+
+
+
+Steam añade una ruta de transporte y servicios de plataforma, pero no resuelve automáticamente los problemas de networking del juego.
+
+## Steam no sustituye un servidor autoritativo [#steam-no-sustituye-un-servidor-autoritativo]
+
+Puedes transportar una sesión P2P y mantener un jugador como autoridad de gameplay. La arquitectura del juego es independiente del medio de transporte.
+
+## Steam no sustituye un lobby Eco [#steam-no-sustituye-un-lobby-eco]
+
+Rich Presence puede facilitar descubrimiento y unión, pero el estado del lobby debe seguir viviendo en Eco si contiene reglas de partida.
+
+## Steam no sustituye autenticación de gameplay [#steam-no-sustituye-autenticación-de-gameplay]
+
+El Steam ID identifica al usuario de la plataforma. El servidor debe decidir qué puede hacer ese usuario dentro de la partida.
+
+## Steam no sustituye persistencia [#steam-no-sustituye-persistencia]
+
+Guardar una partida sigue siendo responsabilidad del juego y de sus mecanismos de persistencia.
+
+## Plataformas [#plataformas]
+
+La integración está condicionada por compilación y no debe asumirse disponible en plataformas donde el bloque Steam no se compile. fileciteturn190file0
+
+<Callout title="Diseño multiplataforma" type="info">
+  Diseña una abstracción de identidad/transporte para que el gameplay no dependa directamente de Steam. Steam debe ser una implementación de plataforma, no la arquitectura completa de red.
+</Callout>
+
+
+# Lobby y partidas (/docs/red/v1/steam/lobby-y-partidas)
+
+
+
+Steam puede facilitar descubrimiento y unión, pero el lobby de gameplay debe seguir teniendo un estado propio.
+
+## Separación recomendada [#separación-recomendada]
+
+```text
+Steam
+├── identidad
+├── amigos
+└── descubrimiento
+
+Eco
+├── lobby
+│   ├── jugadores
+│   ├── ready
+│   └── configuración
+│
+└── partida
+    ├── canal
+    ├── objetos
+    └── estado
+```
+
+## Flujo cooperativo [#flujo-cooperativo]
+
+<Steps>
+  <Step>
+    El anfitrión inicia la sesión Eco.
+  </Step>
+
+  <Step>
+    Steam publica la información de unión si está permitido.
+  </Step>
+
+  <Step>
+    Los amigos se conectan mediante Steam P2P.
+  </Step>
+
+  <Step>
+    Eco identifica y valida al nuevo jugador.
+  </Step>
+
+  <Step>
+    El jugador entra al canal de lobby.
+  </Step>
+
+  <Step>
+    El lobby sincroniza raza, preparación y configuración.
+  </Step>
+
+  <Step>
+    El servidor inicia la partida y establece el ámbito de gameplay.
+  </Step>
+</Steps>
+
+## Por qué no usar Steam como autoridad [#por-qué-no-usar-steam-como-autoridad]
+
+Steam conoce la identidad y el transporte, pero no conoce las reglas de tu partida. Eco debe decidir si un jugador puede entrar, qué canal recibe y qué objetos se crean.
+
+## Hasta cuatro jugadores [#hasta-cuatro-jugadores]
+
+Para un juego cooperativo de cuatro jugadores, el límite de Steam y el límite de gameplay deben considerarse por separado. El servidor debe rechazar jugadores adicionales aunque el transporte permita técnicamente una conexión.
+
+
+# Protocolo (/docs/red/v1/steam/protocolo)
+
+
+
+La integración Steam no reemplaza el protocolo de Eco. Implementa un transporte que satisface `IConnection`.
+
+```text
+Paquete Eco
+   ↓
+Buffer
+   ↓
+IConnection
+   ↓
+P2PConnection
+   ↓
+Steam Networking
+```
+
+La clase `P2PConnection` recibe un `Buffer`, extrae paquetes completos y los envía al Steam ID remoto. Al desconectarse, genera el estado de desconexión que Eco puede procesar. fileciteturn190file0
+
+## Ventaja [#ventaja]
+
+El código de gameplay no necesita conocer si un paquete viaja por TCP, UDP o Steam P2P. La capa de transporte mantiene esa decisión aislada.
+
+## Limitación conceptual [#limitación-conceptual]
+
+Cambiar el transporte no elimina los problemas de diseño del protocolo. Tamaño de paquetes, frecuencia, serialización, ownership, destinatarios y autoridad siguen siendo responsabilidad de la arquitectura Eco.
+
+<Callout title="Transporte ≠ protocolo de gameplay" type="info">
+  Steam proporciona el camino. Eco define qué se transmite y el juego define qué significa.
+</Callout>
+
+
+# Rich Presence (/docs/red/v1/steam/rich-presence)
+
+
+
+La integración de Eco utiliza la clave `connect` de Steam Rich Presence como puente para la función de unirse a una partida.
+
+No debe confundirse Rich Presence con un sistema de lobby de Eco. Es una capa de descubrimiento y experiencia de usuario.
+
+## Estado [#estado]
+
+```text
+Eco desconectado
+    ↓
+connect = ""
+
+Servidor listo
+    ↓
+connect = "+connect <identificador>"
+```
+
+`Steam.PermitirUnirseAmigos` actualiza ese valor según el estado de la conexión. fileciteturn190file0
+
+## Amigos con partida [#amigos-con-partida]
+
+La integración dispone de `ObtenerAmigosConPartida()`, que recorre los amigos inmediatos y busca el campo `connect` para identificar aquellos que anuncian una partida. fileciteturn190file0
+
+Esto permite construir una UI propia de "amigos jugando" sin hacer que Steam determine la estructura del lobby Eco.
+
+## Seguridad [#seguridad]
+
+El valor `connect` debe tratarse como una pista de descubrimiento. La entrada real debe validarse en Eco.
+
+
+# Unirse a amigos (/docs/red/v1/steam/unirse-a-amigos)
+
+
+
+La integración utiliza Rich Presence para publicar un valor `connect` que contiene la información necesaria para iniciar la conexión.
+
+## Flujo [#flujo]
+
+```text
+Servidor Eco
+   ↓
+Steam.PermitirUnirseAmigos(true)
+   ↓
+Rich Presence: connect
+   ↓
+Amigo abre "Unirse al juego"
+   ↓
+Steam inicia la aplicación
+   ↓
+Argumento +connect
+   ↓
+Steam.ArgumentoAutoConectar
+   ↓
+Steam.Conectar(...)
+   ↓
+Eco.Conectar(...)
+```
+
+El código actual analiza `+connect` en los argumentos de línea de comandos para detectar este arranque automático. fileciteturn190file0
+
+## Permitir unirse [#permitir-unirse]
+
+`Steam.PermitirUnirseAmigos(true)` publica la información de conexión cuando existe una sesión que pueda recibir jugadores. Si se desactiva, limpia el campo `connect`.
+
+El comportamiento depende de si Eco está actuando como servidor, utiliza una conexión P2P personalizada o dispone de un punto TCP. fileciteturn190file0
+
+## Cuándo habilitarlo [#cuándo-habilitarlo]
+
+No lo actives automáticamente durante todo el ciclo de vida si tu juego tiene matchmaking, lobby privado o estados donde no se debe admitir a nuevos jugadores.
+
+```text
+Menú        → desactivado
+Lobby       → según diseño
+Partida     → normalmente activado si se permiten entradas
+Fin partida → desactivado
+```
+
+<Callout title="Control de acceso" type="info">
+  Rich Presence anuncia una ruta de conexión; no sustituye la autorización de tu servidor. La partida debe validar al jugador cuando intenta entrar.
+</Callout>
+
+
 # Buffer en profundidad (/docs/red/v1/transporte/buffer-en-profundidad)
 
 
@@ -10312,6 +10590,979 @@ El modelo corresponde al de los protocolos TCP y UDP de TNet, pero Eco utiliza `
 
 <Card title="TNet" href="https://github.com/tasharen/tnet">
   Repositorio upstream.
+</Card>
+
+
+# ActualizadorRed (/docs/red/v1/avanzado/actualizador-red)
+
+
+
+# ActualizadorRed [#actualizadorred]
+
+`ActualizadorRed` es un scheduler centralizado utilizado por Eco para ejecutar `OnStart`, `OnUpdate`, `OnLateUpdate`, actualizaciones poco frecuentes, callbacks de una sola ejecución y pequeñas coroutines.
+
+## Por qué existe [#por-qué-existe]
+
+Unity ejecuta `Update` y `LateUpdate` de cada `MonoBehaviour` habilitado. Cuando un proyecto contiene cientos o miles de componentes pequeños, centralizar parte de esos ciclos puede reducir overhead y mejorar el control del scheduler.
+
+```text
+MonoBehaviour A ─┐
+MonoBehaviour B ─┼──► ActualizadorRed ─► OnUpdate()
+MonoBehaviour C ─┘
+```
+
+## Contratos [#contratos]
+
+```csharp
+public interface IStartable
+{
+    void OnStart();
+}
+
+public interface IUpdateable
+{
+    void OnUpdate();
+}
+
+public interface ILateUpdateable
+{
+    void OnLateUpdate();
+}
+
+public interface IInfrequentUpdateable
+{
+    void InfrequentUpdate();
+}
+```
+
+## Alta y baja [#alta-y-baja]
+
+```csharp
+ActualizadorRed.AddUpdate(this);
+ActualizadorRed.AddLateUpdate(this);
+ActualizadorRed.AddInfrequentUpdate(this, 0.25f);
+
+ActualizadorRed.RemoveUpdate(this);
+ActualizadorRed.RemoveLateUpdate(this);
+ActualizadorRed.RemoveInfrequentUpdate(this);
+```
+
+La implementación utiliza conjuntos para las actualizaciones normales y colas auxiliares cuando un objeto se elimina durante el propio recorrido.
+
+## Una sola ejecución [#una-sola-ejecución]
+
+```csharp
+ActualizadorRed.AddOneShot(() =>
+{
+    Debug.Log("Ejecutado en el siguiente Update");
+});
+```
+
+Esto es útil para diferir una operación al siguiente ciclo sin crear un `MonoBehaviour` adicional.
+
+## Invoke sin MonoBehaviour [#invoke-sin-monobehaviour]
+
+```csharp
+ActualizadorRed.Invoke(() =>
+{
+    Debug.Log("Han pasado 2 segundos");
+}, 2f);
+```
+
+## Coroutines [#coroutines]
+
+El scheduler también puede mantener coroutines basadas en `TareaParalela.EnumFunc` y procesarlas fuera del `MonoBehaviour` que las originó.
+
+## Thread safety [#thread-safety]
+
+La implementación actual permite `THREAD_SAFE_UPDATER`, protegiendo las colecciones internas con lock. Esto es especialmente importante cuando una tarea de red o worker registra callbacks desde otro hilo.
+
+<Callout title="No mezclar con Unity API desde cualquier hilo" type="warn">
+  Que el scheduler sea seguro para registrar callbacks no significa que `UnityEngine` sea thread-safe. Los callbacks que toquen objetos de Unity deben ejecutarse en el hilo de Unity.
+</Callout>
+
+## Relación con Componente [#relación-con-componente]
+
+`Componente.Awake()` registra su inicialización mediante `ActualizadorRed.AddStart(this)`. Por eso la documentación de `Componente` no debe asumir que toda la inicialización de red ocurre directamente en `Start()`.
+
+<Card title="Componente" href="/docs/red/v1/referencia/api/componente">
+  Clase base que utiliza `ActualizadorRed` durante la inicialización.
+</Card>
+
+<Card title="ActualizadorRed.cs" href="https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/ActualizadorRed.cs">
+  Implementación actual del scheduler.
+</Card>
+
+
+# Editor y herramientas (/docs/red/v1/avanzado/editor-y-herramientas)
+
+
+
+# Editor y herramientas [#editor-y-herramientas]
+
+Eco no es sólo el runtime que ejecuta la red. El ecosistema conserva varias herramientas pensadas para acelerar la configuración, depuración, serialización y análisis del tráfico.
+
+<Callout title="Runtime y editor son cosas distintas" type="info">
+  Una herramienta de editor puede ayudar a generar, inspeccionar o preparar datos, pero no sustituye al runtime de `Eco`, `ClienteJuego` o `ServidorJuego`.
+</Callout>
+
+## Qué entra en esta categoría [#qué-entra-en-esta-categoría]
+
+El material heredado de TNet agrupa aquí varias capacidades:
+
+| Área          | Uso                                                                   |
+| ------------- | --------------------------------------------------------------------- |
+| Configuración | Preparar proyectos y requisitos de ejecución.                         |
+| Diagnóstico   | Inspeccionar estado, paquetes, ancho de banda y errores.              |
+| Serialización | Convertir datos complejos a formatos persistibles.                    |
+| Runtime Code  | Compilar código en tiempo de ejecución cuando el proyecto lo permite. |
+| Profiling     | Detectar operaciones o paquetes demasiado frecuentes.                 |
+
+## Diagnóstico desde Eco [#diagnóstico-desde-eco]
+
+La propia fachada expone información útil para herramientas internas:
+
+```csharp
+int enviados = Eco.PaquetesEnviados;
+int recibidos = Eco.PaquetesRecibidos;
+int bytesEnviados = Eco.BytesEnviados;
+int bytesRecibidos = Eco.BytesRecibidos;
+int ping = Eco.Ping;
+```
+
+Esto permite construir paneles de diagnóstico sin acceder directamente al protocolo.
+
+## Perfilado de paquetes [#perfilado-de-paquetes]
+
+El upstream incluye mecanismos de perfilado y contadores de paquetes. Eco mantiene parte de este enfoque y además expone contadores de tráfico a través de `Eco`.
+
+Un patrón útil durante desarrollo es medir:
+
+```text
+frecuencia de RFC
+      ↓
+bytes enviados / recibidos
+      ↓
+frecuencia de sincronización
+      ↓
+coste de serialización
+      ↓
+impacto en CPU
+```
+
+<Callout title="No confundas más paquetes con más rendimiento" type="warn">
+  Reducir paquetes puede disminuir tráfico, pero también puede aumentar el tamaño de cada mensaje o retrasar información. La optimización debe medirse con latencia, ancho de banda y CPU.
+</Callout>
+
+## Serialización y herramientas de datos [#serialización-y-herramientas-de-datos]
+
+El sistema `Nodo` puede utilizarse para datos jerárquicos y persistencia. El upstream también documenta formatos de texto, binario y compresión LZMA. En Eco, estas capacidades deben considerarse parte de la capa de datos, no del transporte TCP/UDP.
+
+```text
+Nodo
+ ↓
+Serialización
+ ├── texto
+ ├── binario
+ └── binario comprimido
+```
+
+## Runtime Code [#runtime-code]
+
+El soporte de `RuntimeCode` permite compilar código durante la ejecución cuando esta funcionalidad está incluida y configurada en el proyecto.
+
+No debe utilizarse como mecanismo normal para lógica de gameplay. Su utilidad está más relacionada con herramientas, extensibilidad y escenarios donde el código no puede distribuirse previamente.
+
+<Card title="Runtime Code" href="/docs/red/v1/avanzado/runtime-code">
+  Guía de integración y límites del código ejecutado dinámicamente.
+</Card>
+
+## Relación con TNet [#relación-con-tnet]
+
+DeepWiki identifica herramientas de editor para inspeccionar `TNObject`, auto-sincronización, instancias de servidor y exportación de `DataNode`. En Eco, cada una debe considerarse según la implementación que realmente exista en el repositorio; la documentación no asume que una ventana histórica de TNet siga existiendo con el mismo nombre.
+
+<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
+  Usar como referencia histórica de las herramientas upstream.
+</Card>
+
+
+# Funciones avanzadas (/docs/red/v1/avanzado)
+
+
+
+# Funciones avanzadas [#funciones-avanzadas]
+
+Esta sección reúne capacidades que no necesitas para una integración básica, pero que resultan relevantes cuando el proyecto crece o necesita integraciones específicas.
+
+<Card title="ActualizadorRed" href="/docs/red/v1/avanzado/actualizador-red">
+  Centraliza `OnStart`, `Update`, `LateUpdate`, callbacks one-shot, invocaciones y coroutines para reducir el coste de muchos `MonoBehaviour`.
+</Card>
+
+<Card title="Sincronizar Rigidbody" href="/docs/red/v1/avanzado/sincronizar-rigidbody">
+  Sincronización orientada a física de Unity y separación entre propietario y observadores.
+</Card>
+
+<Card title="Runtime Code" href="/docs/red/v1/avanzado/runtime-code">
+  Compilación y ejecución de código C# en runtime para casos de modding y extensibilidad.
+</Card>
+
+<Card title="Lobby" href="/docs/red/v1/avanzado/lobby">
+  Descubrimiento y anuncio de servidores mediante el sistema de lobby de Eco.
+</Card>
+
+<Card title="Steam y conexiones personalizadas" href="/docs/red/v1/avanzado/steam-y-conexiones">
+  Integración con Steam Networking y sustitución de sockets mediante `IConnection`.
+</Card>
+
+<Card title="UPnP y NAT" href="/docs/red/v1/avanzado/upnp">
+  Herramientas para descubrimiento de direcciones y apertura de puertos en routers compatibles.
+</Card>
+
+<Callout title="No añadas una capa avanzada por defecto" type="info">
+  Estas herramientas existen para resolver necesidades concretas. Empieza por la API normal de `Eco` y añade estas capacidades cuando el problema que intentas resolver realmente las necesite.
+</Callout>
+
+
+# Lobby y descubrimiento (/docs/red/v1/avanzado/lobby-y-discovery)
+
+
+
+# Lobby y descubrimiento [#lobby-y-descubrimiento]
+
+El lobby y el servidor de juego resuelven problemas diferentes. El lobby ayuda a encontrar o anunciar servidores; el servidor de juego mantiene la partida y su estado.
+
+```text
+Cliente
+  │
+  ├── Lobby / Discovery ──► lista de servidores
+  │
+  └── Servidor de juego ──► conexión de gameplay
+```
+
+<Callout title="El lobby no es la partida" type="info">
+  Un servidor de lobby puede actuar como directorio o punto de descubrimiento. La autoridad sobre jugadores, canales y objetos continúa perteneciendo al servidor de juego.
+</Callout>
+
+## Flujo recomendado [#flujo-recomendado]
+
+<Steps>
+  <Step>
+    ### Descubrir servidores [#descubrir-servidores]
+
+    Consulta el servicio de lobby o el mecanismo de descubrimiento disponible.
+  </Step>
+
+  <Step>
+    ### Elegir un servidor [#elegir-un-servidor]
+
+    Selecciona el endpoint de gameplay según latencia, región, capacidad o estado anunciado.
+  </Step>
+
+  <Step>
+    ### Conectar directamente [#conectar-directamente]
+
+    Usa `Eco.Conectar(...)` contra el servidor de juego elegido.
+  </Step>
+
+  <Step>
+    ### Entrar en un canal [#entrar-en-un-canal]
+
+    Una vez conectada la sesión, la lógica de partida pasa a los canales de Eco.
+  </Step>
+</Steps>
+
+## Heartbeats y estado anunciado [#heartbeats-y-estado-anunciado]
+
+El material upstream describe mecanismos de lobby que utilizan mensajes de control, ping y actualizaciones del estado de los servidores. El objetivo es evitar que el directorio necesite replicar todo el estado de la partida.
+
+```text
+Servidor de juego
+   │
+   ├── nombre
+   ├── jugadores
+   ├── capacidad
+   ├── estado
+   └── endpoint
+          ↓
+       Lobby
+          ↓
+       Clientes
+```
+
+## Cuándo necesitas un lobby [#cuándo-necesitas-un-lobby]
+
+No todos los proyectos lo requieren.
+
+| Arquitectura               | Lobby                                 |
+| -------------------------- | ------------------------------------- |
+| Cliente → IP fija          | No                                    |
+| Servidor dedicado listado  | Normalmente sí                        |
+| Matchmaking propio         | Depende                               |
+| LAN                        | Puede sustituirse por discovery local |
+| Steam / plataforma externa | Puede recaer en la plataforma         |
+
+## Discovery no equivale a NAT traversal [#discovery-no-equivale-a-nat-traversal]
+
+Encontrar un servidor y conseguir que un cliente pueda alcanzarlo son problemas diferentes. UPnP, port forwarding, Steam Networking y otras técnicas pertenecen a la segunda parte.
+
+<Card title="UPnP y NAT" href="/docs/red/v1/avanzado/upnp">
+  Conectividad y exposición del servidor.
+</Card>
+
+<Card title="Steam y conexiones" href="/docs/red/v1/avanzado/steam-y-conexiones">
+  Transportes de plataforma y conexiones personalizadas.
+</Card>
+
+## Relación con TNet [#relación-con-tnet]
+
+DeepWiki mantiene páginas separadas para lobby cliente, lobby servidor y discovery. En Eco la documentación debe conservar esa separación conceptual, pero las APIs deben seguir las implementaciones reales disponibles en el repositorio de Eco.
+
+<Card title="DeepWiki · Lobby y discovery" href="https://deepwiki.com/tasharen/tnet">
+  Referencia upstream para arquitectura de lobby y descubrimiento.
+</Card>
+
+
+# Lobby (/docs/red/v1/avanzado/lobby)
+
+
+
+# Lobby [#lobby]
+
+La carpeta `Sala` implementa la comunicación entre servidores de juego y un servicio de lobby. Su objetivo es anunciar servidores disponibles y permitir que los clientes consulten la lista sin conocer de antemano sus endpoints.
+
+## Arquitectura [#arquitectura]
+
+```text
+ServidorJuego
+     │
+     ▼
+EnlaceLobby
+     │
+     ▼
+LobbyServidor
+     ▲
+     │
+LobbyCliente
+     │
+     ▼
+Juego
+```
+
+La implementación incluye variantes TCP y UDP para el enlace.
+
+## Cuándo utilizarlo [#cuándo-utilizarlo]
+
+Un lobby tiene sentido cuando el juego necesita:
+
+* lista pública de partidas;
+* descubrimiento de servidores;
+* actualización automática de jugadores y endpoints;
+* separación entre el servicio de descubrimiento y el servidor de gameplay.
+
+No necesitas lobby para una conexión directa a IP.
+
+## Datos publicados [#datos-publicados]
+
+El servidor puede anunciar información como nombre, número de jugadores, ID de juego y endpoints de conexión. La comunicación entre lobby y game server no debe confundirse con el canal donde sucede la partida.
+
+<Callout title="Lobby ≠ canal" type="info">
+  El lobby descubre servidores. El canal organiza jugadores y estado dentro de un servidor de juego. Son dos niveles diferentes.
+</Callout>
+
+## Componentes [#componentes]
+
+```text
+Sala/
+├── EnlaceLobby
+├── EnlaceLobbyTcp
+├── EnlaceLobbyUdp
+├── LobbyCliente
+├── LobbyClienteTcp
+├── LobbyClienteUdp
+└── LobbyServidor
+```
+
+<Card title="Sistema de lobby" href="https://github.com/Nervelink/eco/tree/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Sala">
+  Código fuente actual del subsistema.
+</Card>
+
+<Card title="ServidorJuego" href="/docs/red/v1/referencia/api/servidor-juego">
+  Integración del lobby desde el servidor.
+</Card>
+
+
+# Runtime Code (/docs/red/v1/avanzado/runtime-code)
+
+
+
+# Runtime Code [#runtime-code]
+
+Eco incluye una carpeta `RuntimeCode` para compilar y cargar código C# durante la ejecución. Es una capacidad especializada y debe tratarse como una superficie de extensibilidad, no como una forma habitual de implementar gameplay.
+
+## Arquitectura [#arquitectura]
+
+```text
+Código fuente
+    ↓
+CodeCompiler
+    ↓
+Compilación
+    ↓
+Assembly dinámico
+    ↓
+RuntimeBehaviour / driver
+    ↓
+Juego
+```
+
+La solución incluye infraestructura para compilación, carga de assemblies y reporte de errores.
+
+## Cuándo utilizarlo [#cuándo-utilizarlo]
+
+Casos razonables:
+
+* modding;
+* herramientas internas;
+* contenido definido por usuarios;
+* scripts dinámicos que no pueden compilarse con el proyecto principal.
+
+No es una buena opción para sustituir el código normal de un sistema que conoces de antemano.
+
+<Callout title="Seguridad" type="warn">
+  Ejecutar C# generado o recibido externamente equivale a ejecutar código con los permisos del proceso. Nunca trates código de mods desconocidos como contenido de datos inocente.
+</Callout>
+
+## Flujo recomendado [#flujo-recomendado]
+
+<Steps>
+  <Step>
+    ### Validar origen [#validar-origen]
+
+    Comprueba que el código procede de una fuente de confianza.
+  </Step>
+
+  <Step>
+    ### Compilar [#compilar]
+
+    Utiliza `CodeCompiler` y registra los errores de compilación.
+  </Step>
+
+  <Step>
+    ### Cargar [#cargar]
+
+    Añade el assembly al runtime mediante el sistema de carga correspondiente.
+  </Step>
+
+  <Step>
+    ### Crear comportamiento [#crear-comportamiento]
+
+    Utiliza `RuntimeBehaviour` o el driver dinámico para asociar el código a un objeto.
+  </Step>
+</Steps>
+
+## Fuente [#fuente]
+
+<Card title="RuntimeCode" href="https://github.com/Nervelink/eco/tree/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/RuntimeCode">
+  Implementación de la infraestructura de código dinámico.
+</Card>
+
+
+# Servidor interno (/docs/red/v1/avanzado/servidor-interno)
+
+
+
+# Servidor interno [#servidor-interno]
+
+`Servidor` y `ServidorJuego` forman el lado servidor del runtime de Eco. El primero integra el servidor con Unity; el segundo contiene la lógica de juego y gestión de clientes, canales y estado.
+
+## Capas [#capas]
+
+```text
+Eco
+ │
+ └── Servidor
+       │
+       └── ServidorJuego
+             ├── Jugadores
+             ├── Canales
+             ├── Objetos
+             ├── Datos
+             ├── Persistencia
+             └── Protocolos TCP / UDP
+```
+
+`ServidorJuego` puede funcionar como servidor local o como núcleo independiente dentro de un proceso servidor.
+
+## Flujo de una conexión [#flujo-de-una-conexión]
+
+<Steps>
+  <Step>
+    ### Aceptar la conexión [#aceptar-la-conexión]
+
+    El protocolo TCP establece la conexión inicial y crea el contexto del cliente.
+  </Step>
+
+  <Step>
+    ### Verificar al jugador [#verificar-al-jugador]
+
+    Se negocian versión, identidad y datos iniciales antes de entrar en la lógica normal de juego.
+  </Step>
+
+  <Step>
+    ### Crear o recuperar la participación [#crear-o-recuperar-la-participación]
+
+    El servidor representa al cliente como `Jugador` y gestiona su pertenencia a `Canal`.
+  </Step>
+
+  <Step>
+    ### Procesar paquetes [#procesar-paquetes]
+
+    Las solicitudes se convierten en operaciones de canal, objetos, datos, RFC, archivos o control del servidor.
+  </Step>
+</Steps>
+
+## Canales y autoridad [#canales-y-autoridad]
+
+El servidor mantiene los canales como unidades lógicas aisladas. Cada canal tiene sus propios jugadores, objetos y datos.
+
+```text
+Servidor
+├── Canal 100
+│   ├── Jugadores
+│   ├── Objetos
+│   └── Datos
+│
+└── Canal 200
+    ├── Jugadores
+    ├── Objetos
+    └── Datos
+```
+
+La conexión de un jugador puede participar en varios canales, por lo que el servidor no debe modelar un jugador como perteneciente exclusivamente a una única sala.
+
+## Persistencia [#persistencia]
+
+El servidor puede guardar estado de canales, objetos persistentes, datos de jugadores y operaciones remotas guardadas. Esto explica por qué Eco no trata la red y la persistencia como dos sistemas completamente separados.
+
+<Callout title="Persistencia por capas" type="idea">
+  No todo lo que existe en memoria debe guardarse. La persistencia depende de si el canal, objeto, dato o RFC ha sido marcado para conservarse.
+</Callout>
+
+## Modo de baja memoria [#modo-de-baja-memoria]
+
+El material de TNet documenta un modo de bajo consumo de memoria que descarga datos de canales vacíos para reducir el footprint del servidor. En Eco debe considerarse una característica dependiente de la implementación actual del servidor antes de habilitarse en producción.
+
+La idea es:
+
+```text
+Último jugador abandona
+        ↓
+Canal sin participantes
+        ↓
+Guardar estado
+        ↓
+Liberar memoria de la representación activa
+        ↓
+Recargar cuando vuelva un jugador
+```
+
+## Servidor local [#servidor-local]
+
+El servidor interno también puede ejecutarse dentro del mismo proceso de Unity. Esto permite conectar un `ClienteJuego` contra el servidor local sin depender de sockets externos.
+
+<Card title="Servidor local" href="/docs/red/v1/guias/servidor-local">
+  Workflow práctico para pruebas locales.
+</Card>
+
+## Código fuente [#código-fuente]
+
+<Card title="ServidorJuego.cs" href="https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Servidor/ServidorJuego.cs">
+  Implementación principal del servidor de juego.
+</Card>
+
+<Card title="Servidor.cs" href="https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Servidor/Servidor.cs">
+  Integración del servidor con el runtime de Unity.
+</Card>
+
+
+# Sincronizar Rigidbody (/docs/red/v1/avanzado/sincronizar-rigidbody)
+
+
+
+# Sincronizar Rigidbody [#sincronizar-rigidbody]
+
+`SincronizarRB` está orientado a objetos cuyo movimiento depende de la física de Unity. El objetivo no es transmitir cada detalle del motor físico, sino mantener una representación suficientemente próxima entre propietario y observadores.
+
+## Modelo [#modelo]
+
+```text
+Propietario
+Rigidbody local
+    │
+    ├── posición
+    ├── rotación
+    ├── velocidad
+    └── velocidad angular
+           │
+           ▼
+       Eco / red
+           │
+     ┌─────┴─────┐
+     ▼           ▼
+ Observador A  Observador B
+```
+
+## Autoridad [#autoridad]
+
+El propietario es quien debe producir el estado físico autoritativo. Los demás clientes reciben actualizaciones y las aplican a su copia.
+
+Esto evita que dos motores de física distintos intenten corregir simultáneamente el mismo objeto.
+
+## Suavizado [#suavizado]
+
+Las actualizaciones de red llegan discretamente, mientras que Unity simula continuamente. Por ello un sincronizador físico normalmente combina:
+
+* recepción de muestras;
+* interpolación;
+* corrección cuando la diferencia supera un umbral;
+* actualización de velocidad para continuar la simulación local.
+
+## Cuándo utilizarlo [#cuándo-utilizarlo]
+
+Es adecuado para:
+
+* vehículos;
+* proyectiles físicos;
+* objetos arrastrables;
+* props dinámicos;
+* cuerpos que necesitan continuidad visual.
+
+No es la mejor solución para entidades que realmente deberían ser controladas por un estado lógico determinista.
+
+<Callout title="No sincronices física sin diseñar autoridad" type="warn">
+  Enviar posición, velocidad y rotación desde todos los clientes crea una lucha de autoridades. Decide primero quién controla el cuerpo y qué datos son realmente necesarios.
+</Callout>
+
+## Relación con TransformSuave [#relación-con-transformsuave]
+
+Para objetos sin simulación física, `TransformSuave` cubre una necesidad similar con una estrategia más sencilla de interpolación visual.
+
+<Card title="SincronizarRB.cs" href="https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/SincronizarRB.cs">
+  Implementación actual.
+</Card>
+
+<Card title="TransformSuave" href="/docs/red/v1/avanzado/transform-suave">
+  Consulta el suavizado de transformaciones no físicas.
+</Card>
+
+
+# Steam y conexiones personalizadas (/docs/red/v1/avanzado/steam-y-conexiones)
+
+
+
+# Steam y conexiones personalizadas [#steam-y-conexiones-personalizadas]
+
+Eco separa la lógica de cliente/servidor de la implementación física de la conexión mediante `IConnection`. Esto permite integrar transportes alternativos sin reescribir el protocolo superior.
+
+## Modelo [#modelo]
+
+```text
+Eco / ClienteJuego
+        │
+        ▼
+    IConnection
+      /     \
+   TCP       Steam
+```
+
+El protocolo superior sigue trabajando con paquetes y buffers mientras cambia la capa de transporte.
+
+## Conexión personalizada [#conexión-personalizada]
+
+La fachada de Eco expone `ProtocoloPersonalizado`:
+
+```csharp
+Eco.ProtocoloPersonalizado = miConexion;
+```
+
+Al asignar una implementación, Eco pasa al estado de verificación y envía el handshake de identidad sobre la conexión proporcionada.
+
+<Callout title="La conexión personalizada no cambia el protocolo" type="info">
+  `IConnection` sustituye el transporte. No convierte automáticamente el protocolo de Eco en otro protocolo ni elimina las reglas de canales, objetos o sincronización.
+</Callout>
+
+## Steam [#steam]
+
+El repositorio incluye un módulo `Steam` y referencias a paquetes standalone de Steam Networking. La integración está diseñada para transportar la comunicación de Eco utilizando la infraestructura de Steam en lugar de depender únicamente de sockets directos.
+
+## Casos de uso [#casos-de-uso]
+
+* juegos distribuidos mediante Steam;
+* NAT traversal gestionado por Steam;
+* conexiones entre usuarios sin publicar endpoints TCP directamente;
+* integración del networking con una API de transporte existente.
+
+## Fuentes [#fuentes]
+
+<Card title="Steam" href="https://github.com/Nervelink/eco/tree/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Steam">
+  Código y material de integración Steam.
+</Card>
+
+<Card title="ClienteJuego" href="/docs/red/v1/referencia/api/cliente-juego">
+  Punto donde se integra `IConnection`.
+</Card>
+
+
+# TransformSuave (/docs/red/v1/avanzado/transform-suave)
+
+
+
+# TransformSuave [#transformsuave]
+
+`TransformSuave` está pensado para ocultar la naturaleza discreta de las actualizaciones de red. En lugar de aplicar cada muestra inmediatamente, utiliza el historial recibido para mover la representación visual de forma continua.
+
+## Problema [#problema]
+
+```text
+Red
+  muestra A──────muestra B──────muestra C
+       ↓              ↓              ↓
+gameObject ──salto───salto──────────salto
+```
+
+La interpolación convierte las muestras discretas en movimiento continuo.
+
+## Patrón [#patrón]
+
+```text
+Estado recibido
+      ↓
+Guardar muestra
+      ↓
+Calcular tiempo objetivo
+      ↓
+Interpolar
+      ↓
+Transform visual
+```
+
+## Cuándo usarlo [#cuándo-usarlo]
+
+Es apropiado para personajes remotos, proyectiles visuales, objetos decorativos y cámaras que sólo deben seguir una posición remota.
+
+Para un `Rigidbody` utiliza [Sincronizar Rigidbody](/docs/red/v1/avanzado/sincronizar-rigidbody).
+
+## Autoridad [#autoridad]
+
+`TransformSuave` no decide quién es propietario. Sólo suaviza la representación local de un estado que procede de la red.
+
+<Callout title="Interpolación no es corrección de estado" type="info">
+  El suavizado puede ocultar pequeños errores visuales, pero no corrige una discrepancia lógica. La autoridad y sincronización deben estar resueltas antes de interpolar.
+</Callout>
+
+<Card title="TransformSuave.cs" href="https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Cliente/TransformSuave.cs">
+  Implementación actual.
+</Card>
+
+
+# Transportes personalizados (/docs/red/v1/avanzado/transportes-personalizados)
+
+
+
+# Transportes personalizados [#transportes-personalizados]
+
+Eco separa la API de alto nivel de la conexión física mediante `IConnection`. Esta abstracción es una de las ideas de TNet que conviene conservar porque permite sustituir TCP/UDP o integrar plataformas externas sin reescribir `Eco`, `Objeto` y `Componente`.
+
+## Idea general [#idea-general]
+
+```text
+Gameplay
+   ↓
+Eco / Objeto / Componente
+   ↓
+Paquete / Buffer
+   ↓
+IConnection
+   ↓
+Steam Networking / transporte propio / integración externa
+```
+
+El gameplay no debería saber si un paquete ha viajado por una implementación concreta.
+
+## Activación [#activación]
+
+Eco expone `ProtocoloPersonalizado` para instalar una implementación de `IConnection`.
+
+```csharp
+Eco.ProtocoloPersonalizado = miConexion;
+```
+
+La conexión personalizada debe respetar el contrato de Eco y devolver el comportamiento esperado por el cliente. Una implementación incorrecta puede parecer funcional en conexión inicial y fallar posteriormente con canales, paquetes o cierres.
+
+## Cuándo utilizarlo [#cuándo-utilizarlo]
+
+Un transporte personalizado tiene sentido cuando:
+
+* una plataforma exige una API propia de networking;
+* Steam Networking debe sustituir el socket tradicional;
+* necesitas un relay o servicio externo;
+* quieres integrar una capa de transporte corporativa o de consola;
+* necesitas controlar cómo se crean y consumen los endpoints.
+
+Para un juego estándar LAN/WAN no conviene introducir esta capa sin necesidad.
+
+## Qué no debe cambiar [#qué-no-debe-cambiar]
+
+Aunque cambies el transporte, estas abstracciones deben seguir funcionando igual:
+
+```text
+Canal
+Jugador
+Objeto
+Componente
+RFC
+Objetivo
+Nodo
+Paquete
+```
+
+Si el gameplay necesita conocer detalles de `IConnection`, probablemente la abstracción está filtrándose demasiado arriba.
+
+## Steam [#steam]
+
+La integración con Steam es un caso particular de transporte/plataforma. Steam puede aportar identidad, matchmaking o comunicación, pero no conviene mezclar automáticamente esos conceptos con el modelo de `Canal` de Eco.
+
+Un diseño limpio separa:
+
+```text
+Steam
+├── identidad de plataforma
+├── descubrimiento / sesión
+└── transporte si se utiliza
+
+Eco
+├── Jugador
+├── Canal
+├── Objeto
+├── RFC
+└── estado sincronizado
+```
+
+## Diagnóstico [#diagnóstico]
+
+Cuando una implementación personalizada conecta pero no funciona correctamente, comprueba en este orden:
+
+<Steps>
+  <Step>
+    ### Conectividad [#conectividad]
+
+    Verifica que la conexión alcanza el estado conectado de Eco.
+  </Step>
+
+  <Step>
+    ### Paquetes [#paquetes]
+
+    Verifica que un `Buffer` enviado vuelve al receptor sin truncado ni modificación.
+  </Step>
+
+  <Step>
+    ### Orden [#orden]
+
+    Comprueba que la conexión conserva las garantías esperadas por la parte fiable del protocolo.
+  </Step>
+
+  <Step>
+    ### Cierre [#cierre]
+
+    Prueba desconexión manual, pérdida de enlace, cambio de escena y cierre de aplicación.
+  </Step>
+</Steps>
+
+<Callout title="El transporte no debe reinventar Eco" type="warn">
+  `IConnection` está pensado para sustituir la capa física de comunicación, no para crear un segundo sistema de canales, objetos o RPC paralelo.
+</Callout>
+
+<Card title="Steam y conexiones" href="/docs/red/v1/avanzado/steam-y-conexiones">
+  Integración específica con Steam y plataformas externas.
+</Card>
+
+<Card title="Arquitectura" href="/docs/red/v1/fundamentos/arquitectura">
+  Dónde encaja `IConnection` dentro del sistema.
+</Card>
+
+
+# UPnP y NAT (/docs/red/v1/avanzado/upnp)
+
+
+
+# UPnP y NAT [#upnp-y-nat]
+
+`UPnP` permite a una aplicación solicitar al router la creación de un mapeo de puertos sin que el usuario tenga que configurar manualmente el forwarding.
+
+## El problema [#el-problema]
+
+Un servidor puede escuchar correctamente en su máquina y, sin embargo, no ser accesible desde Internet porque el router utiliza NAT.
+
+```text
+Internet
+   │
+Router NAT
+   │
+   └── PC / servidor
+```
+
+El puerto debe estar accesible desde el exterior para que clientes remotos puedan conectarse directamente.
+
+## Qué aporta UPnP [#qué-aporta-upnp]
+
+```text
+Servidor
+   ↓
+UPnP
+   ↓
+Router
+   ↓
+Regla NAT
+   ↓
+Puerto público → servidor local
+```
+
+No todos los routers admiten UPnP y algunas redes lo deshabilitan por seguridad.
+
+## Flujo recomendado [#flujo-recomendado]
+
+<Steps>
+  <Step>
+    ### Detectar soporte [#detectar-soporte]
+
+    Comprueba que exista un dispositivo UPnP compatible antes de intentar crear reglas.
+  </Step>
+
+  <Step>
+    ### Resolver dirección [#resolver-dirección]
+
+    Determina la dirección LAN y el puerto TCP/UDP que utilizará Eco.
+  </Step>
+
+  <Step>
+    ### Crear mapeo [#crear-mapeo]
+
+    Solicita al router el forwarding para el puerto correspondiente.
+  </Step>
+
+  <Step>
+    ### Verificar desde fuera [#verificar-desde-fuera]
+
+    La existencia de la regla no garantiza que el ISP o firewall permita el tráfico. Prueba desde otra red.
+  </Step>
+</Steps>
+
+<Callout title="UPnP no sustituye un diagnóstico de red" type="warn">
+  CGNAT, firewalls, doble NAT o políticas del router pueden impedir conexiones entrantes aunque la solicitud UPnP sea correcta.
+</Callout>
+
+<Card title="UPnP.cs" href="https://github.com/Nervelink/eco/blob/main/src/Assets/Pandora/Logica/Nucleo/Core/Red/Utilidades/UPnP.cs">
+  Implementación actual de las utilidades UPnP.
 </Card>
 
 

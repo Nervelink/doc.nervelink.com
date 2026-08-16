@@ -165,6 +165,34 @@
       - [Equivalencias Eco ↔ TNet](/docs/red/v1/referencia/equivalencias): Mapa de nomenclatura entre Eco y la implementación de TNet.
       - [DeepWiki · TNet](/docs/red/v1/referencia/deepwiki): Referencia generada para explorar la arquitectura del TNet upstream.
       - [Diferencias de Eco](/docs/red/v1/referencia/diferencias): Cambios de Eco respecto a la arquitectura heredada de TNet.
+    - Ingeniería
+      - [Ingeniería](/docs/red/v1/ingenieria): Principios para diseñar, depurar, probar y optimizar juegos multijugador con Eco.
+      - [Modelo mental](/docs/red/v1/ingenieria/modelo-mental): Las ideas fundamentales para razonar sobre un sistema de red con Eco.
+      - [Ciclo de vida](/docs/red/v1/ingenieria/ciclo-de-vida): Qué ocurre desde el arranque hasta la desconexión de un participante.
+      - [Sincronización](/docs/red/v1/ingenieria/sincronizacion): Cómo clasificar y distribuir el estado de una partida.
+      - [Autoridad y ownership](/docs/red/v1/ingenieria/autoridad-y-ownership): Cómo separar autoridad de servidor, ownership de red y propiedad de gameplay.
+      - [Latencia y suavizado](/docs/red/v1/ingenieria/latencia-y-suavizado): Diseñar gameplay que siga siendo fluido cuando la red no es instantánea.
+      - [Rendimiento](/docs/red/v1/ingenieria/rendimiento): Medir y reducir el coste de red, CPU y memoria.
+      - [Seguridad](/docs/red/v1/ingenieria/seguridad): Principios para tratar al cliente como una fuente no confiable.
+      - [Testing](/docs/red/v1/ingenieria/testing): Estrategia para comprobar una integración de Eco bajo condiciones reales.
+      - [Diagnóstico](/docs/red/v1/ingenieria/diagnostico): Método sistemático para localizar errores de conexión, sincronización y ownership.
+      - [Migración de TNet a Eco](/docs/red/v1/ingenieria/migracion-tnet-eco): Equivalencias y diferencias para desarrolladores que conocen TNet.
+      - [Compatibilidad](/docs/red/v1/ingenieria/compatibilidad): Qué debe comprobarse al integrar Eco en un proyecto real.
+      - [Glosario](/docs/red/v1/ingenieria/glosario): Terminología esencial de Eco y networking.
+      - [Referencia rápida](/docs/red/v1/ingenieria/cheat-sheet): Tabla rápida para decidir qué mecanismo de Eco utilizar.
+    - Steam
+      - [Steam](/docs/red/v1/steam): Integración de Steamworks con Eco para identidad, conexiones P2P y partidas entre amigos.
+      - [Instalación](/docs/red/v1/steam/instalacion): Preparar la integración Steam de Eco en un proyecto Unity.
+      - [Configuración](/docs/red/v1/steam/configuracion): Preparar Steamworks para utilizar la integración de Eco.
+      - [Identidad](/docs/red/v1/steam/identidad): Identidad del jugador y diferencia entre Steam ID, nombre y sesión Eco.
+      - [Conexión P2P](/docs/red/v1/steam/conexion-p2p): Cómo Steam transporta una conexión Eco entre dos usuarios.
+      - [Unirse a amigos](/docs/red/v1/steam/unirse-a-amigos): Permitir que un amigo de Steam entre directamente en una partida.
+      - [Rich Presence](/docs/red/v1/steam/rich-presence): Utilizar la presencia de Steam para anunciar el estado de conexión.
+      - [Lobby y partidas](/docs/red/v1/steam/lobby-y-partidas): Diseñar el flujo de lobby sin mezclar Steam con el estado de gameplay de Eco.
+      - [Protocolo](/docs/red/v1/steam/protocolo): Qué parte del protocolo pertenece a Eco y qué parte a Steam.
+      - [Callbacks](/docs/red/v1/steam/callbacks): Cómo encajan los callbacks de Steamworks en el ciclo de Eco.
+      - [Diagnóstico](/docs/red/v1/steam/diagnostico): Comprobar Steamworks, conexión P2P, callbacks y unión a partidas.
+      - [Limitaciones](/docs/red/v1/steam/limitaciones): Casos en los que la integración Steam no debe confundirse con el sistema de juego.
 - Tactico
   - Táctico
     - [Táctico](/docs/tactico/v1): Documentación del sistema Táctico.
