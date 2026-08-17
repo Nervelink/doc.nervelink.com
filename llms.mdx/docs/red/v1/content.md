@@ -20,7 +20,7 @@ Eco separa cuatro conceptos que conviene no mezclar:
   </Card>
 
   <Card title="Comunicación" href="/docs/red/v1/comunicacion">
-    RFC, sincronización, destinatarios y decisiones sobre qué información enviar.
+    RMR, RCR, RCL, sincronización y destinatarios.
   </Card>
 
   <Card title="Runtime" href="/docs/red/v1/runtime">
@@ -70,7 +70,7 @@ Para restricciones de plataforma y comportamiento todavía dependiente del proye
   <div className="fd-step">
     ### Elegir el mecanismo de comunicación \[step] [#4-elegir-el-mecanismo-de-comunicación-step]
 
-    Consulta [Comunicación](/docs/red/v1/comunicacion). Como regla general: usa RFC para acciones y `Set`/sincronización para estado.
+    Consulta [Comunicación](/docs/red/v1/comunicacion). Como regla general: usa `RMR` para acciones remotas, `RCR`/`RCL` para creación y sincronización para estado.
   </div>
 
   <div className="fd-step">
@@ -99,14 +99,14 @@ Para restricciones de plataforma y comportamiento todavía dependiente del proye
         │
    Componentes
         │
- RFC / Estado
+ RMR / RCR / RCL / Estado
 ```
 
 ## Qué leer después [#qué-leer-después]
 
 <Cards>
   <Card title="Comunicación" href="/docs/red/v1/comunicacion">
-    Decide entre RFC, estado sincronizado y destinatarios.
+    Decide entre RMR, creación remota/local, estado sincronizado y destinatarios.
   </Card>
 
   <Card title="Transporte" href="/docs/red/v1/transporte">

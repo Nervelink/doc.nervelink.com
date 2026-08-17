@@ -65,8 +65,11 @@
       - [Ownership y transferencia](/docs/red/v1/modelo/ownership-y-transferencia): Propiedad de objetos, autoridad, IDs de red y transferencia entre canales en Eco.
     - Comunicación
       - [Comunicación](/docs/red/v1/comunicacion): Cómo Eco decide qué comunicar, a quién, con qué mecanismo y cómo conservar el estado.
-      - [RFC](/docs/red/v1/comunicacion/rfc): Llamadas de funciones remotas en Eco.
-      - [RFC avanzadas](/docs/red/v1/comunicacion/rfc-avanzadas): RFC, llamadas persistentes, respuesta y patrones de comunicación de Eco.
+      - [RMR](/docs/red/v1/comunicacion/rmr): Red Método Remoto, el mecanismo de Eco para ejecutar métodos en otro contexto de red.
+      - [RCR](/docs/red/v1/comunicacion/rcr): Red Creación Remota, el mecanismo de Eco para crear objetos sincronizados desde la red.
+      - [RCL](/docs/red/v1/comunicacion/rcl): Red Creación Local, el mecanismo de Eco para solicitar una creación local dentro del flujo de red.
+      - [RFC → RMR](/docs/red/v1/comunicacion/rfc): Compatibilidad terminológica entre TNet y Eco para las llamadas de métodos remotos.
+      - [RMR avanzadas](/docs/red/v1/comunicacion/rfc-avanzadas): RMR, llamadas persistentes, respuesta y patrones avanzados de comunicación de Eco.
       - [Sincronización](/docs/red/v1/comunicacion/sincronizacion): Cómo Eco mantiene el estado de objetos y propiedades coherente entre participantes.
       - [Sincronización avanzada](/docs/red/v1/comunicacion/sincronizacion-avanzada): Cómo tratar cambios de estado, colas pendientes y autoridad en objetos de red.
       - [Destinatarios](/docs/red/v1/comunicacion/destinatarios): Cómo Eco determina quién recibe un mensaje dentro de un canal.

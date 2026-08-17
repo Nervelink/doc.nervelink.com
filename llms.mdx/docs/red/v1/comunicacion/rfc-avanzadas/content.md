@@ -1,42 +1,42 @@
-# RFC avanzadas (/docs/red/v1/comunicacion/rfc-avanzadas)
+# RMR avanzadas (/docs/red/v1/comunicacion/rfc-avanzadas)
 
 
 
-# RFC avanzadas [#rfc-avanzadas]
+# RMR avanzadas [#rmr-avanzadas]
 
-Las RFC (Remote Function Calls) son el mecanismo principal de Eco para ejecutar una función en otro extremo de la sesión. Una RFC describe una acción o notificación; no debe utilizarse como sustituto de un estado que necesita mantenerse sincronizado.
+Las &#x2A;*RMR (Red Método Remoto)** son el mecanismo de Eco para ejecutar un método en otro extremo de la sesión. Una RMR describe una acción o notificación; no debe utilizarse como sustituto de un estado que necesita mantenerse sincronizado.
 
-## RFC básica [#rfc-básica]
+## RMR básica [#rmr-básica]
 
-Una función marcada como RFC puede ser invocada a través del `Objeto` que contiene el componente:
+Una operación remota se invoca a través del `Objeto` que contiene el `Componente` correspondiente.
 
 ```csharp
-[RFC]
-void RecibirDaño(int cantidad)
+public class MiUnidad : Componente
 {
-    vida -= cantidad;
+    public void RecibirDaño(int cantidad)
+    {
+        vida -= cantidad;
+    }
 }
 ```
 
-La llamada transporta la identidad del objeto, el identificador o nombre de la RFC y sus parámetros.
+La llamada transporta la identidad del objeto, el método remoto y sus parámetros según el protocolo de Eco.
 
 ## Destinatarios [#destinatarios]
 
-Eco hereda el modelo de objetivos de TNet. Entre los casos habituales están:
+La selección del destino forma parte de la semántica de la operación y debe hacerse explícitamente:
 
 ```text
 Todos los jugadores
 Todos excepto el emisor
 Un jugador concreto
 Un conjunto de jugadores
-Solo el estado persistente
+Solo estado persistente
 ```
 
-La selección del destino forma parte de la semántica de la llamada y debe hacerse explícitamente.
+## RMR persistente [#rmr-persistente]
 
-## RFC persistente [#rfc-persistente]
-
-Una RFC normal representa un evento puntual. Una RFC guardada representa una operación que además queda registrada en el estado del canal para que pueda reproducirse cuando corresponda.
+Una RMR normal representa un evento puntual. Una RMR guardada representa una operación que además queda registrada como parte del estado necesario para reconstruir la sesión.
 
 Esto es útil para:
 
@@ -44,40 +44,50 @@ Esto es útil para:
 * registrar una acción que nuevos jugadores necesitan reconstruir;
 * almacenar una operación en el orden en que debe restaurarse.
 
-No conviene guardar indiscriminadamente todas las acciones: el historial persistente debe ser suficientemente pequeño y determinista.
+No conviene guardar indiscriminadamente todas las operaciones: el historial persistente debe ser pequeño y determinista.
 
-## RFC sin eco al cliente [#rfc-sin-eco-al-cliente]
+## RMR sin eco al cliente [#rmr-sin-eco-al-cliente]
 
-TNet incluye un modo `NoneSaved` para almacenar una RFC en servidor sin reenviarla a los clientes actuales. Eco conserva la idea: permite guardar datos para futuros participantes sin convertirlos en un evento inmediato para todos.
+Eco conserva el concepto heredado `NoneSaved`: una operación puede quedar almacenada para futuras reconstrucciones sin reenviarse como evento inmediato a los clientes actuales.
 
 ## Esperar confirmación [#esperar-confirmación]
 
-El flujo de red puede necesitar esperar a que llamadas previas hayan terminado antes de continuar con una operación dependiente. TNet documenta `WaitForBounceBack` para este escenario, y Eco debe tratar este patrón como una herramienta de coordinación, no como un bloqueo del hilo principal.
+Una operación dependiente puede necesitar esperar a que una operación previa haya sido procesada. El material upstream denomina `WaitForBounceBack` a uno de estos patrones. En Eco debe entenderse como coordinación de red y no como un bloqueo del hilo principal.
 
-## RFC frente a sincronización [#rfc-frente-a-sincronización]
+## RMR frente a sincronización [#rmr-frente-a-sincronización]
 
 | Necesidad                              | Mecanismo                         |
 | -------------------------------------- | --------------------------------- |
-| Ejecutar una acción una vez            | RFC                               |
-| Notificar un evento                    | RFC                               |
+| Ejecutar una acción una vez            | RMR                               |
+| Notificar un evento                    | RMR                               |
 | Mantener una propiedad sincronizada    | `Set` / sincronización            |
-| Restaurar estado para nuevos jugadores | datos persistentes / RFC guardada |
-| Enviar una orden a un jugador concreto | RFC con destinatario explícito    |
+| Restaurar estado para nuevos jugadores | datos persistentes / RMR guardada |
+| Enviar una orden a un jugador concreto | RMR con destinatario explícito    |
 
 ## Errores habituales [#errores-habituales]
 
-No uses una RFC para enviar la posición de una unidad cada frame si lo que realmente quieres es sincronizar su estado. Tampoco asumas que llamar una RFC significa que el emisor es necesariamente el propietario del objeto: la autoridad debe comprobarse según el flujo de la operación.
+No uses una RMR para enviar la posición de una unidad cada frame si lo que realmente necesitas es sincronizar estado. Tampoco asumas que invocar una RMR convierte al emisor en propietario del objeto: la autoridad debe comprobarse según el flujo de la operación.
+
+## Relación con TNet [#relación-con-tnet]
+
+| Eco   | TNet  |
+| ----- | ----- |
+| `RMR` | `RFC` |
+| `RCR` | `RCC` |
+| `RCL` | `LCR` |
+
+Las siglas de TNet se conservan aquí únicamente para facilitar la migración.
 
 ## Referencias [#referencias]
 
-<Card title="Comunicación" href="/docs/red/v1/comunicacion">
-  Modelo general de comunicación de Eco.
+<Card title="RMR" href="/docs/red/v1/comunicacion/rmr">
+  Referencia normativa de Red Método Remoto.
+</Card>
+
+<Card title="RCR" href="/docs/red/v1/comunicacion/rcr">
+  Creación remota de objetos.
 </Card>
 
 <Card title="Destinatarios" href="/docs/red/v1/comunicacion/destinatarios">
-  Selección de receptores y alcance de una llamada.
-</Card>
-
-<Card title="TNet upstream" href="https://github.com/tasharen/tnet">
-  Implementación de referencia heredada.
+  Selección de receptores y alcance de una operación.
 </Card>

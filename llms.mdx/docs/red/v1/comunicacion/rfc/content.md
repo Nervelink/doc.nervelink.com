@@ -1,110 +1,35 @@
-# RFC (/docs/red/v1/comunicacion/rfc)
+# RFC → RMR (/docs/red/v1/comunicacion/rfc)
 
 
 
-# RFC [#rfc]
+# RFC → RMR [#rfc--rmr]
 
-Una RFC (*Remote Function Call*) representa una llamada a una función asociada a un `Objeto` que debe ejecutarse remotamente.
+Esta página conserva la ruta histórica `rfc` para no romper enlaces antiguos, pero la terminología normativa de Eco es **RMR — Red Método Remoto**.
 
-<Callout title="Acción, no estado" type="info">
-  Una RFC es adecuada para comunicar que debe ocurrir algo. Para representar el valor actual de una propiedad conviene utilizar los mecanismos de estado y sincronización.
+```text
+TNet
+RFC — Remote Function Call
+        ↓
+Eco
+RMR — Red Método Remoto
+```
+
+<Callout title="Usa RMR en Eco" type="info">
+  Cuando escribas código, documentación o arquitectura para Eco, utiliza `RMR`. La palabra `RFC` sólo debe aparecer al hablar de TNet, migración o compatibilidad histórica.
 </Callout>
 
-## Estructura [#estructura]
-
-Eco conserva las RFC dentro del contexto del `Canal`. Cada entrada contiene, conceptualmente:
-
-```text
-RFC
-├── uid
-├── functionName
-└── data
-```
-
-El identificador permite localizar el objeto y la función. Cuando la llamada no utiliza un identificador numérico, se conserva el nombre de la función.
-
-## Flujo [#flujo]
-
-```text
-Componente
-   ↓
-Objeto
-   ↓
-RFC
-   ↓
-Paquete
-   ↓
-Servidor
-   ↓
-Destinatarios
-   ↓
-Objeto remoto
-```
-
-El canal forma parte del contexto de la comunicación, por lo que una RFC no debe entenderse como un mensaje global independiente de la sesión.
-
-## RFC identificadas por nombre o ID [#rfc-identificadas-por-nombre-o-id]
-
-Eco puede trabajar con funciones identificadas mediante un ID compacto o mediante nombre. El nombre se utiliza cuando el identificador de función es `0`.
-
-Esto permite mantener una comunicación más compacta cuando existe un identificador estable, dejando el nombre para los casos dinámicos o no registrados mediante ID.
-
-## Persistencia [#persistencia]
-
-Algunas RFC pueden conservarse como parte del estado de un objeto o canal. `Canal` almacena las RFC asociadas a objetos dinámicos y puede exportarlas junto con los datos de creación del objeto.
-
-Por tanto, una RFC persistente puede formar parte del estado necesario para reconstruir un objeto, no solamente de una cola temporal de mensajes.
-
-## RFC desde un `Componente` [#rfc-desde-un-componente]
-
-Los componentes trabajan normalmente a través del `Objeto` asociado:
-
-```csharp
-public class MiUnidad : Componente
-{
-    public void Atacar()
-    {
-        ero.Send("Atacar", Objetivo.Otros);
-    }
-}
-```
-
-`Componente` también proporciona acceso de conveniencia a la instanciación, destrucción y datos del objeto.
-
-## Cuándo utilizar una RFC [#cuándo-utilizar-una-rfc]
-
-Utiliza RFC cuando el mensaje representa una acción o evento puntual:
-
-| Situación                                    | RFC               |
-| -------------------------------------------- | ----------------- |
-| Solicitar un ataque                          | Sí                |
-| Reproducir una acción                        | Sí                |
-| Ejecutar una habilidad                       | Sí                |
-| Notificar un evento puntual                  | Sí                |
-| Mantener `vida = 75`                         | No necesariamente |
-| Sincronizar una transformación continuamente | No                |
-
-## Relación con TNet [#relación-con-tnet]
-
-| Eco          | TNet                    |
-| ------------ | ----------------------- |
-| RFC          | RFC                     |
-| `Objeto`     | `TNObject`              |
-| `Componente` | `TNBehaviour`           |
-| `Canal`      | `TNChannel` / `Channel` |
-
-La correspondencia sirve para trasladar conocimientos de TNet, pero la referencia normativa es el código de Eco.
-
-## Referencias [#referencias]
-
-<Card title="Eco" href="https://github.com/Nervelink/eco">
-  Implementación actual de Eco.
+<Card title="Ir a RMR" href="/docs/red/v1/comunicacion/rmr">
+  Consulta la documentación normativa de Red Método Remoto.
 </Card>
 
-<Card title="TNet" href="https://github.com/tasharen/tnet">
-  Repositorio upstream.
-</Card>
+## Tabla de equivalencias completa [#tabla-de-equivalencias-completa]
 
-<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
-  Referencia generada sobre el repositorio actual de TNet.
-</Card>
+| TNet  | Eco   | Significado         |
+| ----- | ----- | ------------------- |
+| `RCC` | `RCR` | Red Creación Remota |
+| `RFC` | `RMR` | Red Método Remoto   |
+| `LCR` | `RCL` | Red Creación Local  |
+
+## Por qué no se cambia la URL [#por-qué-no-se-cambia-la-url]
+
+La ruta `/comunicacion/rfc` puede estar enlazada desde documentación antigua o proyectos que ya utilicen la documentación. Mantener esta página como puente evita enlaces rotos mientras la terminología visible de Eco utiliza `RMR`.

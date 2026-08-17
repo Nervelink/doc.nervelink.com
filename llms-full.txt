@@ -1,10 +1,10 @@
-# CID (/docs/cid/v1)
+# Cámara (/docs/camara/v1)
 
 
 
-# CID [#cid]
+# Cámara [#cámara]
 
-Documentación del sistema CID.
+Documentación del sistema Cámara.
 
 Esta sección está preparada para incorporar conceptos, guías, API, ejemplos y referencia técnica.
 
@@ -20,17 +20,6 @@ Documentación del sistema Dev.
 Esta sección está preparada para incorporar conceptos, guías, API, ejemplos y referencia técnica.
 
 
-# Diálogo (/docs/dialogo/v1)
-
-
-
-# Diálogo [#diálogo]
-
-Documentación del sistema Diálogo.
-
-Esta sección está preparada para incorporar conceptos, guías, API, ejemplos y referencia técnica.
-
-
 # Inventario (/docs/inventario/v1)
 
 
@@ -38,6 +27,17 @@ Esta sección está preparada para incorporar conceptos, guías, API, ejemplos y
 # Inventario [#inventario]
 
 Documentación del sistema Inventario.
+
+Esta sección está preparada para incorporar conceptos, guías, API, ejemplos y referencia técnica.
+
+
+# Diálogo (/docs/dialogo/v1)
+
+
+
+# Diálogo [#diálogo]
+
+Documentación del sistema Diálogo.
 
 Esta sección está preparada para incorporar conceptos, guías, API, ejemplos y referencia técnica.
 
@@ -64,63 +64,6 @@ Documentación del sistema Motor.
 Esta sección está preparada para incorporar conceptos, guías, API, ejemplos y referencia técnica.
 
 
-# Inicio Rápido (/docs/nucleo/v1)
-
-
-
-## Compatibilidad [#compatibilidad]
-
-En primer lugar, asegúrar que se cumplen los requisitos.
-
-<Tabs items="['Versión Unity', 'Plataformas', 'Sistema Entrada', 'Renderizado']">
-  <Tab value="Versión Unity">
-    Totalmente compatible con:<br />
-    ✅ Unity 6 (6000.x)<br /><br />
-    No compatible con:<br />
-    🟥 Unity 2022.3 y versiones anteriores
-  </Tab>
-
-  <Tab value="Plataformas">
-    ✅ Todas las plataformas
-  </Tab>
-
-  <Tab value="Sistema Entrada">
-    ✅ Rewired<br />
-    🟥 Sistema de entrada (nuevo)<br />
-    ✅ Sistema de entrada (viejo)<br />
-  </Tab>
-
-  <Tab value="Renderizado">
-    ✅ Integrado<br />
-    ✅ URP<br />
-    ✅ HDRP<br />
-  </Tab>
-</Tabs>
-
-## Configuración inicial [#configuración-inicial]
-
-Como todo sistema, antes de iniciar hay que configurar unos mínimos en el motor de Unity. En esta sección se expone todo lo necesarios, si hay algún sistema que no se usa en cada una de las secciones del sistema habrá un apartado de configuración en donde aparece lo necesario para revertir esa parte.
-
-## sad [#sad]
-
-### sad [#sad-1]
-
-asdasdasd
-
-### sad [#sad-2]
-
-asdsad
-
-
-# Sistemas (/docs/nucleo/v1/sistemas)
-
-
-
-# sadsad [#sadsad]
-
-asdsd
-
-
 # Inicio (/docs/nucleo/v2)
 
 
@@ -128,17 +71,6 @@ asdsd
 # Núcleo v2 (Preview) [#núcleo-v2-preview]
 
 Esta versión está en desarrollo.
-
-
-# NVH (/docs/nvh/v1)
-
-
-
-# NVH [#nvh]
-
-Documentación de NVH.
-
-Esta sección está preparada para organizar la documentación por fundamentos, guías, referencia y funciones avanzadas.
 
 
 # NVS (/docs/nvs/v1)
@@ -152,15 +84,15 @@ Documentación de NVS.
 Esta sección está preparada para organizar la documentación por fundamentos, guías, referencia y funciones avanzadas.
 
 
-# Personaje (/docs/personaje/v1)
+# NVH (/docs/nvh/v1)
 
 
 
-# Personaje [#personaje]
+# NVH [#nvh]
 
-Documentación del sistema Personaje.
+Documentación de NVH.
 
-Esta sección está preparada para incorporar conceptos, guías, API, ejemplos y referencia técnica.
+Esta sección está preparada para organizar la documentación por fundamentos, guías, referencia y funciones avanzadas.
 
 
 # Inicio Rápido (/docs/red/v1)
@@ -185,7 +117,7 @@ Eco separa cuatro conceptos que conviene no mezclar:
   </Card>
 
   <Card title="Comunicación" href="/docs/red/v1/comunicacion">
-    RFC, sincronización, destinatarios y decisiones sobre qué información enviar.
+    RMR, RCR, RCL, sincronización y destinatarios.
   </Card>
 
   <Card title="Runtime" href="/docs/red/v1/runtime">
@@ -235,7 +167,7 @@ Para restricciones de plataforma y comportamiento todavía dependiente del proye
   <div className="fd-step">
     ### Elegir el mecanismo de comunicación \[step] [#4-elegir-el-mecanismo-de-comunicación-step]
 
-    Consulta [Comunicación](/docs/red/v1/comunicacion). Como regla general: usa RFC para acciones y `Set`/sincronización para estado.
+    Consulta [Comunicación](/docs/red/v1/comunicacion). Como regla general: usa `RMR` para acciones remotas, `RCR`/`RCL` para creación y sincronización para estado.
   </div>
 
   <div className="fd-step">
@@ -264,14 +196,14 @@ Para restricciones de plataforma y comportamiento todavía dependiente del proye
         │
    Componentes
         │
- RFC / Estado
+ RMR / RCR / RCL / Estado
 ```
 
 ## Qué leer después [#qué-leer-después]
 
 <Cards>
   <Card title="Comunicación" href="/docs/red/v1/comunicacion">
-    Decide entre RFC, estado sincronizado y destinatarios.
+    Decide entre RMR, creación remota/local, estado sincronizado y destinatarios.
   </Card>
 
   <Card title="Transporte" href="/docs/red/v1/transporte">
@@ -722,56 +654,83 @@ Esta sección está preparada para incorporar conceptos, guías, API, ejemplos y
 Texto aquí.
 
 
-# Cámara (/docs/camara/v1)
+# CID (/docs/cid/v1)
 
 
 
-# Cámara [#cámara]
+# CID [#cid]
 
-Documentación del sistema Cámara.
+Documentación del sistema CID.
 
 Esta sección está preparada para incorporar conceptos, guías, API, ejemplos y referencia técnica.
 
 
-# Alexandria (/docs/nucleo/v1/sistemas/alexandria)
+# Inicio Rápido (/docs/nucleo/v1)
 
 
 
-# Alexandria [#alexandria]
+## Compatibilidad [#compatibilidad]
 
-Alexandria es el núcleo de inicialización del motor. Su función es descubrir, instanciar y coordinar todos los sistemas del juego de forma automática mediante reflexión.
+En primer lugar, asegúrar que se cumplen los requisitos.
 
-## Responsabilidad principal [#responsabilidad-principal]
+<Tabs items="['Versión Unity', 'Plataformas', 'Sistema Entrada', 'Renderizado']">
+  <Tab value="Versión Unity">
+    Totalmente compatible con:<br />
+    ✅ Unity 6 (6000.x)<br /><br />
+    No compatible con:<br />
+    🟥 Unity 2022.3 y versiones anteriores
+  </Tab>
 
-* Descubrir sistemas marcados con `SistemaAttribute`
-* Instanciar sistemas como `MonoBehaviour`
-* Ordenar la inicialización por prioridad
-* Garantizar ciclo de vida controlado (Init / Update / Shutdown)
+  <Tab value="Plataformas">
+    ✅ Todas las plataformas
+  </Tab>
 
-***
+  <Tab value="Sistema Entrada">
+    ✅ Rewired<br />
+    🟥 Sistema de entrada (nuevo)<br />
+    ✅ Sistema de entrada (viejo)<br />
+  </Tab>
 
-## Sistema de descubrimiento [#sistema-de-descubrimiento]
+  <Tab value="Renderizado">
+    ✅ Integrado<br />
+    ✅ URP<br />
+    ✅ HDRP<br />
+  </Tab>
+</Tabs>
 
-Alexandria utiliza reflexión sobre el ensamblado actual:
+## Configuración inicial [#configuración-inicial]
 
-* Filtra clases concretas (no abstractas)
-* Requiere `MonoBehaviour`
-* Requiere implementación de `ISistema`
-* Requiere `SistemaAttribute`
+Como todo sistema, antes de iniciar hay que configurar unos mínimos en el motor de Unity. En esta sección se expone todo lo necesarios, si hay algún sistema que no se usa en cada una de las secciones del sistema habrá un apartado de configuración en donde aparece lo necesario para revertir esa parte.
 
-Esto permite registro automático sin configuración manual.
+## sad [#sad]
 
-***
+### sad [#sad-1]
 
-## Sistema de atributos [#sistema-de-atributos]
+asdasdasd
 
-### SistemaAttribute [#sistemaattribute]
+### sad [#sad-2]
 
-Define metadata del sistema.
+asdsad
 
-```csharp
-[Sistema(int prioridad, string nombre)]
-```
+
+# Sistemas (/docs/nucleo/v1/sistemas)
+
+
+
+# sadsad [#sadsad]
+
+asdsd
+
+
+# Personaje (/docs/personaje/v1)
+
+
+
+# Personaje [#personaje]
+
+Documentación del sistema Personaje.
+
+Esta sección está preparada para incorporar conceptos, guías, API, ejemplos y referencia técnica.
 
 
 # Destinatarios (/docs/red/v1/comunicacion/destinatarios)
@@ -888,152 +847,297 @@ Eco conserva el modelo de objetivos de TNet, pero utiliza la nomenclatura propia
 
 # Comunicación [#comunicación]
 
-La comunicación de Eco se divide en dos problemas: **ejecutar algo** y **mantener algo sincronizado**. Las RFC resuelven principalmente el primero; `Set`, `Nodo` y los sistemas de sincronización resuelven el segundo.
+La comunicación de Eco distingue entre **creación**, **ejecución de métodos** y **sincronización de estado**. La terminología pública actual es:
 
-<Callout title="Primero decide qué quieres comunicar" type="idea">
-  No empieces por `Send`. Empieza por definir si estás enviando una acción, un estado, una respuesta o información que debe persistir para futuros participantes.
+```text
+RCR  → Red Creación Remota
+RMR  → Red Método Remoto
+RCL  → Red Creación Local
+```
+
+<Callout title="Terminología normativa de Eco" type="info">
+  Si vienes de TNet, verás que `RCC`, `RFC` y `LCR` han sido refactorizados en Eco como `RCR`, `RMR` y `RCL`, respectivamente. En esta documentación usamos siempre los nombres de Eco salvo cuando explicamos compatibilidad histórica.
 </Callout>
 
 <Cards>
-  <Card title="RFC" href="/docs/red/v1/comunicacion/rfc">
-    Ejecutar acciones o notificaciones remotas.
+  <Card title="RMR" href="/docs/red/v1/comunicacion/rmr">
+    Ejecutar un método remotamente.
+  </Card>
+
+  <Card title="RCR" href="/docs/red/v1/comunicacion/rcr">
+    Crear un objeto mediante la red.
+  </Card>
+
+  <Card title="RCL" href="/docs/red/v1/comunicacion/rcl">
+    Solicitud de creación local dentro del flujo de red.
   </Card>
 
   <Card title="Sincronización" href="/docs/red/v1/comunicacion/sincronizacion">
     Mantener propiedades y datos de una entidad coherentes entre participantes.
-  </Card>
-
-  <Card title="Destinatarios" href="/docs/red/v1/comunicacion/destinatarios">
-    Determinar quién debe recibir una operación.
-  </Card>
-
-  <Card title="Comunicación avanzada" href="/docs/red/v1/comunicacion/rfc-avanzadas">
-    RFC persistentes, coordinación y patrones heredados de TNet que Eco mantiene.
   </Card>
 </Cards>
 
 ## Árbol de decisión [#árbol-de-decisión]
 
 ```text
-¿Qué representa el mensaje?
+¿Qué representa la operación?
         │
-        ├── Acción puntual ───────────► RFC
+        ├── Crear objeto remotamente ───► RCR
         │
-        ├── Propiedad / estado ───────► Set / Sync
+        ├── Ejecutar un método remoto ──► RMR
         │
-        ├── Estado para futuros users ─► persistencia
+        ├── Solicitar creación local ───► RCL
         │
-        └── Operación de protocolo ───► Paquete
+        ├── Mantener estado ─────────────► Set / Sync
+        │
+        ├── Conservar estado ────────────► Persistencia
+        │
+        └── Operación de protocolo ──────► Paquete
 ```
 
-## Flujo de una RFC [#flujo-de-una-rfc]
+## Creación frente a método [#creación-frente-a-método]
 
-<div className="fd-steps">
-  <div className="fd-step">
-    ### Definir la operación [#definir-la-operación-step]
+Crear una entidad y ejecutar una operación sobre una entidad existente son problemas distintos.
 
-    Declara la función remota en un `Componente` asociado a un `Objeto`.
-  </div>
+```text
+RCR / RCL
+   ↓
+Existe el objeto
+   ↓
+RMR
+   ↓
+Ejecuta un método
+```
 
-  <div className="fd-step">
-    ### Elegir el alcance [#elegir-el-alcance-step]
+No utilices un método remoto como sustituto conceptual de la creación de una entidad.
 
-    Determina si deben recibirla todos, otros jugadores, un jugador concreto o un conjunto determinado.
-  </div>
+## Estado frente a operaciones remotas [#estado-frente-a-operaciones-remotas]
 
-  <div className="fd-step">
-    ### Serializar los parámetros [#serializar-los-parámetros-step]
-
-    Eco transforma los parámetros en datos transportables sin que el gameplay necesite construir directamente el `Buffer`.
-  </div>
-
-  <div className="fd-step">
-    ### Procesar en destino [#procesar-en-destino-step]
-
-    El receptor resuelve el objeto, localiza la RFC y ejecuta la función correspondiente.
-  </div>
-</div>
-
-## Estado frente a eventos [#estado-frente-a-eventos]
-
-<Tabs items="['RFC', 'Estado']">
-  <Tab value="RFC">
-    Usa RFC para hechos puntuales: disparar un arma, abrir una puerta, reproducir una animación o solicitar una acción.
+<Tabs items="['RMR', 'Estado', 'RCR / RCL']">
+  <Tab value="RMR">
+    Usa `RMR` para acciones, comandos o hechos puntuales que requieren ejecutar un método remoto.
   </Tab>
 
   <Tab value="Estado">
     Usa sincronización para valores que deben poder consultarse en cualquier momento: vida, inventario, configuración o estado de una entidad.
   </Tab>
+
+  <Tab value="RCR / RCL">
+    Usa los mecanismos de creación cuando necesitas incorporar una entidad al modelo de red.
+  </Tab>
 </Tabs>
 
 ## Autoridad [#autoridad]
 
-La comunicación no elimina la autoridad. Un cliente puede solicitar una operación, pero el servidor y el propietario del objeto siguen siendo parte del diseño de seguridad y consistencia.
+La comunicación no elimina la autoridad. Un cliente puede solicitar una operación, pero la autoridad de la partida y las reglas de validación siguen siendo parte del diseño de seguridad y consistencia.
 
 <Callout title="No confíes en el cliente" type="warn">
-  La validación importante debe permanecer en el lado que controla la autoridad real. Una RFC recibida correctamente no significa que la acción sea válida desde las reglas del juego.
+  Que una operación llegue correctamente por red no significa que sea válida. La validación importante debe permanecer en el lado que controla la autoridad real.
 </Callout>
+
+## Relación con TNet [#relación-con-tnet]
+
+| Eco   | TNet  | Significado         |
+| ----- | ----- | ------------------- |
+| `RCR` | `RCC` | Red Creación Remota |
+| `RMR` | `RFC` | Red Método Remoto   |
+| `RCL` | `LCR` | Red Creación Local  |
+
+Consulta [Migración de TNet a Eco](/docs/red/v1/ingenieria/migracion-tnet-eco) para más diferencias.
 
 ## Referencias [#referencias]
 
 <Cards>
-  <Card title="RFC" href="/docs/red/v1/comunicacion/rfc">
-    Sintaxis y ciclo de una llamada remota.
+  <Card title="RMR" href="/docs/red/v1/comunicacion/rmr">
+    Red Método Remoto.
   </Card>
 
-  <Card title="Sincronización" href="/docs/red/v1/comunicacion/sincronizacion">
-    Estado, `Set`, `Get` y colas de sincronización.
+  <Card title="RCR" href="/docs/red/v1/comunicacion/rcr">
+    Red Creación Remota.
+  </Card>
+
+  <Card title="RCL" href="/docs/red/v1/comunicacion/rcl">
+    Red Creación Local.
   </Card>
 
   <Card title="Destinatarios" href="/docs/red/v1/comunicacion/destinatarios">
-    Objetivos de una comunicación.
-  </Card>
-
-  <Card title="Guía: Enviar una acción" href="/docs/red/v1/guias/enviar-accion">
-    Workflow práctico para una RFC.
+    Decide quién debe recibir una operación.
   </Card>
 </Cards>
 
 
-# RFC avanzadas (/docs/red/v1/comunicacion/rfc-avanzadas)
+# RCL (/docs/red/v1/comunicacion/rcl)
 
 
 
-# RFC avanzadas [#rfc-avanzadas]
+# RCL — Red Creación Local [#rcl--red-creación-local]
 
-Las RFC (Remote Function Calls) son el mecanismo principal de Eco para ejecutar una función en otro extremo de la sesión. Una RFC describe una acción o notificación; no debe utilizarse como sustituto de un estado que necesita mantenerse sincronizado.
+En Eco, el concepto histórico `LCR` (*Local Creation Request / Call*) de TNet se denomina **RCL — Red Creación Local**.
 
-## RFC básica [#rfc-básica]
+```text
+TNet                           Eco
+────────────────────────────────────────
+LCR  Local Creation Request   →  RCL  Red Creación Local
+     / Call
+```
 
-Una función marcada como RFC puede ser invocada a través del `Objeto` que contiene el componente:
+RCL pertenece al conjunto de mecanismos de creación y sirve para representar la solicitud de que una entidad sea creada localmente en el contexto adecuado de red.
+
+## Diferencia con RCR [#diferencia-con-rcr]
+
+```text
+RCL
+ ↓
+Solicitud de creación local
+
+RCR
+ ↓
+Creación remota de un objeto
+```
+
+La diferencia no debe entenderse únicamente como «cliente» frente a «servidor». Lo relevante es quién origina la operación y qué parte del flujo de creación debe resolverse de forma local o remota.
+
+## Ciclo conceptual [#ciclo-conceptual]
+
+```text
+Componente / sistema
+        ↓
+       RCL
+        ↓
+Resolver contexto local
+        ↓
+Crear / registrar objeto
+        ↓
+Integrarlo en Eco
+```
+
+## Cuándo documentarlo [#cuándo-documentarlo]
+
+RCL es especialmente útil cuando se describen workflows de creación donde el código local inicia la incorporación de una entidad al modelo de red.
+
+Para una integración habitual, el desarrollador debería pensar primero en el resultado deseado —crear un objeto de red válido— y después elegir el mecanismo de creación adecuado.
+
+<Cards>
+  <Card title="RCR" href="/docs/red/v1/comunicacion/rcr">
+    Red Creación Remota.
+  </Card>
+
+  <Card title="RMR" href="/docs/red/v1/comunicacion/rmr">
+    Red Método Remoto.
+  </Card>
+
+  <Card title="Instanciar y destruir" href="/docs/red/v1/guias/instanciar-destruir">
+    Workflow práctico del ciclo de vida de un objeto.
+  </Card>
+</Cards>
+
+
+# RCR (/docs/red/v1/comunicacion/rcr)
+
+
+
+# RCR — Red Creación Remota [#rcr--red-creación-remota]
+
+En Eco, el concepto histórico `RCC` (*Remote Creation Call*) de TNet se denomina **RCR — Red Creación Remota**.
+
+```text
+TNet                       Eco
+────────────────────────────────────
+RCC  Remote Creation Call  →  RCR  Red Creación Remota
+```
+
+RCR se utiliza para resolver la creación de objetos que deben existir y ser conocidos por los participantes de una sesión.
+
+<Callout title="No confundir con RCL" type="info">
+  `RCR` describe la creación remota de un objeto. `RCL` describe una solicitud de creación local dentro del modelo de red de Eco.
+</Callout>
+
+## Ciclo conceptual [#ciclo-conceptual]
+
+```text
+Solicitud / condición de creación
+        ↓
+      RCR
+        ↓
+Servidor / autoridad
+        ↓
+Creación del Objeto
+        ↓
+Registro
+        ↓
+Distribución a participantes
+```
+
+## Cuándo aparece [#cuándo-aparece]
+
+RCR es relevante para:
+
+* aparición de unidades;
+* creación de torres;
+* generación de objetos persistentes;
+* creación de objetos durante la restauración de una partida;
+* sistemas que reciben una orden de creación desde la red.
+
+La creación no debe reducirse a instanciar un `GameObject`: Eco también debe establecer la identidad, el canal, el registro y el estado necesario del objeto.
+
+## Relación con Eco [#relación-con-eco]
+
+RCR pertenece a la capa de creación de objetos de red. El gameplay debería expresar qué entidad necesita existir y dejar que la infraestructura de Eco resuelva el registro y la distribución.
+
+<Cards>
+  <Card title="RMR" href="/docs/red/v1/comunicacion/rmr">
+    Ejecutar un método remoto sobre una entidad existente.
+  </Card>
+
+  <Card title="RCL" href="/docs/red/v1/comunicacion/rcl">
+    Solicitud de creación local.
+  </Card>
+
+  <Card title="Objetos" href="/docs/red/v1/modelo/objetos">
+    Identidad, ownership y ciclo de vida de los objetos de Eco.
+  </Card>
+</Cards>
+
+
+# RMR avanzadas (/docs/red/v1/comunicacion/rfc-avanzadas)
+
+
+
+# RMR avanzadas [#rmr-avanzadas]
+
+Las &#x2A;*RMR (Red Método Remoto)** son el mecanismo de Eco para ejecutar un método en otro extremo de la sesión. Una RMR describe una acción o notificación; no debe utilizarse como sustituto de un estado que necesita mantenerse sincronizado.
+
+## RMR básica [#rmr-básica]
+
+Una operación remota se invoca a través del `Objeto` que contiene el `Componente` correspondiente.
 
 ```csharp
-[RFC]
-void RecibirDaño(int cantidad)
+public class MiUnidad : Componente
 {
-    vida -= cantidad;
+    public void RecibirDaño(int cantidad)
+    {
+        vida -= cantidad;
+    }
 }
 ```
 
-La llamada transporta la identidad del objeto, el identificador o nombre de la RFC y sus parámetros.
+La llamada transporta la identidad del objeto, el método remoto y sus parámetros según el protocolo de Eco.
 
 ## Destinatarios [#destinatarios]
 
-Eco hereda el modelo de objetivos de TNet. Entre los casos habituales están:
+La selección del destino forma parte de la semántica de la operación y debe hacerse explícitamente:
 
 ```text
 Todos los jugadores
 Todos excepto el emisor
 Un jugador concreto
 Un conjunto de jugadores
-Solo el estado persistente
+Solo estado persistente
 ```
 
-La selección del destino forma parte de la semántica de la llamada y debe hacerse explícitamente.
+## RMR persistente [#rmr-persistente]
 
-## RFC persistente [#rfc-persistente]
-
-Una RFC normal representa un evento puntual. Una RFC guardada representa una operación que además queda registrada en el estado del canal para que pueda reproducirse cuando corresponda.
+Una RMR normal representa un evento puntual. Una RMR guardada representa una operación que además queda registrada como parte del estado necesario para reconstruir la sesión.
 
 Esto es útil para:
 
@@ -1041,69 +1145,111 @@ Esto es útil para:
 * registrar una acción que nuevos jugadores necesitan reconstruir;
 * almacenar una operación en el orden en que debe restaurarse.
 
-No conviene guardar indiscriminadamente todas las acciones: el historial persistente debe ser suficientemente pequeño y determinista.
+No conviene guardar indiscriminadamente todas las operaciones: el historial persistente debe ser pequeño y determinista.
 
-## RFC sin eco al cliente [#rfc-sin-eco-al-cliente]
+## RMR sin eco al cliente [#rmr-sin-eco-al-cliente]
 
-TNet incluye un modo `NoneSaved` para almacenar una RFC en servidor sin reenviarla a los clientes actuales. Eco conserva la idea: permite guardar datos para futuros participantes sin convertirlos en un evento inmediato para todos.
+Eco conserva el concepto heredado `NoneSaved`: una operación puede quedar almacenada para futuras reconstrucciones sin reenviarse como evento inmediato a los clientes actuales.
 
 ## Esperar confirmación [#esperar-confirmación]
 
-El flujo de red puede necesitar esperar a que llamadas previas hayan terminado antes de continuar con una operación dependiente. TNet documenta `WaitForBounceBack` para este escenario, y Eco debe tratar este patrón como una herramienta de coordinación, no como un bloqueo del hilo principal.
+Una operación dependiente puede necesitar esperar a que una operación previa haya sido procesada. El material upstream denomina `WaitForBounceBack` a uno de estos patrones. En Eco debe entenderse como coordinación de red y no como un bloqueo del hilo principal.
 
-## RFC frente a sincronización [#rfc-frente-a-sincronización]
+## RMR frente a sincronización [#rmr-frente-a-sincronización]
 
 | Necesidad                              | Mecanismo                         |
 | -------------------------------------- | --------------------------------- |
-| Ejecutar una acción una vez            | RFC                               |
-| Notificar un evento                    | RFC                               |
+| Ejecutar una acción una vez            | RMR                               |
+| Notificar un evento                    | RMR                               |
 | Mantener una propiedad sincronizada    | `Set` / sincronización            |
-| Restaurar estado para nuevos jugadores | datos persistentes / RFC guardada |
-| Enviar una orden a un jugador concreto | RFC con destinatario explícito    |
+| Restaurar estado para nuevos jugadores | datos persistentes / RMR guardada |
+| Enviar una orden a un jugador concreto | RMR con destinatario explícito    |
 
 ## Errores habituales [#errores-habituales]
 
-No uses una RFC para enviar la posición de una unidad cada frame si lo que realmente quieres es sincronizar su estado. Tampoco asumas que llamar una RFC significa que el emisor es necesariamente el propietario del objeto: la autoridad debe comprobarse según el flujo de la operación.
+No uses una RMR para enviar la posición de una unidad cada frame si lo que realmente necesitas es sincronizar estado. Tampoco asumas que invocar una RMR convierte al emisor en propietario del objeto: la autoridad debe comprobarse según el flujo de la operación.
+
+## Relación con TNet [#relación-con-tnet]
+
+| Eco   | TNet  |
+| ----- | ----- |
+| `RMR` | `RFC` |
+| `RCR` | `RCC` |
+| `RCL` | `LCR` |
+
+Las siglas de TNet se conservan aquí únicamente para facilitar la migración.
 
 ## Referencias [#referencias]
 
-<Card title="Comunicación" href="/docs/red/v1/comunicacion">
-  Modelo general de comunicación de Eco.
+<Card title="RMR" href="/docs/red/v1/comunicacion/rmr">
+  Referencia normativa de Red Método Remoto.
+</Card>
+
+<Card title="RCR" href="/docs/red/v1/comunicacion/rcr">
+  Creación remota de objetos.
 </Card>
 
 <Card title="Destinatarios" href="/docs/red/v1/comunicacion/destinatarios">
-  Selección de receptores y alcance de una llamada.
-</Card>
-
-<Card title="TNet upstream" href="https://github.com/tasharen/tnet">
-  Implementación de referencia heredada.
+  Selección de receptores y alcance de una operación.
 </Card>
 
 
-# RFC (/docs/red/v1/comunicacion/rfc)
+# RFC → RMR (/docs/red/v1/comunicacion/rfc)
 
 
 
-# RFC [#rfc]
+# RFC → RMR [#rfc--rmr]
 
-Una RFC (*Remote Function Call*) representa una llamada a una función asociada a un `Objeto` que debe ejecutarse remotamente.
-
-<Callout title="Acción, no estado" type="info">
-  Una RFC es adecuada para comunicar que debe ocurrir algo. Para representar el valor actual de una propiedad conviene utilizar los mecanismos de estado y sincronización.
-</Callout>
-
-## Estructura [#estructura]
-
-Eco conserva las RFC dentro del contexto del `Canal`. Cada entrada contiene, conceptualmente:
+Esta página conserva la ruta histórica `rfc` para no romper enlaces antiguos, pero la terminología normativa de Eco es **RMR — Red Método Remoto**.
 
 ```text
-RFC
-├── uid
-├── functionName
-└── data
+TNet
+RFC — Remote Function Call
+        ↓
+Eco
+RMR — Red Método Remoto
 ```
 
-El identificador permite localizar el objeto y la función. Cuando la llamada no utiliza un identificador numérico, se conserva el nombre de la función.
+<Callout title="Usa RMR en Eco" type="info">
+  Cuando escribas código, documentación o arquitectura para Eco, utiliza `RMR`. La palabra `RFC` sólo debe aparecer al hablar de TNet, migración o compatibilidad histórica.
+</Callout>
+
+<Card title="Ir a RMR" href="/docs/red/v1/comunicacion/rmr">
+  Consulta la documentación normativa de Red Método Remoto.
+</Card>
+
+## Tabla de equivalencias completa [#tabla-de-equivalencias-completa]
+
+| TNet  | Eco   | Significado         |
+| ----- | ----- | ------------------- |
+| `RCC` | `RCR` | Red Creación Remota |
+| `RFC` | `RMR` | Red Método Remoto   |
+| `LCR` | `RCL` | Red Creación Local  |
+
+## Por qué no se cambia la URL [#por-qué-no-se-cambia-la-url]
+
+La ruta `/comunicacion/rfc` puede estar enlazada desde documentación antigua o proyectos que ya utilicen la documentación. Mantener esta página como puente evita enlaces rotos mientras la terminología visible de Eco utiliza `RMR`.
+
+
+# RMR (/docs/red/v1/comunicacion/rmr)
+
+
+
+# RMR — Red Método Remoto [#rmr--red-método-remoto]
+
+En Eco, el concepto que en TNet se conoce como &#x2A;*RFC (Remote Function Call)** ha sido refactorizado y renombrado como &#x2A;*RMR (Red Método Remoto)**.
+
+```text
+TNet                 Eco
+─────────────────────────────
+RFC  Remote Function Call  →  RMR  Red Método Remoto
+```
+
+La función es conceptualmente similar: invocar un método asociado a un objeto remoto. La nomenclatura que debe utilizar la documentación y el código de Eco es `RMR`.
+
+<Callout title="Terminología de Eco" type="info">
+  En Eco no utilices «RFC» para referirte a la API actual. «RFC» queda reservado para explicar equivalencias históricas con TNet.
+</Callout>
 
 ## Flujo [#flujo]
 
@@ -1112,84 +1258,89 @@ Componente
    ↓
 Objeto
    ↓
-RFC
+RMR
    ↓
 Paquete
    ↓
-Servidor
+Servidor / transporte
    ↓
-Destinatarios
+Destinatario
    ↓
 Objeto remoto
+   ↓
+Método
 ```
 
-El canal forma parte del contexto de la comunicación, por lo que una RFC no debe entenderse como un mensaje global independiente de la sesión.
+## Cuándo utilizar RMR [#cuándo-utilizar-rmr]
 
-## RFC identificadas por nombre o ID [#rfc-identificadas-por-nombre-o-id]
+RMR representa una operación o hecho que debe ejecutarse remotamente. Ejemplos:
 
-Eco puede trabajar con funciones identificadas mediante un ID compacto o mediante nombre. El nombre se utiliza cuando el identificador de función es `0`.
+* solicitar una acción;
+* activar una habilidad;
+* notificar un evento puntual;
+* ordenar una operación de gameplay;
+* coordinar una acción entre participantes.
 
-Esto permite mantener una comunicación más compacta cuando existe un identificador estable, dejando el nombre para los casos dinámicos o no registrados mediante ID.
+Para valores que deben poder consultarse en cualquier momento utiliza estado sincronizado, no RMR como sustituto.
 
-## Persistencia [#persistencia]
+## Identificación [#identificación]
 
-Algunas RFC pueden conservarse como parte del estado de un objeto o canal. `Canal` almacena las RFC asociadas a objetos dinámicos y puede exportarlas junto con los datos de creación del objeto.
+Eco conserva mecanismos heredados de TNet para identificar métodos por nombre o mediante identificadores compactos. El detalle de la representación pertenece al protocolo y no debería formar parte de la lógica de gameplay.
 
-Por tanto, una RFC persistente puede formar parte del estado necesario para reconstruir un objeto, no solamente de una cola temporal de mensajes.
+## Relación con las otras operaciones remotas [#relación-con-las-otras-operaciones-remotas]
 
-## RFC desde un `Componente` [#rfc-desde-un-componente]
+| Operación Eco | Significado         | TNet  |
+| ------------- | ------------------- | ----- |
+| `RCR`         | Red Creación Remota | `RCC` |
+| `RMR`         | Red Método Remoto   | `RFC` |
+| `RCL`         | Red Creación Local  | `LCR` |
 
-Los componentes trabajan normalmente a través del `Objeto` asociado:
+## Ejemplo conceptual [#ejemplo-conceptual]
 
 ```csharp
-public class MiUnidad : Componente
+public class Torre : Componente
 {
-    public void Atacar()
+    public void SolicitarAtaque()
     {
+        // La llamada remota representa una acción.
         ero.Send("Atacar", Objetivo.Otros);
     }
 }
 ```
 
-`Componente` también proporciona acceso de conveniencia a la instanciación, destrucción y datos del objeto.
+La validación de la acción continúa siendo responsabilidad del lado autoritativo correspondiente.
 
-## Cuándo utilizar una RFC [#cuándo-utilizar-una-rfc]
+## RMR no significa «estado sincronizado» [#rmr-no-significa-estado-sincronizado]
 
-Utiliza RFC cuando el mensaje representa una acción o evento puntual:
+No utilices RMR para enviar continuamente valores como:
 
-| Situación                                    | RFC               |
-| -------------------------------------------- | ----------------- |
-| Solicitar un ataque                          | Sí                |
-| Reproducir una acción                        | Sí                |
-| Ejecutar una habilidad                       | Sí                |
-| Notificar un evento puntual                  | Sí                |
-| Mantener `vida = 75`                         | No necesariamente |
-| Sincronizar una transformación continuamente | No                |
+```text
+vida = 80
+vida = 79
+vida = 78
+vida = 77
+...
+```
+
+Ese patrón representa estado. La sincronización de estado debe modelarse como tal.
 
 ## Relación con TNet [#relación-con-tnet]
 
-| Eco          | TNet                    |
-| ------------ | ----------------------- |
-| RFC          | RFC                     |
-| `Objeto`     | `TNObject`              |
-| `Componente` | `TNBehaviour`           |
-| `Canal`      | `TNChannel` / `Channel` |
+TNet conserva la terminología histórica `RFC`. Eco la ha refactorizado como `RMR` para expresar explícitamente que se trata de una red que ejecuta un método remoto.
 
-La correspondencia sirve para trasladar conocimientos de TNet, pero la referencia normativa es el código de Eco.
+<Cards>
+  <Card title="RCR" href="/docs/red/v1/comunicacion/rcr">
+    Creación remota de objetos.
+  </Card>
 
-## Referencias [#referencias]
+  <Card title="RCL" href="/docs/red/v1/comunicacion/rcl">
+    Solicitud de creación local en red.
+  </Card>
 
-<Card title="Eco" href="https://github.com/Nervelink/eco">
-  Implementación actual de Eco.
-</Card>
-
-<Card title="TNet" href="https://github.com/tasharen/tnet">
-  Repositorio upstream.
-</Card>
-
-<Card title="DeepWiki · TNet" href="https://deepwiki.com/tasharen/tnet">
-  Referencia generada sobre el repositorio actual de TNet.
-</Card>
+  <Card title="Sincronización" href="/docs/red/v1/comunicacion/sincronizacion">
+    Estado que debe mantenerse coherente.
+  </Card>
+</Cards>
 
 
 # Sincronización avanzada (/docs/red/v1/comunicacion/sincronizacion-avanzada)
@@ -7055,18 +7206,43 @@ Un sistema de suavizado debe considerarse una capa de presentación. No debería
 
 Eco conserva la arquitectura conceptual de TNet, pero utiliza una terminología propia y puede incorporar cambios de comportamiento respecto al material histórico.
 
-| TNet        | Eco        |
-| ----------- | ---------- |
-| TNManager   | Eco        |
-| TNObject    | Objeto     |
-| TNComponent | Componente |
-| Channel     | Canal      |
-| Packet      | Paquete    |
-| Player      | Jugador    |
-| Target      | Objetivo   |
-| Buffer      | Buffer     |
-| Server      | Servidor   |
-| Client      | Cliente    |
+## Equivalencias principales [#equivalencias-principales]
+
+| TNet                      | Eco        | Concepto                            |
+| ------------------------- | ---------- | ----------------------------------- |
+| TNManager                 | Eco        | Gestor global de red                |
+| TNObject                  | Objeto     | Entidad de red                      |
+| TNComponent / TNBehaviour | Componente | Comportamiento asociado a un objeto |
+| Channel                   | Canal      | Ámbito de red                       |
+| Packet                    | Paquete    | Unidad de protocolo                 |
+| Player                    | Jugador    | Participante de la sesión           |
+| Target                    | Objetivo   | Destinatarios de una operación      |
+| Buffer                    | Buffer     | Lectura y escritura binaria         |
+| Server                    | Servidor   | Autoridad/endpoint servidor         |
+| Client                    | Cliente    | Endpoint cliente                    |
+
+## Operaciones remotas [#operaciones-remotas]
+
+Esta parte es especialmente importante porque Eco cambió también las siglas:
+
+| TNet  | Eco   | Nombre en Eco       |
+| ----- | ----- | ------------------- |
+| `RCC` | `RCR` | Red Creación Remota |
+| `RFC` | `RMR` | Red Método Remoto   |
+| `LCR` | `RCL` | Red Creación Local  |
+
+```text
+TNet                         Eco
+──────────────────────────────────────────
+RCC  Remote Creation Call → RCR  Red Creación Remota
+RFC  Remote Function Call → RMR  Red Método Remoto
+LCR  Local Creation       → RCL  Red Creación Local
+     Request / Call
+```
+
+<Callout title="Terminología normativa" type="info">
+  En documentación y código de Eco utiliza `RCR`, `RMR` y `RCL`. Las siglas `RCC`, `RFC` y `LCR` se conservan únicamente para explicar TNet y realizar migraciones.
+</Callout>
 
 ## No es sólo un reemplazo de nombres [#no-es-sólo-un-reemplazo-de-nombres]
 
@@ -7075,10 +7251,12 @@ Los ejemplos históricos de TNet pueden describir un workflow que ya no represen
 ## Cómo migrar [#cómo-migrar]
 
 1. Traduce primero los conceptos, no las llamadas literalmente.
-2. Comprueba ownership y canales.
-3. Revisa si existe una funcionalidad moderna equivalente.
-4. Revisa persistencia y destinatarios.
-5. Valida el comportamiento contra el código de Eco.
+2. Cambia `TNObject` por `Objeto` y `TNComponent`/`TNBehaviour` por `Componente`.
+3. Revisa las operaciones remotas: `RCC → RCR`, `RFC → RMR`, `LCR → RCL`.
+4. Comprueba ownership y canales.
+5. Revisa si existe una funcionalidad moderna equivalente.
+6. Revisa persistencia y destinatarios.
+7. Valida el comportamiento contra el código de Eco.
 
 <Callout title="Upstream" type="info">
   TNet sigue siendo una referencia útil para comprender el origen de muchas decisiones arquitectónicas. No debe tratarse automáticamente como documentación normativa de Eco.
@@ -10591,6 +10769,47 @@ El modelo corresponde al de los protocolos TCP y UDP de TNet, pero Eco utiliza `
 <Card title="TNet" href="https://github.com/tasharen/tnet">
   Repositorio upstream.
 </Card>
+
+
+# Alexandria (/docs/nucleo/v1/sistemas/alexandria)
+
+
+
+# Alexandria [#alexandria]
+
+Alexandria es el núcleo de inicialización del motor. Su función es descubrir, instanciar y coordinar todos los sistemas del juego de forma automática mediante reflexión.
+
+## Responsabilidad principal [#responsabilidad-principal]
+
+* Descubrir sistemas marcados con `SistemaAttribute`
+* Instanciar sistemas como `MonoBehaviour`
+* Ordenar la inicialización por prioridad
+* Garantizar ciclo de vida controlado (Init / Update / Shutdown)
+
+***
+
+## Sistema de descubrimiento [#sistema-de-descubrimiento]
+
+Alexandria utiliza reflexión sobre el ensamblado actual:
+
+* Filtra clases concretas (no abstractas)
+* Requiere `MonoBehaviour`
+* Requiere implementación de `ISistema`
+* Requiere `SistemaAttribute`
+
+Esto permite registro automático sin configuración manual.
+
+***
+
+## Sistema de atributos [#sistema-de-atributos]
+
+### SistemaAttribute [#sistemaattribute]
+
+Define metadata del sistema.
+
+```csharp
+[Sistema(int prioridad, string nombre)]
+```
 
 
 # ActualizadorRed (/docs/red/v1/avanzado/actualizador-red)
