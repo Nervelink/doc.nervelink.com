@@ -1541,6 +1541,37 @@ Movimiento / salto
 `Jugador` distingue entre salto pulsado, mantenido y soltado y utiliza `velSalto` y `duracionSalto` para controlar la respuesta. Esto permite implementar saltos variables sin mezclar la lectura de entrada con la aplicación física.
 
 
+# Fundamentos (/docs/personaje/v1/fundamentos/index)
+
+
+
+<Cards>
+  <Card title="Arquitectura" href="/docs/personaje/v1/fundamentos/arquitectura">
+    Cómo se separan control, locomoción, sensores y presentación.
+  </Card>
+
+  <Card title="Controladores" href="/docs/personaje/v1/fundamentos/controladores">
+    Diferencias entre `Personaje` y `Jugador`.
+  </Card>
+
+  <Card title="Locomoción y sensores" href="/docs/personaje/v1/fundamentos/locomocion-y-sensores">
+    Movimiento físico y detección del entorno.
+  </Card>
+
+  <Card title="Entrada del jugador" href="/docs/personaje/v1/fundamentos/entrada-del-jugador">
+    Separación entre input e implementación del movimiento.
+  </Card>
+
+  <Card title="Animación y audio" href="/docs/personaje/v1/fundamentos/animacion-y-audio">
+    Presentación basada en el estado del controlador.
+  </Card>
+
+  <Card title="Suavizado" href="/docs/personaje/v1/fundamentos/suavizado">
+    Transiciones visuales de posición y rotación.
+  </Card>
+</Cards>
+
+
 # Locomoción y sensores (/docs/personaje/v1/fundamentos/locomocion-y-sensores)
 
 
@@ -1603,6 +1634,43 @@ Transform visual
 ```
 
 En un juego en red puede utilizarse junto a Eco, pero debe permanecer separado del estado autoritativo que se sincroniza.
+
+
+# Configurar la entrada (/docs/personaje/v1/guias/configurar-entrada)
+
+
+
+La entrada de `Jugador` está separada de la resolución física mediante `ControladorEntradaJugador`.
+
+<div className="fd-steps">
+  <div className="fd-step">
+    ### Preparar el controlador [#preparar-el-controlador-step]
+
+    Asegúrate de que `Jugador` disponga de una instancia de `ControladorEntradaJugador`. La implementación actual la crea automáticamente cuando no existe.
+  </div>
+
+  <div className="fd-step">
+    ### Conectar la fuente de entrada [#conectar-la-fuente-de-entrada-step]
+
+    Haz que tu sistema de input entregue movimiento y acciones de salto a la capa de entrada, en lugar de modificar directamente el `Transform` del personaje.
+  </div>
+
+  <div className="fd-step">
+    ### Configurar la cámara [#configurar-la-cámara-step]
+
+    Cuando el movimiento debe ser relativo a la cámara, asigna `Jugador.trCamara`. El controlador utilizará esa referencia para calcular la dirección.
+  </div>
+
+  <div className="fd-step">
+    ### Validar el resultado [#validar-el-resultado-step]
+
+    Comprueba que el input sólo expresa intención y que `Jugador` sigue siendo responsable de velocidad, gravedad, salto, pendientes y colisiones.
+
+    <Callout title="Separación recomendada" type="info">
+      La entrada decide qué quiere hacer el jugador. `Jugador` decide cómo convertir esa intención en movimiento físico.
+    </Callout>
+  </div>
+</div>
 
 
 # Configurar un jugador (/docs/personaje/v1/guias/configurar-jugador)
@@ -1722,6 +1790,70 @@ Una ruta de Personaje es una secuencia de `PuntoRuta` que actúan como posicione
 </div>
 
 
+# Guías (/docs/personaje/v1/guias/index)
+
+
+
+<Cards>
+  <Card title="Configurar un personaje" href="/docs/personaje/v1/guias/configurar-personaje">
+    Prepara un personaje que recorre una ruta.
+  </Card>
+
+  <Card title="Configurar un jugador" href="/docs/personaje/v1/guias/configurar-jugador">
+    Configura control humano, salto y cámara.
+  </Card>
+
+  <Card title="Crear una ruta" href="/docs/personaje/v1/guias/crear-ruta">
+    Define puntos de ruta y su recorrido cíclico.
+  </Card>
+
+  <Card title="Configurar la entrada" href="/docs/personaje/v1/guias/configurar-entrada">
+    Separa el sistema de input de la locomoción.
+  </Card>
+
+  <Card title="Suavizar otro personaje" href="/docs/personaje/v1/guias/suavizar-otro-personaje">
+    Suaviza visualmente posiciones y rotaciones externas.
+  </Card>
+</Cards>
+
+
+# Suavizar otro personaje (/docs/personaje/v1/guias/suavizar-otro-personaje)
+
+
+
+`SuavizadoPosicion` y `SuavizadoRotacion` son útiles cuando un personaje recibe cambios de posición u orientación desde una fuente externa.
+
+<div className="fd-steps">
+  <div className="fd-step">
+    ### Separar el estado lógico [#separar-el-estado-lógico-step]
+
+    Mantén la posición y rotación reales en la capa que posee la autoridad del movimiento.
+  </div>
+
+  <div className="fd-step">
+    ### Aplicar el suavizado [#aplicar-el-suavizado-step]
+
+    Utiliza `SuavizadoPosicion` y `SuavizadoRotacion` sobre la representación visual para amortiguar los cambios.
+  </div>
+
+  <div className="fd-step">
+    ### Ajustar la respuesta [#ajustar-la-respuesta-step]
+
+    Busca un equilibrio entre respuesta inmediata y continuidad visual. Un suavizado excesivo introduce sensación de retraso.
+  </div>
+
+  <div className="fd-step">
+    ### Usarlo con red [#usarlo-con-red-step]
+
+    Cuando el estado procede de Eco, el valor sincronizado sigue siendo la referencia lógica y el suavizado sólo modifica la presentación local.
+
+    <Callout title="No confundir conceptos" type="warn">
+      Suavizar una transformación no corrige por sí mismo latencia, predicción, reconciliación ni autoridad de red.
+    </Callout>
+  </div>
+</div>
+
+
 # AnimacionPersonaje (/docs/personaje/v1/referencia/animacion-personaje)
 
 
@@ -1775,6 +1907,53 @@ Su función es traducir entrada a intención. No aplica gravedad, no mueve el tr
 `DetectorTecho` se utiliza junto a `Jugador` para registrar colisiones que representan un techo y permitir que el controlador reaccione durante el salto.
 
 Se inicializa con la transformación del jugador y se expone mediante `ObtenerDetector()`.
+
+
+# Referencia (/docs/personaje/v1/referencia/index)
+
+
+
+<Cards>
+  <Card title="Personaje" href="/docs/personaje/v1/referencia/personaje">
+    Controlador orientado a rutas.
+  </Card>
+
+  <Card title="Jugador" href="/docs/personaje/v1/referencia/jugador">
+    Controlador para entrada humana, salto y cámara.
+  </Card>
+
+  <Card title="Locomocion" href="/docs/personaje/v1/referencia/locomocion">
+    Aplicación del movimiento físico.
+  </Card>
+
+  <Card title="Sensor" href="/docs/personaje/v1/referencia/sensor">
+    Detección del entorno.
+  </Card>
+
+  <Card title="AnimacionPersonaje" href="/docs/personaje/v1/referencia/animacion-personaje">
+    Integración con Animator.
+  </Card>
+
+  <Card title="AudioPersonaje" href="/docs/personaje/v1/referencia/audio-personaje">
+    Presentación sonora del movimiento.
+  </Card>
+
+  <Card title="ControladorEntradaJugador" href="/docs/personaje/v1/referencia/controlador-entrada-jugador">
+    Capa de entrada.
+  </Card>
+
+  <Card title="DetectorTecho" href="/docs/personaje/v1/referencia/detector-techo">
+    Detección de techos.
+  </Card>
+
+  <Card title="Suavizado" href="/docs/personaje/v1/referencia/suavizado-posicion">
+    Suavizado de posición y rotación.
+  </Card>
+
+  <Card title="PuntoRuta" href="/docs/personaje/v1/referencia/punto-ruta">
+    Puntos de recorrido.
+  </Card>
+</Cards>
 
 
 # Jugador (/docs/personaje/v1/referencia/jugador)

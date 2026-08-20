@@ -130,6 +130,7 @@
 
     - **Contenido**
     - Fundamentos
+      - [Fundamentos](/docs/personaje/v1/fundamentos/index): Modelo mental y arquitectura interna del módulo Personaje.
       - [Arquitectura](/docs/personaje/v1/fundamentos/arquitectura): Cómo se separan control, locomoción, sensores y presentación en Personaje.
       - [Controladores](/docs/personaje/v1/fundamentos/controladores): Diferencias entre Personaje y Jugador y cuándo utilizar cada controlador.
       - [Locomoción y sensores](/docs/personaje/v1/fundamentos/locomocion-y-sensores): Movimiento físico, suelo, pendientes, techo y sensores utilizados por los controladores.
@@ -137,10 +138,14 @@
       - [Animación y audio](/docs/personaje/v1/fundamentos/animacion-y-audio): Cómo Personaje comunica el estado de movimiento a Animator y AudioPersonaje.
       - [Suavizado](/docs/personaje/v1/fundamentos/suavizado): Herramientas de transición visual para posición y rotación.
     - Guías
+      - [Guías](/docs/personaje/v1/guias/index): Recorridos prácticos para integrar y configurar Personaje.
       - [Configurar un personaje](/docs/personaje/v1/guias/configurar-personaje): Configura un personaje orientado a rutas y movimiento automático.
       - [Configurar un jugador](/docs/personaje/v1/guias/configurar-jugador): Configura un personaje controlado por entrada humana.
       - [Crear una ruta](/docs/personaje/v1/guias/crear-ruta): Define y conecta puntos de ruta para un personaje.
+      - [Configurar la entrada](/docs/personaje/v1/guias/configurar-entrada): Configura la capa de entrada que utiliza Jugador sin acoplarla al movimiento.
+      - [Suavizar otro personaje](/docs/personaje/v1/guias/suavizar-otro-personaje): Aplica suavizado visual a un personaje cuyo estado cambia de forma discreta.
     - Referencia
+      - [Referencia](/docs/personaje/v1/referencia/index): Referencia técnica de las clases principales de Personaje.
       - [Personaje](/docs/personaje/v1/referencia/personaje): Controlador de movimiento orientado a rutas.
       - [Jugador](/docs/personaje/v1/referencia/jugador): Controlador de personaje para entrada humana, salto y movimiento relativo a cámara.
       - [Locomocion](/docs/personaje/v1/referencia/locomocion): Capa de movimiento físico compartida por los controladores.
