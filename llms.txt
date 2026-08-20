@@ -124,14 +124,34 @@
   - Personaje
 
     - **Introducción**
-    - [Inicio Rápido](/docs/personaje/v1): Punto de entrada de la documentación de Personaje.
-    - [Requisitos](/docs/personaje/v1/requisitos): Requisitos, dependencias y limitaciones de Personaje.
-    - [Preguntas frecuentes](/docs/personaje/v1/preguntas-frecuentes): Preguntas frecuentes sobre Personaje.
+    - [Inicio Rápido](/docs/personaje/v1): Instala y entiende la arquitectura del módulo Personaje antes de integrarlo en un proyecto Unity.
+    - [Requisitos](/docs/personaje/v1/requisitos): Versiones, dependencias y condiciones para utilizar Personaje.
+    - [Preguntas frecuentes](/docs/personaje/v1/preguntas-frecuentes): Preguntas frecuentes sobre la arquitectura y uso de Personaje.
 
     - **Contenido**
-    - [Fundamentos](/docs/personaje/v1/fundamentos): Conceptos fundamentales de Personaje.
-    - [Guías](/docs/personaje/v1/guias): Flujos de trabajo de Personaje.
-    - [Referencia](/docs/personaje/v1/referencia): Referencia técnica y API de Personaje.
+    - Fundamentos
+      - [Arquitectura](/docs/personaje/v1/fundamentos/arquitectura): Cómo se separan control, locomoción, sensores y presentación en Personaje.
+      - [Controladores](/docs/personaje/v1/fundamentos/controladores): Diferencias entre Personaje y Jugador y cuándo utilizar cada controlador.
+      - [Locomoción y sensores](/docs/personaje/v1/fundamentos/locomocion-y-sensores): Movimiento físico, suelo, pendientes, techo y sensores utilizados por los controladores.
+      - [Entrada del jugador](/docs/personaje/v1/fundamentos/entrada-del-jugador): Cómo Jugador recibe movimiento y salto mediante ControladorEntradaJugador.
+      - [Animación y audio](/docs/personaje/v1/fundamentos/animacion-y-audio): Cómo Personaje comunica el estado de movimiento a Animator y AudioPersonaje.
+      - [Suavizado](/docs/personaje/v1/fundamentos/suavizado): Herramientas de transición visual para posición y rotación.
+    - Guías
+      - [Configurar un personaje](/docs/personaje/v1/guias/configurar-personaje): Configura un personaje orientado a rutas y movimiento automático.
+      - [Configurar un jugador](/docs/personaje/v1/guias/configurar-jugador): Configura un personaje controlado por entrada humana.
+      - [Crear una ruta](/docs/personaje/v1/guias/crear-ruta): Define y conecta puntos de ruta para un personaje.
+    - Referencia
+      - [Personaje](/docs/personaje/v1/referencia/personaje): Controlador de movimiento orientado a rutas.
+      - [Jugador](/docs/personaje/v1/referencia/jugador): Controlador de personaje para entrada humana, salto y movimiento relativo a cámara.
+      - [Locomocion](/docs/personaje/v1/referencia/locomocion): Capa de movimiento físico compartida por los controladores.
+      - [Sensor](/docs/personaje/v1/referencia/sensor): Detección del entorno utilizada por la locomoción.
+      - [AnimacionPersonaje](/docs/personaje/v1/referencia/animacion-personaje): Puente entre el estado del controlador y el Animator de Unity.
+      - [AudioPersonaje](/docs/personaje/v1/referencia/audio-personaje): Gestión de pasos, saltos y sonidos asociados al movimiento.
+      - [ControladorEntradaJugador](/docs/personaje/v1/referencia/controlador-entrada-jugador): Capa de entrada que entrega intención de movimiento y salto a Jugador.
+      - [DetectorTecho](/docs/personaje/v1/referencia/detector-techo): Detección de impactos contra techos durante el movimiento del jugador.
+      - [SuavizadoPosicion](/docs/personaje/v1/referencia/suavizado-posicion): Suavizado visual entre posiciones.
+      - [SuavizadoRotacion](/docs/personaje/v1/referencia/suavizado-rotacion): Suavizado visual entre rotaciones.
+      - [PuntoRuta](/docs/personaje/v1/referencia/punto-ruta): Punto de una ruta utilizada por el controlador Personaje.
 - Red
   - Red
 
