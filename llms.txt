@@ -4,14 +4,35 @@
   - Cámara
 
     - **Introducción**
-    - [Inicio Rápido](/docs/camara/v1): Punto de entrada de la documentación de Cámara.
+    - [Inicio Rápido](/docs/camara/v1): Conoce la arquitectura del módulo Cámara y configura una cámara con vistas, transiciones y suavizado.
     - [Requisitos](/docs/camara/v1/requisitos): Requisitos, dependencias y limitaciones de Cámara.
     - [Preguntas frecuentes](/docs/camara/v1/preguntas-frecuentes): Preguntas frecuentes sobre Cámara.
 
     - **Contenido**
-    - [Fundamentos](/docs/camara/v1/fundamentos): Conceptos fundamentales de Cámara.
-    - [Guías](/docs/camara/v1/guias): Flujos de trabajo de Cámara.
-    - [Referencia](/docs/camara/v1/referencia): Referencia técnica y API de Cámara.
+    - Fundamentos
+      - [Fundamentos](/docs/camara/v1/fundamentos/index): Conceptos esenciales para entender el sistema de cámara.
+      - [Arquitectura](/docs/camara/v1/fundamentos/arquitectura): Cómo se organiza internamente el módulo Cámara.
+      - [Vistas](/docs/camara/v1/fundamentos/vistas): Modelo de vistas que determina posición, dirección y propiedades de la cámara.
+      - [Transiciones](/docs/camara/v1/fundamentos/transiciones): Cambios inmediatos e interpolados entre vistas.
+      - [Suavizado](/docs/camara/v1/fundamentos/suavizado): Suavizado de posición y rotación de la cámara.
+      - [Difuminado](/docs/camara/v1/fundamentos/difuminado): Sistema de difuminado de geometría entre la cámara y la escena.
+      - [Proyección y propiedades](/docs/camara/v1/fundamentos/proyeccion-y-propiedades): Proyección ortográfica, perspectiva y propiedades ópticas de la cámara.
+    - Guías
+      - [Guías](/docs/camara/v1/guias/index): Workflows para integrar Cámara en un proyecto.
+      - [Configurar una cámara](/docs/camara/v1/guias/configurar-camara): Configura el componente Camara y su orden de actualización.
+      - [Crear una vista](/docs/camara/v1/guias/crear-vista): Define una vista reutilizable para controlar la cámara según el contexto del juego.
+      - [Cambiar de vista](/docs/camara/v1/guias/cambiar-vista): Cambia entre vistas de forma instantánea o interpolada.
+      - [Configurar el difuminado](/docs/camara/v1/guias/configurar-difuminado): Configura el algoritmo, la resolución y la frecuencia de actualización del difuminado.
+      - [Depurar una cámara](/docs/camara/v1/guias/depurar-camara): Diagnostica problemas de posición, vista, suavizado y difuminado.
+    - Referencia
+      - [Referencia](/docs/camara/v1/referencia/index): Referencia técnica de la API y tipos del módulo Cámara.
+      - [Camara](/docs/camara/v1/referencia/camara): Controlador principal del módulo Cámara.
+      - [VistaCamara](/docs/camara/v1/referencia/vista-camara): Contrato de una vista reutilizable para Cámara.
+      - [AlgoritmoEscalable](/docs/camara/v1/referencia/algoritmo-escalable): Implementación actual del algoritmo de difuminado escalable.
+      - [ConfiguracionDifuminado](/docs/camara/v1/referencia/configuracion-difuminado): Configuración base del sistema de difuminado.
+      - [ConfiguracionDifuminadoAlgoritmoEscalable](/docs/camara/v1/referencia/configuracion-escalable): Parámetros específicos del algoritmo de difuminado escalable.
+      - [PosicionCamara](/docs/camara/v1/referencia/posicion-camara): Estructura para representar una configuración de posición de cámara.
+      - [Enums y tipos](/docs/camara/v1/referencia/enum-y-tipos): Tipos que definen estados, ejes, entradas y algoritmos de Cámara.
 - Cid
   - Cid
 
