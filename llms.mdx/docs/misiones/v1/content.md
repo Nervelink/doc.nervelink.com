@@ -1,9 +1,21 @@
-# Misiones (/docs/misiones/v1)
+# Inicio Rápido (/docs/misiones/v1)
 
 
 
-# Misiones [#misiones]
+<Callout title="Documentación en preparación" type="info">
+  Esta sección define la estructura base de `Misiones`. El contenido específico se añadirá dentro de `Contenido`.
+</Callout>
 
-Documentación del sistema Misiones.
+<Cards>
+  <Card title="Fundamentos" href="/docs/misiones/v1/fundamentos">
+    Conceptos y arquitectura de Misiones.
+  </Card>
 
-Esta sección está preparada para incorporar conceptos, guías, API, ejemplos y referencia técnica.
+  <Card title="Guías" href="/docs/misiones/v1/guias">
+    Workflows prácticos.
+  </Card>
+
+  <Card title="Referencia" href="/docs/misiones/v1/referencia">
+    API y detalles técnicos.
+  </Card>
+</Cards>

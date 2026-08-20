@@ -1,9 +1,21 @@
-# Inventario (/docs/inventario/v1)
+# Inicio Rápido (/docs/inventario/v1)
 
 
 
-# Inventario [#inventario]
+<Callout title="Documentación en preparación" type="info">
+  Esta sección define la estructura base de `Inventario`. El contenido específico se añadirá dentro de `Contenido`.
+</Callout>
 
-Documentación del sistema Inventario.
+<Cards>
+  <Card title="Fundamentos" href="/docs/inventario/v1/fundamentos">
+    Conceptos y arquitectura de Inventario.
+  </Card>
 
-Esta sección está preparada para incorporar conceptos, guías, API, ejemplos y referencia técnica.
+  <Card title="Guías" href="/docs/inventario/v1/guias">
+    Workflows prácticos.
+  </Card>
+
+  <Card title="Referencia" href="/docs/inventario/v1/referencia">
+    API y detalles técnicos.
+  </Card>
+</Cards>

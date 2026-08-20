@@ -1,9 +1,21 @@
-# Táctico (/docs/tactico/v1)
+# Inicio Rápido (/docs/tactico/v1)
 
 
 
-# Táctico [#táctico]
+<Callout title="Documentación en preparación" type="info">
+  Esta sección define la estructura base de `Táctico`. El contenido específico se añadirá dentro de `Contenido`.
+</Callout>
 
-Documentación del sistema Táctico.
+<Cards>
+  <Card title="Fundamentos" href="/docs/tactico/v1/fundamentos">
+    Conceptos y arquitectura de Táctico.
+  </Card>
 
-Esta sección está preparada para incorporar conceptos, guías, API, ejemplos y referencia técnica.
+  <Card title="Guías" href="/docs/tactico/v1/guias">
+    Workflows prácticos.
+  </Card>
+
+  <Card title="Referencia" href="/docs/tactico/v1/referencia">
+    API y detalles técnicos.
+  </Card>
+</Cards>
