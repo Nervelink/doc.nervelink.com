@@ -90,9 +90,16 @@
     - [Preguntas frecuentes](/docs/misiones/v1/preguntas-frecuentes): Preguntas frecuentes sobre Misiones.
 
     - **Contenido**
-    - [Fundamentos](/docs/misiones/v1/fundamentos): Conceptos fundamentales de Misiones.
-    - [Guías](/docs/misiones/v1/guias): Flujos de trabajo de Misiones.
-    - [Referencia](/docs/misiones/v1/referencia): Referencia técnica y API de Misiones.
+    - Fundamentos
+      - [Arquitectura](/docs/misiones/v1/fundamentos/arquitectura): Estructura actual del módulo Misiones y sus límites.
+      - [Modelo de datos](/docs/misiones/v1/fundamentos/modelo-de-datos): Cómo se obtiene y organiza la base de datos de misiones.
+      - [Ciclo de carga](/docs/misiones/v1/fundamentos/ciclo-de-carga): Flujo de inicialización y carga de los datos de Misiones.
+    - Guías
+      - [Instalar el módulo](/docs/misiones/v1/guias/instalar-modulo): Incorporar Misiones a un proyecto Pandora Crystal.
+      - [Cargar los datos](/docs/misiones/v1/guias/cargar-datos): Acceder a la base de datos de misiones desde código.
+      - [Preparar contenido](/docs/misiones/v1/guias/preparar-contenido): Preparar la base de datos de misiones para su uso por otros sistemas.
+    - Referencia
+      - [DatosMisiones](/docs/misiones/v1/referencia/datos-misiones): Base de datos y punto de acceso principal del módulo Misiones.
 - Motor
   - Motor
 
