@@ -1,186 +1,3 @@
-# Fundamentos (/docs/camara/v1/fundamentos)
-
-
-
-Esta página será el punto de partida para explicar la arquitectura y los conceptos principales de `Cámara`.
-
-
-# Guías (/docs/camara/v1/guias)
-
-
-
-Esta página reunirá los workflows y procedimientos recomendados para trabajar con `Cámara`.
-
-
-# Inicio Rápido (/docs/camara/v1)
-
-
-
-<Callout title="Qué es Cámara" type="info">
-  `Cámara` es un módulo de Pandora Crystal orientado a controlar la posición, rotación, proyección y transición de cámaras, además de proporcionar herramientas para difuminado de obstáculos, depuración y distintos estilos de vista.
-</Callout>
-
-El núcleo del módulo gira alrededor de `Camara`: recibe una `VistaCamara`, calcula su posición y dirección, aplica transiciones y suavizado y actualiza las propiedades de la `Camera` de Unity. La implementación también integra un algoritmo de difuminado para generar una `RenderTexture` auxiliar. fileciteturn411file0
-
-## Arquitectura [#arquitectura]
-
-```text
-Camara
-├── VistaCamara
-│   └── Tipo de vista
-│       ├── Posición
-│       ├── Dirección
-│       ├── Proyección
-│       └── Dimensiones / FOV
-│
-├── Movimiento
-│   ├── Transición
-│   ├── Suavizado de posición
-│   └── Suavizado de rotación
-│
-├── Difuminado
-│   ├── Configuración
-│   ├── Algoritmo
-│   └── RenderTexture auxiliar
-│
-└── Herramientas
-    ├── Debug
-    ├── Extensiones
-    └── Editor
-```
-
-## Capacidades principales [#capacidades-principales]
-
-<Cards>
-  <Card title="Vistas" href="/docs/camara/v1/fundamentos/vistas">
-    Define dónde mira la cámara, cómo se mueve y qué propiedades de proyección utiliza.
-  </Card>
-
-  <Card title="Transiciones y suavizado" href="/docs/camara/v1/fundamentos/transiciones">
-    Cambia entre vistas de forma inmediata o interpolada.
-  </Card>
-
-  <Card title="Difuminado" href="/docs/camara/v1/fundamentos/difuminado">
-    Oculta obstáculos entre la cámara y la escena mediante una textura auxiliar y un algoritmo de difuminado.
-  </Card>
-
-  <Card title="Referencia API" href="/docs/camara/v1/referencia">
-    Consulta 
-
-    `Camara`
-
-    , algoritmos, configuraciones, estructuras y tipos auxiliares.
-  </Card>
-</Cards>
-
-## Primer recorrido [#primer-recorrido]
-
-<Steps>
-  <Step>
-    Configura la cámara de Unity y añade 
-
-    `Camara`
-
-     al mismo GameObject.
-  </Step>
-
-  <Step>
-    Asigna una 
-
-    `VistaCamara`
-
-     para definir la posición y dirección objetivo.
-  </Step>
-
-  <Step>
-    Selecciona 
-
-    `Update`
-
-     o 
-
-    `LateUpdate`
-
-     según el orden de actualización que necesite la cámara.
-  </Step>
-
-  <Step>
-    Elige el tipo de suavizado y ajusta sus parámetros de posición y rotación.
-  </Step>
-
-  <Step>
-    Activa el difuminado únicamente cuando el juego necesite resolver obstáculos entre cámara y objetivo.
-  </Step>
-</Steps>
-
-## Versión y dependencias [#versión-y-dependencias]
-
-La versión declarada actualmente por el paquete es **1.1.2.11**. Depende de `Motor 1.2.7.5` y `Núcleo 1.3.7.4`. fileciteturn411file0
-
-## Qué leer después [#qué-leer-después]
-
-[Requisitos](/docs/camara/v1/requisitos) → [Fundamentos](/docs/camara/v1/fundamentos) → [Guías](/docs/camara/v1/guias) → [Referencia](/docs/camara/v1/referencia)
-
-
-# Preguntas frecuentes (/docs/camara/v1/preguntas-frecuentes)
-
-
-
-### ¿Puedo cambiar de cámara sin reemplazar el componente? [#puedo-cambiar-de-cámara-sin-reemplazar-el-componente]
-
-Sí. La arquitectura está pensada alrededor de una `VistaCamara` activa. `CambiarVista` permite sustituirla manteniendo el mismo controlador.
-
-### ¿Qué diferencia hay entre transición y suavizado? [#qué-diferencia-hay-entre-transición-y-suavizado]
-
-La transición describe el cambio entre dos vistas durante un intervalo. El suavizado controla cómo la cámara sigue o alcanza su objetivo una vez resuelta la vista.
-
-### ¿Qué hace `LateUpdate`? [#qué-hace-lateupdate]
-
-Permite actualizar la cámara después del `Update`, útil cuando otros sistemas modifican objetivos o transforms durante `Update`.
-
-### ¿El difuminado es gratuito? [#el-difuminado-es-gratuito]
-
-No. Usa una `RenderTexture` auxiliar y procesamiento adicional. La resolución, región y frecuencia de actualización deben ajustarse al presupuesto gráfico. fileciteturn419file0
-
-### ¿Puedo usar Cámara para un minimapa o combate? [#puedo-usar-cámara-para-un-minimapa-o-combate]
-
-Sí. El manifiesto del módulo contempla distintos estilos de cámara, incluyendo cámara normal, minimapa y combate. fileciteturn411file0
-
-
-# Referencia (/docs/camara/v1/referencia)
-
-
-
-Esta página será la entrada de la referencia técnica de `Cámara`: tipos, API, propiedades y detalles de implementación.
-
-
-# Requisitos (/docs/camara/v1/requisitos)
-
-
-
-## Dependencias [#dependencias]
-
-El paquete `com.pandora.modulo.camara` declara actualmente:
-
-| Módulo | Versión mínima declarada |
-| ------ | ------------------------ |
-| Motor  | 1.2.7.5                  |
-| Núcleo | 1.3.7.4                  |
-| Cámara | 1.1.2.11                 |
-
-fileciteturn411file0
-
-## Requisitos de integración [#requisitos-de-integración]
-
-* El componente `Camara` trabaja junto a una `Camera` de Unity en el mismo `GameObject`.
-* El módulo contiene código de editor y ejecución continua (`[ExecuteAlways]`).
-* El sistema de difuminado requiere recursos de render adicionales y debe configurarse según el presupuesto gráfico.
-
-## Limitaciones a tener en cuenta [#limitaciones-a-tener-en-cuenta]
-
-El difuminado puede aumentar coste de render y memoria. `Resolucion`, `RegionDifuminada` y `actualizacionMax` existen precisamente para limitar ese coste. fileciteturn419file0
-
-
 # Fundamentos (/docs/cid/v1/fundamentos)
 
 
@@ -237,122 +54,6 @@ Esta página será la entrada de la referencia técnica de `Cid`: tipos, API, pr
 
 
 Esta página establecerá los requisitos, dependencias, versiones compatibles y limitaciones conocidas de `Cid`.
-
-
-# Fundamentos (/docs/dev/v1/fundamentos)
-
-
-
-Esta página será el punto de partida para explicar la arquitectura y los conceptos principales de `Dev`.
-
-
-# Guías (/docs/dev/v1/guias)
-
-
-
-Esta página reunirá los workflows y procedimientos recomendados para trabajar con `Dev`.
-
-
-# Inicio Rápido (/docs/dev/v1)
-
-
-
-<Callout title="Documentación en preparación" type="info">
-  Esta sección define la estructura base de `Dev`. El contenido específico se añadirá dentro de `Contenido`.
-</Callout>
-
-<Cards>
-  <Card title="Fundamentos" href="/docs/dev/v1/fundamentos">
-    Conceptos y arquitectura de Dev.
-  </Card>
-
-  <Card title="Guías" href="/docs/dev/v1/guias">
-    Workflows prácticos.
-  </Card>
-
-  <Card title="Referencia" href="/docs/dev/v1/referencia">
-    API y detalles técnicos.
-  </Card>
-</Cards>
-
-
-# Preguntas frecuentes (/docs/dev/v1/preguntas-frecuentes)
-
-
-
-Esta página reunirá las dudas habituales sobre instalación, arquitectura, uso y limitaciones de `Dev`.
-
-
-# Referencia (/docs/dev/v1/referencia)
-
-
-
-Esta página será la entrada de la referencia técnica de `Dev`: tipos, API, propiedades y detalles de implementación.
-
-
-# Requisitos (/docs/dev/v1/requisitos)
-
-
-
-Esta página establecerá los requisitos, dependencias, versiones compatibles y limitaciones conocidas de `Dev`.
-
-
-# Fundamentos (/docs/dialogo/v1/fundamentos)
-
-
-
-Esta página será el punto de partida para explicar la arquitectura y los conceptos principales de `Diálogo`.
-
-
-# Guías (/docs/dialogo/v1/guias)
-
-
-
-Esta página reunirá los workflows y procedimientos recomendados para trabajar con `Diálogo`.
-
-
-# Inicio Rápido (/docs/dialogo/v1)
-
-
-
-<Callout title="Documentación en preparación" type="info">
-  Esta sección define la estructura base de `Diálogo`. El contenido específico se añadirá dentro de `Contenido`.
-</Callout>
-
-<Cards>
-  <Card title="Fundamentos" href="/docs/dialogo/v1/fundamentos">
-    Conceptos y arquitectura de Diálogo.
-  </Card>
-
-  <Card title="Guías" href="/docs/dialogo/v1/guias">
-    Workflows prácticos.
-  </Card>
-
-  <Card title="Referencia" href="/docs/dialogo/v1/referencia">
-    API y detalles técnicos.
-  </Card>
-</Cards>
-
-
-# Preguntas frecuentes (/docs/dialogo/v1/preguntas-frecuentes)
-
-
-
-Esta página reunirá las dudas habituales sobre instalación, arquitectura, uso y limitaciones de `Diálogo`.
-
-
-# Referencia (/docs/dialogo/v1/referencia)
-
-
-
-Esta página será la entrada de la referencia técnica de `Diálogo`: tipos, API, propiedades y detalles de implementación.
-
-
-# Requisitos (/docs/dialogo/v1/requisitos)
-
-
-
-Esta página establecerá los requisitos, dependencias, versiones compatibles y limitaciones conocidas de `Diálogo`.
 
 
 # Fundamentos (/docs/inventario/v1/fundamentos)
@@ -1564,195 +1265,102 @@ Esta página establecerá los requisitos, dependencias, versiones compatibles y 
 Texto aquí.
 
 
-# Arquitectura (/docs/camara/v1/fundamentos/arquitectura)
+# Fundamentos (/docs/camara/v1/fundamentos)
 
 
 
-`Camara` actúa como orquestador. Mantiene una `VistaCamara` activa, calcula posición y dirección, aplica transiciones, suavizado y cambios de proyección, y coordina el render auxiliar utilizado por el difuminado. fileciteturn412file0
+Esta página será el punto de partida para explicar la arquitectura y los conceptos principales de `Cámara`.
+
+
+# Guías (/docs/camara/v1/guias)
+
+
+
+Esta página reunirá los workflows y procedimientos recomendados para trabajar con `Cámara`.
+
+
+# Inicio Rápido (/docs/camara/v1)
+
+
+
+<Callout title="Qué es Cámara" type="info">
+  `Cámara` es un módulo de Pandora Crystal orientado a controlar la posición, rotación, proyección y transición de cámaras, además de proporcionar herramientas para difuminado de obstáculos, depuración y distintos estilos de vista.
+</Callout>
+
+El núcleo del módulo gira alrededor de `Camara`: recibe una `VistaCamara`, calcula su posición y dirección, aplica transiciones y suavizado y actualiza las propiedades de la `Camera` de Unity. La implementación también integra un algoritmo de difuminado para generar una `RenderTexture` auxiliar. fileciteturn411file0
+
+## Arquitectura [#arquitectura]
 
 ```text
-VistaCamara
-    ↓
 Camara
-├── posición
-├── rotación
-├── proyección
-├── transición
-├── suavizado
-└── difuminado
+├── VistaCamara
+│   └── Tipo de vista
+│       ├── Posición
+│       ├── Dirección
+│       ├── Proyección
+│       └── Dimensiones / FOV
+│
+├── Movimiento
+│   ├── Transición
+│   ├── Suavizado de posición
+│   └── Suavizado de rotación
+│
+├── Difuminado
+│   ├── Configuración
+│   ├── Algoritmo
+│   └── RenderTexture auxiliar
+│
+└── Herramientas
+    ├── Debug
+    ├── Extensiones
+    └── Editor
 ```
 
-La arquitectura separa las decisiones de la vista de la ejecución física de la cámara. Esto permite reutilizar una misma implementación para cámara normal, minimapa, combate u otros estilos declarados por el módulo. fileciteturn411file0
-
-
-# Difuminado (/docs/camara/v1/fundamentos/difuminado)
-
-
-
-El módulo genera una `RenderTexture` auxiliar y ejecuta un algoritmo de difuminado para ocultar o suavizar elementos de la escena cuando interfieren con la vista. `Camara` expone la textura mediante `VentanaDifuminada` y controla cuándo necesita actualizarse. fileciteturn414file0
-
-El flujo es:
-
-```text
-Camera
-  ↓
-RenderTexture
-  ↓
-IAlgoritmoDifuminado
-  ↓
-VentanaDifuminada
-```
-
-La implementación actual utiliza `AlgoritmoDifuminado.DifuminadoEscalable`, respaldado por `AlgoritmoEscalable`, y dispone de configuración específica para el algoritmo. fileciteturn418file0
-
-## Coste [#coste]
-
-El difuminado implica renderizado adicional. `Resolucion`, `RegionDifuminada` y `actualizacionMax` permiten limitar coste de memoria y frecuencia de actualización. No conviene ejecutarlo a máxima resolución y máxima frecuencia cuando la escena no lo necesita.
-
-
-# Fundamentos (/docs/camara/v1/fundamentos/index)
-
-
-
-En esta sección se explica cómo `Camara` combina vistas, transiciones, suavizado, proyección y difuminado.
+## Capacidades principales [#capacidades-principales]
 
 <Cards>
-  <Card title="Arquitectura" href="/docs/camara/v1/fundamentos/arquitectura">
-    Modelo general del módulo.
-  </Card>
-
   <Card title="Vistas" href="/docs/camara/v1/fundamentos/vistas">
-    Contextos reutilizables de cámara.
+    Define dónde mira la cámara, cómo se mueve y qué propiedades de proyección utiliza.
   </Card>
 
-  <Card title="Transiciones" href="/docs/camara/v1/fundamentos/transiciones">
-    Cambios inmediatos e interpolados.
+  <Card title="Transiciones y suavizado" href="/docs/camara/v1/fundamentos/transiciones">
+    Cambia entre vistas de forma inmediata o interpolada.
   </Card>
 
   <Card title="Difuminado" href="/docs/camara/v1/fundamentos/difuminado">
-    Render auxiliar para obstáculos.
+    Oculta obstáculos entre la cámara y la escena mediante una textura auxiliar y un algoritmo de difuminado.
+  </Card>
+
+  <Card title="Referencia API" href="/docs/camara/v1/referencia">
+    Consulta 
+
+    `Camara`
+
+    , algoritmos, configuraciones, estructuras y tipos auxiliares.
   </Card>
 </Cards>
 
-
-# Proyección y propiedades (/docs/camara/v1/fundamentos/proyeccion-y-propiedades)
-
-
-
-La vista activa determina si la cámara trabaja en proyección ortográfica o perspectiva. `Camara` aplica este dato sobre la `Camera` de Unity y actualiza `orthographicSize` o `fieldOfView` según corresponda. fileciteturn414file0
-
-```text
-Vista
- ├── Ortográfica → dimension → orthographicSize
- └── Perspectiva  → FOV       → fieldOfView
-```
-
-Durante una transición, las propiedades pueden interpolarse hasta alcanzar el valor de la vista destino. Esto evita que cambiar de perspectiva a ortográfica implique necesariamente un salto visual.
-
-
-# Suavizado (/docs/camara/v1/fundamentos/suavizado)
-
-
-
-`Camara` admite dos estrategias de suavizado para la posición: `Lineal` y `Progresivo`. La rotación utiliza interpolación esférica. fileciteturn414file0
-
-| Tipo         | Uso                                  |
-| ------------ | ------------------------------------ |
-| `Lineal`     | Interpolación basada en velocidad    |
-| `Progresivo` | `SmoothDamp` con tiempo de respuesta |
-
-Además, la cámara puede extrapolar posición y rotación cuando la configuración lo requiere. Estas opciones deben utilizarse con criterio: la extrapolación puede hacer que la cámara anticipe un objetivo que todavía no se ha confirmado.
-
-`velLineal`, `tiempoProgresivo` y `velSuavizado` controlan respectivamente la respuesta de posición lineal, posición progresiva y rotación.
-
-
-# Transiciones (/docs/camara/v1/fundamentos/transiciones)
-
-
-
-`CambiarVista(VistaCamara vista, float duracion)` permite cambiar la vista de forma instantánea o mediante una transición temporal. La clase guarda la posición y dirección iniciales y calcula la interpolación hasta el objetivo. fileciteturn414file0
-
-```text
-Vista A
-  ↓
-posición / dirección inicial
-  ↓
-transición
-  ↓
-Vista B
-```
-
-Una duración de `0` aplica el cambio directamente. Una duración positiva utiliza interpolación de posición y rotación.
-
-La transición es independiente del suavizado posterior: primero se resuelve el cambio de vista y después la cámara puede seguir suavizando posición o rotación según la configuración.
-
-
-# Vistas (/docs/camara/v1/fundamentos/vistas)
-
-
-
-Una `VistaCamara` representa una configuración lógica de cámara. `Camara` la activa y consulta para obtener posición, dirección y propiedades de proyección.
-
-El flujo conceptual es:
-
-```text
-VistaCamara
-   ↓
-ActivarVista()
-   ↓
-ObtenerPosicion()
-ObtenerDireccion()
-   ↓
-Camara
-```
-
-Una vista puede representar diferentes contextos del juego: cámara normal, minimapa, combate u otros estilos. El módulo se diseñó precisamente alrededor de esta separación de estilos. fileciteturn411file0
-
-La ventaja es que cambiar de vista no obliga a reemplazar el componente `Camara`; se cambia el proveedor de posición, dirección y propiedades.
-
-
-# Cambiar de vista (/docs/camara/v1/guias/cambiar-vista)
-
-
-
-La API central es `CambiarVista`.
-
-```csharp
-camara.CambiarVista(vistaCombate, 0.35f);
-```
-
-Una duración de `0` hace el cambio inmediatamente. Una duración positiva conserva la posición y dirección de la vista anterior y realiza una transición hacia la nueva. fileciteturn414file0
-
-Para una transición de juego, la decisión recomendable es separar el evento que cambia el contexto de la cámara de la propia lógica de interpolación.
-
-```text
-Entrar en combate
-       ↓
-Seleccionar vista combate
-       ↓
-CambiarVista(..., duración)
-       ↓
-Camara resuelve transición
-```
-
-
-# Configurar una cámara (/docs/camara/v1/guias/configurar-camara)
-
-
-
-Añade `Camara` al mismo `GameObject` que la `Camera` de Unity.
+## Primer recorrido [#primer-recorrido]
 
 <Steps>
+  <Step>
+    Configura la cámara de Unity y añade 
+
+    `Camara`
+
+     al mismo GameObject.
+  </Step>
+
   <Step>
     Asigna una 
 
     `VistaCamara`
 
-     inicial si quieres que la cámara arranque vinculada a una vista.
+     para definir la posición y dirección objetivo.
   </Step>
 
   <Step>
-    Elige 
+    Selecciona 
 
     `Update`
 
@@ -1760,260 +1368,200 @@ Añade `Camara` al mismo `GameObject` que la `Camera` de Unity.
 
     `LateUpdate`
 
-     en 
-
-    `tipoActualizador`
-
-     según el orden que necesite el resto del juego.
+     según el orden de actualización que necesite la cámara.
   </Step>
 
   <Step>
-    Selecciona el tipo de suavizado y ajusta velocidad de posición y rotación.
+    Elige el tipo de suavizado y ajusta sus parámetros de posición y rotación.
   </Step>
 
   <Step>
-    Configura proyección y propiedades desde la vista activa.
-  </Step>
-
-  <Step>
-    Activa 
-
-    `previsualizar`
-
-     sólo mientras estés ajustando la cámara en el editor.
+    Activa el difuminado únicamente cuando el juego necesite resolver obstáculos entre cámara y objetivo.
   </Step>
 </Steps>
 
-`Camara` está marcado con `[ExecuteAlways]`, por lo que parte de su comportamiento también puede ejecutarse fuera del modo Play. fileciteturn414file0
+## Versión y dependencias [#versión-y-dependencias]
+
+La versión declarada actualmente por el paquete es **1.1.2.11**. Depende de `Motor 1.2.7.5` y `Núcleo 1.3.7.4`. fileciteturn411file0
+
+## Qué leer después [#qué-leer-después]
+
+[Requisitos](/docs/camara/v1/requisitos) → [Fundamentos](/docs/camara/v1/fundamentos) → [Guías](/docs/camara/v1/guias) → [Referencia](/docs/camara/v1/referencia)
 
 
-# Configurar el difuminado (/docs/camara/v1/guias/configurar-difuminado)
+# Preguntas frecuentes (/docs/camara/v1/preguntas-frecuentes)
 
 
 
-El difuminado utiliza una `RenderTexture` auxiliar y el algoritmo escalable disponible actualmente. fileciteturn414file0
+### ¿Puedo cambiar de cámara sin reemplazar el componente? [#puedo-cambiar-de-cámara-sin-reemplazar-el-componente]
 
-Los controles principales son:
+Sí. La arquitectura está pensada alrededor de una `VistaCamara` activa. `CambiarVista` permite sustituirla manteniendo el mismo controlador.
 
-| Propiedad                 | Objetivo                                |
-| ------------------------- | --------------------------------------- |
-| `Algoritmo`               | Selecciona la estrategia de difuminado  |
-| `ConfiguracionDifuminado` | Define los parámetros del algoritmo     |
-| `Resolucion`              | Reduce el tamaño de la textura auxiliar |
-| `RegionDifuminada`        | Limita la zona procesada                |
-| `actualizacionMax`        | Limita la frecuencia de actualización   |
+### ¿Qué diferencia hay entre transición y suavizado? [#qué-diferencia-hay-entre-transición-y-suavizado]
 
-Para una cámara de gameplay, empieza con la región estrictamente necesaria y una resolución reducida. Aumenta el coste sólo cuando el resultado visual lo justifique.
+La transición describe el cambio entre dos vistas durante un intervalo. El suavizado controla cómo la cámara sigue o alcanza su objetivo una vez resuelta la vista.
 
-<Callout title="Rendimiento" type="warn">
-  El difuminado añade trabajo de renderizado. No debe tratarse como una propiedad gratuita de la cámara.
+### ¿Qué hace `LateUpdate`? [#qué-hace-lateupdate]
+
+Permite actualizar la cámara después del `Update`, útil cuando otros sistemas modifican objetivos o transforms durante `Update`.
+
+### ¿El difuminado es gratuito? [#el-difuminado-es-gratuito]
+
+No. Usa una `RenderTexture` auxiliar y procesamiento adicional. La resolución, región y frecuencia de actualización deben ajustarse al presupuesto gráfico. fileciteturn419file0
+
+### ¿Puedo usar Cámara para un minimapa o combate? [#puedo-usar-cámara-para-un-minimapa-o-combate]
+
+Sí. El manifiesto del módulo contempla distintos estilos de cámara, incluyendo cámara normal, minimapa y combate. fileciteturn411file0
+
+
+# Referencia (/docs/camara/v1/referencia)
+
+
+
+Esta página será la entrada de la referencia técnica de `Cámara`: tipos, API, propiedades y detalles de implementación.
+
+
+# Requisitos (/docs/camara/v1/requisitos)
+
+
+
+## Dependencias [#dependencias]
+
+El paquete `com.pandora.modulo.camara` declara actualmente:
+
+| Módulo | Versión mínima declarada |
+| ------ | ------------------------ |
+| Motor  | 1.2.7.5                  |
+| Núcleo | 1.3.7.4                  |
+| Cámara | 1.1.2.11                 |
+
+fileciteturn411file0
+
+## Requisitos de integración [#requisitos-de-integración]
+
+* El componente `Camara` trabaja junto a una `Camera` de Unity en el mismo `GameObject`.
+* El módulo contiene código de editor y ejecución continua (`[ExecuteAlways]`).
+* El sistema de difuminado requiere recursos de render adicionales y debe configurarse según el presupuesto gráfico.
+
+## Limitaciones a tener en cuenta [#limitaciones-a-tener-en-cuenta]
+
+El difuminado puede aumentar coste de render y memoria. `Resolucion`, `RegionDifuminada` y `actualizacionMax` existen precisamente para limitar ese coste. fileciteturn419file0
+
+
+# Fundamentos (/docs/dev/v1/fundamentos)
+
+
+
+Esta página será el punto de partida para explicar la arquitectura y los conceptos principales de `Dev`.
+
+
+# Guías (/docs/dev/v1/guias)
+
+
+
+Esta página reunirá los workflows y procedimientos recomendados para trabajar con `Dev`.
+
+
+# Inicio Rápido (/docs/dev/v1)
+
+
+
+<Callout title="Documentación en preparación" type="info">
+  Esta sección define la estructura base de `Dev`. El contenido específico se añadirá dentro de `Contenido`.
 </Callout>
 
-
-# Crear una vista (/docs/camara/v1/guias/crear-vista)
-
-
-
-Una vista debe encapsular la decisión de cámara y no la lógica general del componente `Camara`.
-
-```text
-Contexto del juego
-      ↓
-VistaCamara
-      ├── posición
-      ├── dirección
-      ├── proyección
-      └── propiedades
-            ↓
-          Camara
-```
-
-Esto permite tener varias vistas para un mismo `Camara`, por ejemplo gameplay, combate, minimapa o una vista especial para una habilidad.
-
-La implementación de `Camara` activa y desactiva la vista anterior cuando se cambia de una a otra. fileciteturn414file0
-
-
-# Depurar una cámara (/docs/camara/v1/guias/depurar-camara)
-
-
-
-Cuando una cámara no responde como esperas, comprueba primero la vista activa y después el ciclo de actualización.
-
-```text
-¿Hay VistaCamara?
-   ↓ sí
-¿Está activa?
-   ↓ sí
-¿Update o LateUpdate?
-   ↓
-¿La posición cambia?
-   ↓
-¿El suavizado está alterando el resultado?
-   ↓
-¿El problema aparece sólo con difuminado?
-```
-
-`previsualizar` permite visualizar la región del difuminado y modificarla desde el editor. `DebugCamaraExtension` y las utilidades del módulo están diseñadas para facilitar inspección y diagnóstico. fileciteturn413file0
-
-
-# Guías (/docs/camara/v1/guias/index)
-
-
-
 <Cards>
-  <Card title="Configurar una cámara" href="/docs/camara/v1/guias/configurar-camara">
-    Configuración inicial.
+  <Card title="Fundamentos" href="/docs/dev/v1/fundamentos">
+    Conceptos y arquitectura de Dev.
   </Card>
 
-  <Card title="Crear una vista" href="/docs/camara/v1/guias/crear-vista">
-    Vistas reutilizables.
+  <Card title="Guías" href="/docs/dev/v1/guias">
+    Workflows prácticos.
   </Card>
 
-  <Card title="Cambiar de vista" href="/docs/camara/v1/guias/cambiar-vista">
-    Transiciones entre contextos.
-  </Card>
-
-  <Card title="Configurar el difuminado" href="/docs/camara/v1/guias/configurar-difuminado">
-    Ajuste de coste y calidad.
-  </Card>
-
-  <Card title="Depurar una cámara" href="/docs/camara/v1/guias/depurar-camara">
-    Diagnóstico.
+  <Card title="Referencia" href="/docs/dev/v1/referencia">
+    API y detalles técnicos.
   </Card>
 </Cards>
 
 
-# AlgoritmoEscalable (/docs/camara/v1/referencia/algoritmo-escalable)
+# Preguntas frecuentes (/docs/dev/v1/preguntas-frecuentes)
 
 
 
-`AlgoritmoEscalable` implementa la estrategia `DifuminadoEscalable` utilizada por `Camara`. El árbol de clases incluye también los tipos de comparación y configuración que necesita el algoritmo. fileciteturn418file0
-
-Su responsabilidad es producir la textura auxiliar que representa la región de escena procesada para el difuminado. La selección del algoritmo se realiza mediante `Camara.Algoritmo` y la configuración se inyecta mediante `Camara.ConfiguracionDifuminado`.
+Esta página reunirá las dudas habituales sobre instalación, arquitectura, uso y limitaciones de `Dev`.
 
 
-# Camara (/docs/camara/v1/referencia/camara)
+# Referencia (/docs/dev/v1/referencia)
 
 
 
-`Pandora.Camara.Camara` es el componente central del módulo. Está marcado con `[ExecuteAlways]` y mantiene la vista activa, la actualización, el suavizado y el sistema de difuminado. fileciteturn419file0
-
-## Propiedades principales [#propiedades-principales]
-
-| Propiedad          | Función                                     |
-| ------------------ | ------------------------------------------- |
-| `vista`            | Vista activa                                |
-| `tipoActualizador` | `Update` o `LateUpdate`                     |
-| `tipoSuavizado`    | `Lineal` o `Progresivo`                     |
-| `velLineal`        | Velocidad de suavizado lineal               |
-| `tiempoProgresivo` | Tiempo de `SmoothDamp`                      |
-| `velSuavizado`     | Velocidad de rotación                       |
-| `extrapolarPos`    | Extrapolación de posición                   |
-| `extrapolarRot`    | Extrapolación de rotación                   |
-| `actualizacionMax` | Límite de actualización del difuminado      |
-| `previsualizar`    | Previsualización de la región de difuminado |
-
-## API [#api]
-
-```csharp
-void CambiarVista(VistaCamara vista, float duracion = 0f)
-void CambiarVista(GameObject go)
-void ResetearPosActual()
-void ResetearRotActual()
-bool ActualizacionDifuminadoNecesario()
-```
-
-`VentanaDifuminada`, `Resolucion`, `RegionDifuminada` y `RegionNormalizada` exponen el estado de render auxiliar y su región de procesamiento. fileciteturn419file0
+Esta página será la entrada de la referencia técnica de `Dev`: tipos, API, propiedades y detalles de implementación.
 
 
-# ConfiguracionDifuminado (/docs/camara/v1/referencia/configuracion-difuminado)
+# Requisitos (/docs/dev/v1/requisitos)
 
 
 
-`ConfiguracionDifuminado` representa la configuración que recibe el algoritmo seleccionado por `Camara`.
-
-La arquitectura permite que el componente de cámara no dependa de parámetros concretos de cada algoritmo: `Camara` selecciona una estrategia y entrega la configuración a `IAlgoritmoDifuminado`. fileciteturn419file0
-
-Para la implementación actual, la estrategia disponible es `DifuminadoEscalable`.
+Esta página establecerá los requisitos, dependencias, versiones compatibles y limitaciones conocidas de `Dev`.
 
 
-# ConfiguracionDifuminadoAlgoritmoEscalable (/docs/camara/v1/referencia/configuracion-escalable)
+# Fundamentos (/docs/dialogo/v1/fundamentos)
 
 
 
-La configuración específica permite ajustar el algoritmo sin introducir esos parámetros directamente en `Camara`. El árbol del módulo mantiene separadas `ConfiguracionDifuminado` y `ConfiguracionDifuminadoAlgoritmoEscalable`, siguiendo esa separación de responsabilidades. fileciteturn418file0
-
-La recomendación es mantener estos valores asociados al perfil de cámara o al contexto visual, no modificarlos continuamente desde gameplay salvo que exista una razón concreta.
+Esta página será el punto de partida para explicar la arquitectura y los conceptos principales de `Diálogo`.
 
 
-# Enums y tipos (/docs/camara/v1/referencia/enum-y-tipos)
+# Guías (/docs/dialogo/v1/guias)
 
 
 
-El módulo mantiene sus enums separados de las clases de comportamiento. Entre los tipos presentes están:
-
-| Tipo                  | Propósito                                             |
-| --------------------- | ----------------------------------------------------- |
-| `AlgoritmoDifuminado` | Estrategia de difuminado                              |
-| `DatosAuxiliares`     | Datos auxiliares de cálculo                           |
-| `EjesCamara`          | Ejes utilizados por la cámara                         |
-| `EstadoBtn`           | Estado de controles asociados                         |
-| `EstadoCamara`        | Estado lógico de la cámara                            |
-| `TipoAlgoritmoCamara` | Clasificación del algoritmo de cámara                 |
-| `TipoEntrada`         | Tipo de entrada utilizado por herramientas del módulo |
-
-Estos tipos permiten separar configuración y estado de la lógica ejecutora y aparecen agrupados bajo `Mono/Enums`. fileciteturn415file0
+Esta página reunirá los workflows y procedimientos recomendados para trabajar con `Diálogo`.
 
 
-# Referencia (/docs/camara/v1/referencia/index)
+# Inicio Rápido (/docs/dialogo/v1)
 
 
 
-La referencia describe la superficie pública y las piezas internas que determinan el comportamiento del módulo.
+<Callout title="Documentación en preparación" type="info">
+  Esta sección define la estructura base de `Diálogo`. El contenido específico se añadirá dentro de `Contenido`.
+</Callout>
 
 <Cards>
-  <Card title="Camara" href="/docs/camara/v1/referencia/camara">
-    Controlador principal.
+  <Card title="Fundamentos" href="/docs/dialogo/v1/fundamentos">
+    Conceptos y arquitectura de Diálogo.
   </Card>
 
-  <Card title="VistaCamara" href="/docs/camara/v1/referencia/vista-camara">
-    Contrato de vista.
+  <Card title="Guías" href="/docs/dialogo/v1/guias">
+    Workflows prácticos.
   </Card>
 
-  <Card title="Difuminado" href="/docs/camara/v1/referencia/algoritmo-escalable">
-    Algoritmo y configuración.
-  </Card>
-
-  <Card title="Tipos" href="/docs/camara/v1/referencia/enum-y-tipos">
-    Enums y estructuras.
+  <Card title="Referencia" href="/docs/dialogo/v1/referencia">
+    API y detalles técnicos.
   </Card>
 </Cards>
 
 
-# PosicionCamara (/docs/camara/v1/referencia/posicion-camara)
+# Preguntas frecuentes (/docs/dialogo/v1/preguntas-frecuentes)
 
 
 
-`PosicionCamara` forma parte de las estructuras auxiliares del módulo. Se utiliza para transportar información de posición de forma separada de la lógica de render y del controlador principal. El proyecto mantiene estas estructuras bajo `Mono/Estructuras`, junto a `CajaDebugCamara`. fileciteturn415file0
-
-Separar los datos de posición de la implementación permite reutilizar configuraciones y herramientas de editor sin acoplarlas al componente `Camara`.
+Esta página reunirá las dudas habituales sobre instalación, arquitectura, uso y limitaciones de `Diálogo`.
 
 
-# VistaCamara (/docs/camara/v1/referencia/vista-camara)
+# Referencia (/docs/dialogo/v1/referencia)
 
 
 
-`VistaCamara` representa el contexto lógico que `Camara` utiliza para determinar posición, dirección y propiedades. La implementación central activa y desactiva la vista y consulta su tipo durante cada actualización. fileciteturn414file0
+Esta página será la entrada de la referencia técnica de `Diálogo`: tipos, API, propiedades y detalles de implementación.
 
-En términos de arquitectura, la vista debe responder a:
 
-* posición objetivo;
-* dirección objetivo;
-* tipo de proyección;
-* dimensiones o FOV;
-* si posición, rotación y propiedades deben suavizarse.
+# Requisitos (/docs/dialogo/v1/requisitos)
 
-Esto permite que el componente `Camara` permanezca estable mientras el contexto cambia.
+
+
+Esta página establecerá los requisitos, dependencias, versiones compatibles y limitaciones conocidas de `Diálogo`.
 
 
 # Arquitectura (/docs/misiones/v1/fundamentos/arquitectura)
@@ -13980,6 +13528,458 @@ El modelo corresponde al de los protocolos TCP y UDP de TNet, pero Eco utiliza `
 <Card title="TNet" href="https://github.com/tasharen/tnet">
   Repositorio upstream.
 </Card>
+
+
+# Arquitectura (/docs/camara/v1/fundamentos/arquitectura)
+
+
+
+`Camara` actúa como orquestador. Mantiene una `VistaCamara` activa, calcula posición y dirección, aplica transiciones, suavizado y cambios de proyección, y coordina el render auxiliar utilizado por el difuminado. fileciteturn412file0
+
+```text
+VistaCamara
+    ↓
+Camara
+├── posición
+├── rotación
+├── proyección
+├── transición
+├── suavizado
+└── difuminado
+```
+
+La arquitectura separa las decisiones de la vista de la ejecución física de la cámara. Esto permite reutilizar una misma implementación para cámara normal, minimapa, combate u otros estilos declarados por el módulo. fileciteturn411file0
+
+
+# Difuminado (/docs/camara/v1/fundamentos/difuminado)
+
+
+
+El módulo genera una `RenderTexture` auxiliar y ejecuta un algoritmo de difuminado para ocultar o suavizar elementos de la escena cuando interfieren con la vista. `Camara` expone la textura mediante `VentanaDifuminada` y controla cuándo necesita actualizarse. fileciteturn414file0
+
+El flujo es:
+
+```text
+Camera
+  ↓
+RenderTexture
+  ↓
+IAlgoritmoDifuminado
+  ↓
+VentanaDifuminada
+```
+
+La implementación actual utiliza `AlgoritmoDifuminado.DifuminadoEscalable`, respaldado por `AlgoritmoEscalable`, y dispone de configuración específica para el algoritmo. fileciteturn418file0
+
+## Coste [#coste]
+
+El difuminado implica renderizado adicional. `Resolucion`, `RegionDifuminada` y `actualizacionMax` permiten limitar coste de memoria y frecuencia de actualización. No conviene ejecutarlo a máxima resolución y máxima frecuencia cuando la escena no lo necesita.
+
+
+# Fundamentos (/docs/camara/v1/fundamentos/index)
+
+
+
+En esta sección se explica cómo `Camara` combina vistas, transiciones, suavizado, proyección y difuminado.
+
+<Cards>
+  <Card title="Arquitectura" href="/docs/camara/v1/fundamentos/arquitectura">
+    Modelo general del módulo.
+  </Card>
+
+  <Card title="Vistas" href="/docs/camara/v1/fundamentos/vistas">
+    Contextos reutilizables de cámara.
+  </Card>
+
+  <Card title="Transiciones" href="/docs/camara/v1/fundamentos/transiciones">
+    Cambios inmediatos e interpolados.
+  </Card>
+
+  <Card title="Difuminado" href="/docs/camara/v1/fundamentos/difuminado">
+    Render auxiliar para obstáculos.
+  </Card>
+</Cards>
+
+
+# Proyección y propiedades (/docs/camara/v1/fundamentos/proyeccion-y-propiedades)
+
+
+
+La vista activa determina si la cámara trabaja en proyección ortográfica o perspectiva. `Camara` aplica este dato sobre la `Camera` de Unity y actualiza `orthographicSize` o `fieldOfView` según corresponda. fileciteturn414file0
+
+```text
+Vista
+ ├── Ortográfica → dimension → orthographicSize
+ └── Perspectiva  → FOV       → fieldOfView
+```
+
+Durante una transición, las propiedades pueden interpolarse hasta alcanzar el valor de la vista destino. Esto evita que cambiar de perspectiva a ortográfica implique necesariamente un salto visual.
+
+
+# Suavizado (/docs/camara/v1/fundamentos/suavizado)
+
+
+
+`Camara` admite dos estrategias de suavizado para la posición: `Lineal` y `Progresivo`. La rotación utiliza interpolación esférica. fileciteturn414file0
+
+| Tipo         | Uso                                  |
+| ------------ | ------------------------------------ |
+| `Lineal`     | Interpolación basada en velocidad    |
+| `Progresivo` | `SmoothDamp` con tiempo de respuesta |
+
+Además, la cámara puede extrapolar posición y rotación cuando la configuración lo requiere. Estas opciones deben utilizarse con criterio: la extrapolación puede hacer que la cámara anticipe un objetivo que todavía no se ha confirmado.
+
+`velLineal`, `tiempoProgresivo` y `velSuavizado` controlan respectivamente la respuesta de posición lineal, posición progresiva y rotación.
+
+
+# Transiciones (/docs/camara/v1/fundamentos/transiciones)
+
+
+
+`CambiarVista(VistaCamara vista, float duracion)` permite cambiar la vista de forma instantánea o mediante una transición temporal. La clase guarda la posición y dirección iniciales y calcula la interpolación hasta el objetivo. fileciteturn414file0
+
+```text
+Vista A
+  ↓
+posición / dirección inicial
+  ↓
+transición
+  ↓
+Vista B
+```
+
+Una duración de `0` aplica el cambio directamente. Una duración positiva utiliza interpolación de posición y rotación.
+
+La transición es independiente del suavizado posterior: primero se resuelve el cambio de vista y después la cámara puede seguir suavizando posición o rotación según la configuración.
+
+
+# Vistas (/docs/camara/v1/fundamentos/vistas)
+
+
+
+Una `VistaCamara` representa una configuración lógica de cámara. `Camara` la activa y consulta para obtener posición, dirección y propiedades de proyección.
+
+El flujo conceptual es:
+
+```text
+VistaCamara
+   ↓
+ActivarVista()
+   ↓
+ObtenerPosicion()
+ObtenerDireccion()
+   ↓
+Camara
+```
+
+Una vista puede representar diferentes contextos del juego: cámara normal, minimapa, combate u otros estilos. El módulo se diseñó precisamente alrededor de esta separación de estilos. fileciteturn411file0
+
+La ventaja es que cambiar de vista no obliga a reemplazar el componente `Camara`; se cambia el proveedor de posición, dirección y propiedades.
+
+
+# Cambiar de vista (/docs/camara/v1/guias/cambiar-vista)
+
+
+
+La API central es `CambiarVista`.
+
+```csharp
+camara.CambiarVista(vistaCombate, 0.35f);
+```
+
+Una duración de `0` hace el cambio inmediatamente. Una duración positiva conserva la posición y dirección de la vista anterior y realiza una transición hacia la nueva. fileciteturn414file0
+
+Para una transición de juego, la decisión recomendable es separar el evento que cambia el contexto de la cámara de la propia lógica de interpolación.
+
+```text
+Entrar en combate
+       ↓
+Seleccionar vista combate
+       ↓
+CambiarVista(..., duración)
+       ↓
+Camara resuelve transición
+```
+
+
+# Configurar una cámara (/docs/camara/v1/guias/configurar-camara)
+
+
+
+Añade `Camara` al mismo `GameObject` que la `Camera` de Unity.
+
+<Steps>
+  <Step>
+    Asigna una 
+
+    `VistaCamara`
+
+     inicial si quieres que la cámara arranque vinculada a una vista.
+  </Step>
+
+  <Step>
+    Elige 
+
+    `Update`
+
+     o 
+
+    `LateUpdate`
+
+     en 
+
+    `tipoActualizador`
+
+     según el orden que necesite el resto del juego.
+  </Step>
+
+  <Step>
+    Selecciona el tipo de suavizado y ajusta velocidad de posición y rotación.
+  </Step>
+
+  <Step>
+    Configura proyección y propiedades desde la vista activa.
+  </Step>
+
+  <Step>
+    Activa 
+
+    `previsualizar`
+
+     sólo mientras estés ajustando la cámara en el editor.
+  </Step>
+</Steps>
+
+`Camara` está marcado con `[ExecuteAlways]`, por lo que parte de su comportamiento también puede ejecutarse fuera del modo Play. fileciteturn414file0
+
+
+# Configurar el difuminado (/docs/camara/v1/guias/configurar-difuminado)
+
+
+
+El difuminado utiliza una `RenderTexture` auxiliar y el algoritmo escalable disponible actualmente. fileciteturn414file0
+
+Los controles principales son:
+
+| Propiedad                 | Objetivo                                |
+| ------------------------- | --------------------------------------- |
+| `Algoritmo`               | Selecciona la estrategia de difuminado  |
+| `ConfiguracionDifuminado` | Define los parámetros del algoritmo     |
+| `Resolucion`              | Reduce el tamaño de la textura auxiliar |
+| `RegionDifuminada`        | Limita la zona procesada                |
+| `actualizacionMax`        | Limita la frecuencia de actualización   |
+
+Para una cámara de gameplay, empieza con la región estrictamente necesaria y una resolución reducida. Aumenta el coste sólo cuando el resultado visual lo justifique.
+
+<Callout title="Rendimiento" type="warn">
+  El difuminado añade trabajo de renderizado. No debe tratarse como una propiedad gratuita de la cámara.
+</Callout>
+
+
+# Crear una vista (/docs/camara/v1/guias/crear-vista)
+
+
+
+Una vista debe encapsular la decisión de cámara y no la lógica general del componente `Camara`.
+
+```text
+Contexto del juego
+      ↓
+VistaCamara
+      ├── posición
+      ├── dirección
+      ├── proyección
+      └── propiedades
+            ↓
+          Camara
+```
+
+Esto permite tener varias vistas para un mismo `Camara`, por ejemplo gameplay, combate, minimapa o una vista especial para una habilidad.
+
+La implementación de `Camara` activa y desactiva la vista anterior cuando se cambia de una a otra. fileciteturn414file0
+
+
+# Depurar una cámara (/docs/camara/v1/guias/depurar-camara)
+
+
+
+Cuando una cámara no responde como esperas, comprueba primero la vista activa y después el ciclo de actualización.
+
+```text
+¿Hay VistaCamara?
+   ↓ sí
+¿Está activa?
+   ↓ sí
+¿Update o LateUpdate?
+   ↓
+¿La posición cambia?
+   ↓
+¿El suavizado está alterando el resultado?
+   ↓
+¿El problema aparece sólo con difuminado?
+```
+
+`previsualizar` permite visualizar la región del difuminado y modificarla desde el editor. `DebugCamaraExtension` y las utilidades del módulo están diseñadas para facilitar inspección y diagnóstico. fileciteturn413file0
+
+
+# Guías (/docs/camara/v1/guias/index)
+
+
+
+<Cards>
+  <Card title="Configurar una cámara" href="/docs/camara/v1/guias/configurar-camara">
+    Configuración inicial.
+  </Card>
+
+  <Card title="Crear una vista" href="/docs/camara/v1/guias/crear-vista">
+    Vistas reutilizables.
+  </Card>
+
+  <Card title="Cambiar de vista" href="/docs/camara/v1/guias/cambiar-vista">
+    Transiciones entre contextos.
+  </Card>
+
+  <Card title="Configurar el difuminado" href="/docs/camara/v1/guias/configurar-difuminado">
+    Ajuste de coste y calidad.
+  </Card>
+
+  <Card title="Depurar una cámara" href="/docs/camara/v1/guias/depurar-camara">
+    Diagnóstico.
+  </Card>
+</Cards>
+
+
+# AlgoritmoEscalable (/docs/camara/v1/referencia/algoritmo-escalable)
+
+
+
+`AlgoritmoEscalable` implementa la estrategia `DifuminadoEscalable` utilizada por `Camara`. El árbol de clases incluye también los tipos de comparación y configuración que necesita el algoritmo. fileciteturn418file0
+
+Su responsabilidad es producir la textura auxiliar que representa la región de escena procesada para el difuminado. La selección del algoritmo se realiza mediante `Camara.Algoritmo` y la configuración se inyecta mediante `Camara.ConfiguracionDifuminado`.
+
+
+# Camara (/docs/camara/v1/referencia/camara)
+
+
+
+`Pandora.Camara.Camara` es el componente central del módulo. Está marcado con `[ExecuteAlways]` y mantiene la vista activa, la actualización, el suavizado y el sistema de difuminado. fileciteturn419file0
+
+## Propiedades principales [#propiedades-principales]
+
+| Propiedad          | Función                                     |
+| ------------------ | ------------------------------------------- |
+| `vista`            | Vista activa                                |
+| `tipoActualizador` | `Update` o `LateUpdate`                     |
+| `tipoSuavizado`    | `Lineal` o `Progresivo`                     |
+| `velLineal`        | Velocidad de suavizado lineal               |
+| `tiempoProgresivo` | Tiempo de `SmoothDamp`                      |
+| `velSuavizado`     | Velocidad de rotación                       |
+| `extrapolarPos`    | Extrapolación de posición                   |
+| `extrapolarRot`    | Extrapolación de rotación                   |
+| `actualizacionMax` | Límite de actualización del difuminado      |
+| `previsualizar`    | Previsualización de la región de difuminado |
+
+## API [#api]
+
+```csharp
+void CambiarVista(VistaCamara vista, float duracion = 0f)
+void CambiarVista(GameObject go)
+void ResetearPosActual()
+void ResetearRotActual()
+bool ActualizacionDifuminadoNecesario()
+```
+
+`VentanaDifuminada`, `Resolucion`, `RegionDifuminada` y `RegionNormalizada` exponen el estado de render auxiliar y su región de procesamiento. fileciteturn419file0
+
+
+# ConfiguracionDifuminado (/docs/camara/v1/referencia/configuracion-difuminado)
+
+
+
+`ConfiguracionDifuminado` representa la configuración que recibe el algoritmo seleccionado por `Camara`.
+
+La arquitectura permite que el componente de cámara no dependa de parámetros concretos de cada algoritmo: `Camara` selecciona una estrategia y entrega la configuración a `IAlgoritmoDifuminado`. fileciteturn419file0
+
+Para la implementación actual, la estrategia disponible es `DifuminadoEscalable`.
+
+
+# ConfiguracionDifuminadoAlgoritmoEscalable (/docs/camara/v1/referencia/configuracion-escalable)
+
+
+
+La configuración específica permite ajustar el algoritmo sin introducir esos parámetros directamente en `Camara`. El árbol del módulo mantiene separadas `ConfiguracionDifuminado` y `ConfiguracionDifuminadoAlgoritmoEscalable`, siguiendo esa separación de responsabilidades. fileciteturn418file0
+
+La recomendación es mantener estos valores asociados al perfil de cámara o al contexto visual, no modificarlos continuamente desde gameplay salvo que exista una razón concreta.
+
+
+# Enums y tipos (/docs/camara/v1/referencia/enum-y-tipos)
+
+
+
+El módulo mantiene sus enums separados de las clases de comportamiento. Entre los tipos presentes están:
+
+| Tipo                  | Propósito                                             |
+| --------------------- | ----------------------------------------------------- |
+| `AlgoritmoDifuminado` | Estrategia de difuminado                              |
+| `DatosAuxiliares`     | Datos auxiliares de cálculo                           |
+| `EjesCamara`          | Ejes utilizados por la cámara                         |
+| `EstadoBtn`           | Estado de controles asociados                         |
+| `EstadoCamara`        | Estado lógico de la cámara                            |
+| `TipoAlgoritmoCamara` | Clasificación del algoritmo de cámara                 |
+| `TipoEntrada`         | Tipo de entrada utilizado por herramientas del módulo |
+
+Estos tipos permiten separar configuración y estado de la lógica ejecutora y aparecen agrupados bajo `Mono/Enums`. fileciteturn415file0
+
+
+# Referencia (/docs/camara/v1/referencia/index)
+
+
+
+La referencia describe la superficie pública y las piezas internas que determinan el comportamiento del módulo.
+
+<Cards>
+  <Card title="Camara" href="/docs/camara/v1/referencia/camara">
+    Controlador principal.
+  </Card>
+
+  <Card title="VistaCamara" href="/docs/camara/v1/referencia/vista-camara">
+    Contrato de vista.
+  </Card>
+
+  <Card title="Difuminado" href="/docs/camara/v1/referencia/algoritmo-escalable">
+    Algoritmo y configuración.
+  </Card>
+
+  <Card title="Tipos" href="/docs/camara/v1/referencia/enum-y-tipos">
+    Enums y estructuras.
+  </Card>
+</Cards>
+
+
+# PosicionCamara (/docs/camara/v1/referencia/posicion-camara)
+
+
+
+`PosicionCamara` forma parte de las estructuras auxiliares del módulo. Se utiliza para transportar información de posición de forma separada de la lógica de render y del controlador principal. El proyecto mantiene estas estructuras bajo `Mono/Estructuras`, junto a `CajaDebugCamara`. fileciteturn415file0
+
+Separar los datos de posición de la implementación permite reutilizar configuraciones y herramientas de editor sin acoplarlas al componente `Camara`.
+
+
+# VistaCamara (/docs/camara/v1/referencia/vista-camara)
+
+
+
+`VistaCamara` representa el contexto lógico que `Camara` utiliza para determinar posición, dirección y propiedades. La implementación central activa y desactiva la vista y consulta su tipo durante cada actualización. fileciteturn414file0
+
+En términos de arquitectura, la vista debe responder a:
+
+* posición objetivo;
+* dirección objetivo;
+* tipo de proyección;
+* dimensiones o FOV;
+* si posición, rotación y propiedades deben suavizarse.
+
+Esto permite que el componente `Camara` permanezca estable mientras el contexto cambia.
 
 
 # APIs de bajo nivel (/docs/red/v1/referencia/api/bajo-nivel)
