@@ -239,6 +239,64 @@ Esta página será la entrada de la referencia técnica de `Cid`: tipos, API, pr
 Esta página establecerá los requisitos, dependencias, versiones compatibles y limitaciones conocidas de `Cid`.
 
 
+# Fundamentos (/docs/dev/v1/fundamentos)
+
+
+
+Esta página será el punto de partida para explicar la arquitectura y los conceptos principales de `Dev`.
+
+
+# Guías (/docs/dev/v1/guias)
+
+
+
+Esta página reunirá los workflows y procedimientos recomendados para trabajar con `Dev`.
+
+
+# Inicio Rápido (/docs/dev/v1)
+
+
+
+<Callout title="Documentación en preparación" type="info">
+  Esta sección define la estructura base de `Dev`. El contenido específico se añadirá dentro de `Contenido`.
+</Callout>
+
+<Cards>
+  <Card title="Fundamentos" href="/docs/dev/v1/fundamentos">
+    Conceptos y arquitectura de Dev.
+  </Card>
+
+  <Card title="Guías" href="/docs/dev/v1/guias">
+    Workflows prácticos.
+  </Card>
+
+  <Card title="Referencia" href="/docs/dev/v1/referencia">
+    API y detalles técnicos.
+  </Card>
+</Cards>
+
+
+# Preguntas frecuentes (/docs/dev/v1/preguntas-frecuentes)
+
+
+
+Esta página reunirá las dudas habituales sobre instalación, arquitectura, uso y limitaciones de `Dev`.
+
+
+# Referencia (/docs/dev/v1/referencia)
+
+
+
+Esta página será la entrada de la referencia técnica de `Dev`: tipos, API, propiedades y detalles de implementación.
+
+
+# Requisitos (/docs/dev/v1/requisitos)
+
+
+
+Esta página establecerá los requisitos, dependencias, versiones compatibles y limitaciones conocidas de `Dev`.
+
+
 # Fundamentos (/docs/dialogo/v1/fundamentos)
 
 
@@ -1506,64 +1564,6 @@ Esta página establecerá los requisitos, dependencias, versiones compatibles y 
 Texto aquí.
 
 
-# Fundamentos (/docs/dev/v1/fundamentos)
-
-
-
-Esta página será el punto de partida para explicar la arquitectura y los conceptos principales de `Dev`.
-
-
-# Guías (/docs/dev/v1/guias)
-
-
-
-Esta página reunirá los workflows y procedimientos recomendados para trabajar con `Dev`.
-
-
-# Inicio Rápido (/docs/dev/v1)
-
-
-
-<Callout title="Documentación en preparación" type="info">
-  Esta sección define la estructura base de `Dev`. El contenido específico se añadirá dentro de `Contenido`.
-</Callout>
-
-<Cards>
-  <Card title="Fundamentos" href="/docs/dev/v1/fundamentos">
-    Conceptos y arquitectura de Dev.
-  </Card>
-
-  <Card title="Guías" href="/docs/dev/v1/guias">
-    Workflows prácticos.
-  </Card>
-
-  <Card title="Referencia" href="/docs/dev/v1/referencia">
-    API y detalles técnicos.
-  </Card>
-</Cards>
-
-
-# Preguntas frecuentes (/docs/dev/v1/preguntas-frecuentes)
-
-
-
-Esta página reunirá las dudas habituales sobre instalación, arquitectura, uso y limitaciones de `Dev`.
-
-
-# Referencia (/docs/dev/v1/referencia)
-
-
-
-Esta página será la entrada de la referencia técnica de `Dev`: tipos, API, propiedades y detalles de implementación.
-
-
-# Requisitos (/docs/dev/v1/requisitos)
-
-
-
-Esta página establecerá los requisitos, dependencias, versiones compatibles y limitaciones conocidas de `Dev`.
-
-
 # Arquitectura (/docs/camara/v1/fundamentos/arquitectura)
 
 
@@ -2016,6 +2016,84 @@ En términos de arquitectura, la vista debe responder a:
 Esto permite que el componente `Camara` permanezca estable mientras el contexto cambia.
 
 
+# Arquitectura (/docs/misiones/v1/fundamentos/arquitectura)
+
+
+
+`Misiones` está diseñado como una capa de datos apoyada sobre `Pandora.Motor`. El manifiesto declara una futura lógica de misión principal, secundarias y ramificaciones, pero la implementación actual visible en el repositorio se reduce a `DatosMisiones`. fileciteturn451file0
+
+```text
+Pandora.Motor
+      │
+      ▼
+    IDatos
+      │
+      ▼
+DatosMisiones
+      │
+      ▼
+Resources/Datos/DatosMisiones
+```
+
+La separación es útil porque permite que la definición de misiones permanezca fuera de los sistemas de gameplay que posteriormente consuman esos datos.
+
+<Callout title="Límite actual" type="warn">
+  No existe actualmente en el árbol analizado un controlador de estado de misión, evaluador de objetivos, gestor de ramas ni resolvedor de recompensas. La documentación no los trata como API disponible.
+</Callout>
+
+
+# Ciclo de carga (/docs/misiones/v1/fundamentos/ciclo-de-carga)
+
+
+
+El módulo utiliza dos rutas de acceso principales.
+
+<Steps>
+  <Step>
+    En el editor, `DatosMisiones` se inicializa mediante `IDatos.Inicializar<DatosMisiones>()`.
+  </Step>
+
+  <Step>
+    La ruta predeterminada de datos se define como `Assets/Pandora/Datos/Misiones/Resources`.
+  </Step>
+
+  <Step>
+    En ejecución, `DatosMisiones.I` busca `Datos/DatosMisiones` mediante `Resources.Load`.
+  </Step>
+
+  <Step>
+    Cuando se necesita una carga independiente, `DatosMisiones.Cargar()` delega en `IDatos.Cargar<DatosMisiones>()`.
+  </Step>
+</Steps>
+
+La ruta del editor y la ruta usada por `Resources.Load` cumplen funciones diferentes: la primera localiza los datos predeterminados del paquete; la segunda identifica el recurso que Unity puede cargar en ejecución. fileciteturn453file0
+
+
+# Modelo de datos (/docs/misiones/v1/fundamentos/modelo-de-datos)
+
+
+
+La pieza disponible actualmente es `DatosMisiones`, una clase de datos que hereda de `IDatos` de `Pandora.Motor`. Su responsabilidad es localizar la base de datos de misiones y proporcionar acceso a ella. fileciteturn453file0
+
+## Acceso global [#acceso-global]
+
+`DatosMisiones.I` mantiene una instancia cargada desde:
+
+```text
+Resources/Datos/DatosMisiones
+```
+
+La carga utiliza `Resources.Load` y devuelve el recurso `DatosMisiones` existente. fileciteturn453file0
+
+## Carga de una copia [#carga-de-una-copia]
+
+`DatosMisiones.Cargar()` delega en `IDatos.Cargar<DatosMisiones>()`. Esto debe entenderse como un mecanismo diferente al acceso de la propiedad `I`: la aplicación puede trabajar con una copia cargada mediante la infraestructura genérica de datos. fileciteturn453file0
+
+<Callout title="Datos frente a estado" type="info">
+  La base de datos define contenido. El estado de una misión activa —por ejemplo, si un objetivo fue completado— debe pertenecer al sistema de ejecución que consuma esos datos, no a `DatosMisiones`.
+</Callout>
+
+
 # Cargar los datos (/docs/misiones/v1/guias/cargar-datos)
 
 
@@ -2131,84 +2209,6 @@ Assets/Pandora/Datos/Misiones/Resources
 Esto forma parte del tooling de datos; no es una operación que el gameplay deba repetir manualmente. fileciteturn453file0
 
 
-# Arquitectura (/docs/misiones/v1/fundamentos/arquitectura)
-
-
-
-`Misiones` está diseñado como una capa de datos apoyada sobre `Pandora.Motor`. El manifiesto declara una futura lógica de misión principal, secundarias y ramificaciones, pero la implementación actual visible en el repositorio se reduce a `DatosMisiones`. fileciteturn451file0
-
-```text
-Pandora.Motor
-      │
-      ▼
-    IDatos
-      │
-      ▼
-DatosMisiones
-      │
-      ▼
-Resources/Datos/DatosMisiones
-```
-
-La separación es útil porque permite que la definición de misiones permanezca fuera de los sistemas de gameplay que posteriormente consuman esos datos.
-
-<Callout title="Límite actual" type="warn">
-  No existe actualmente en el árbol analizado un controlador de estado de misión, evaluador de objetivos, gestor de ramas ni resolvedor de recompensas. La documentación no los trata como API disponible.
-</Callout>
-
-
-# Ciclo de carga (/docs/misiones/v1/fundamentos/ciclo-de-carga)
-
-
-
-El módulo utiliza dos rutas de acceso principales.
-
-<Steps>
-  <Step>
-    En el editor, `DatosMisiones` se inicializa mediante `IDatos.Inicializar<DatosMisiones>()`.
-  </Step>
-
-  <Step>
-    La ruta predeterminada de datos se define como `Assets/Pandora/Datos/Misiones/Resources`.
-  </Step>
-
-  <Step>
-    En ejecución, `DatosMisiones.I` busca `Datos/DatosMisiones` mediante `Resources.Load`.
-  </Step>
-
-  <Step>
-    Cuando se necesita una carga independiente, `DatosMisiones.Cargar()` delega en `IDatos.Cargar<DatosMisiones>()`.
-  </Step>
-</Steps>
-
-La ruta del editor y la ruta usada por `Resources.Load` cumplen funciones diferentes: la primera localiza los datos predeterminados del paquete; la segunda identifica el recurso que Unity puede cargar en ejecución. fileciteturn453file0
-
-
-# Modelo de datos (/docs/misiones/v1/fundamentos/modelo-de-datos)
-
-
-
-La pieza disponible actualmente es `DatosMisiones`, una clase de datos que hereda de `IDatos` de `Pandora.Motor`. Su responsabilidad es localizar la base de datos de misiones y proporcionar acceso a ella. fileciteturn453file0
-
-## Acceso global [#acceso-global]
-
-`DatosMisiones.I` mantiene una instancia cargada desde:
-
-```text
-Resources/Datos/DatosMisiones
-```
-
-La carga utiliza `Resources.Load` y devuelve el recurso `DatosMisiones` existente. fileciteturn453file0
-
-## Carga de una copia [#carga-de-una-copia]
-
-`DatosMisiones.Cargar()` delega en `IDatos.Cargar<DatosMisiones>()`. Esto debe entenderse como un mecanismo diferente al acceso de la propiedad `I`: la aplicación puede trabajar con una copia cargada mediante la infraestructura genérica de datos. fileciteturn453file0
-
-<Callout title="Datos frente a estado" type="info">
-  La base de datos define contenido. El estado de una misión activa —por ejemplo, si un objetivo fue completado— debe pertenecer al sistema de ejecución que consuma esos datos, no a `DatosMisiones`.
-</Callout>
-
-
 # Alexandria (/docs/nucleo/v1/sistemas/alexandria)
 
 
@@ -2248,6 +2248,238 @@ Define metadata del sistema.
 ```csharp
 [Sistema(int prioridad, string nombre)]
 ```
+
+
+# Animación y audio (/docs/personaje/v1/fundamentos/animacion-y-audio)
+
+
+
+`AnimacionPersonaje` y `AudioPersonaje` son capas de presentación. El controlador no necesita conocer los clips concretos para resolver su movimiento.
+
+## Animación [#animación]
+
+`AnimacionPersonaje` recibe referencias del controlador y del `Animator` y actualiza sus variables críticas desde el estado de movimiento.
+
+```text
+Jugador / Personaje
+       ↓
+estado + velocidad
+       ↓
+AnimacionPersonaje
+       ↓
+Animator
+```
+
+## Audio [#audio]
+
+`AudioPersonaje` utiliza el movimiento, locomoción y eventos del personaje para reproducir pasos, salto y otros efectos.
+
+## Recomendación [#recomendación]
+
+Mantén las reglas de gameplay fuera de estas capas. Una animación puede cambiar sin alterar la forma en que `Jugador` calcula su velocidad.
+
+## Eventos [#eventos]
+
+El controlador puede notificar eventos como el aterrizaje. La presentación puede reaccionar a ellos para reproducir sonido o modificar animaciones sin convertirlos en parte del cálculo de locomoción.
+
+
+# Arquitectura (/docs/personaje/v1/fundamentos/arquitectura)
+
+
+
+El módulo está organizado por responsabilidades. El controlador calcula la intención y el estado de movimiento; `Locomocion` encapsula el movimiento físico; los sensores proporcionan información del entorno; animación y audio presentan el resultado.
+
+```text
+Entrada / Ruta
+      ↓
+Controlador
+      ↓
+Locomocion ← Sensores
+      ↓
+Transform
+      ↓
+Animación / Audio
+```
+
+## Capas principales [#capas-principales]
+
+| Capa                 | Responsabilidad                                   |
+| -------------------- | ------------------------------------------------- |
+| `Jugador`            | Control humano, salto, aire y estados del jugador |
+| `Personaje`          | Movimiento por ruta y gravedad                    |
+| `Locomocion`         | Aplicación y ajuste del movimiento físico         |
+| `Sensor`             | Detección de suelo, superficies y entorno         |
+| `DetectorTecho`      | Detección específica de techos para el jugador    |
+| `AnimacionPersonaje` | Traducción de estado a Animator                   |
+| `AudioPersonaje`     | Pasos, salto y eventos de movimiento              |
+| `SuavizadoPosicion`  | Transición visual de posición                     |
+| `SuavizadoRotacion`  | Transición visual de rotación                     |
+
+## Ciclo de actualización [#ciclo-de-actualización]
+
+`Jugador` y `Personaje` separan trabajo entre `Update`, `FixedUpdate` y `LateUpdate`. La entrada y presentación se actualizan en el ciclo de frame; la resolución del movimiento y gravedad utiliza `FixedUpdate`; los sensores se actualizan después del movimiento cuando corresponde.
+
+## Por qué está separado [#por-qué-está-separado]
+
+La separación permite sustituir una fuente de movimiento sin reescribir la presentación. Un NPC puede utilizar una ruta mientras un jugador utiliza entrada humana y ambos reutilizan la misma locomoción, sensores y animación.
+
+
+# Controladores (/docs/personaje/v1/fundamentos/controladores)
+
+
+
+## Personaje [#personaje]
+
+`Personaje` está orientado a personajes que reciben posiciones objetivo mediante `camino`, representado por una lista de `PuntoRuta`.
+
+Su responsabilidad principal es calcular el vector hacia el punto actual, aplicar velocidad de movimiento y procesar gravedad.
+
+## Jugador [#jugador]
+
+`Jugador` añade control directo mediante `ControladorEntradaJugador`. Además incorpora salto, control aéreo, fricción, pendientes y estados como suelo, deslizamiento, ascenso, descenso y salto.
+
+## Comparación [#comparación]
+
+| Característica     | Personaje                     | Jugador                      |
+| ------------------ | ----------------------------- | ---------------------------- |
+| Ruta por puntos    | Sí                            | No es su mecanismo principal |
+| Entrada humana     | No                            | Sí                           |
+| Salto              | No es el foco                 | Sí                           |
+| Control aéreo      | Básico/no específico          | Sí                           |
+| Cámara relativa    | No                            | Sí, mediante `trCamara`      |
+| Detección de techo | No                            | Sí                           |
+| Animación          | Sí                            | Sí                           |
+| Audio              | Puede reutilizar presentación | Sí, integrado en `Jugador`   |
+
+## Elección recomendada [#elección-recomendada]
+
+Usa `Jugador` para el personaje controlado directamente por el usuario. Usa `Personaje` para actores que siguen rutas o para una base sencilla de movimiento que después sea especializada por otro controlador.
+
+
+# Entrada del jugador (/docs/personaje/v1/fundamentos/entrada-del-jugador)
+
+
+
+`Jugador` no acopla la lógica de movimiento a una acción concreta del teclado o mando. Utiliza `ControladorEntradaJugador` como capa intermedia.
+
+```text
+Input del usuario
+      ↓
+ControladorEntradaJugador
+      ↓
+Jugador
+      ↓
+Movimiento / salto
+```
+
+## Ventajas [#ventajas]
+
+* permite cambiar el backend de entrada sin reescribir el controlador;
+* separa intención de resolución física;
+* facilita pruebas del movimiento sin depender directamente de UI o dispositivos.
+
+## Movimiento relativo a cámara [#movimiento-relativo-a-cámara]
+
+`Jugador.trCamara` puede definir una referencia para calcular el movimiento respecto a la orientación de la cámara. Si no se asigna, el controlador utiliza sus propios ejes.
+
+## Salto [#salto]
+
+`Jugador` distingue entre salto pulsado, mantenido y soltado y utiliza `velSalto` y `duracionSalto` para controlar la respuesta. Esto permite implementar saltos variables sin mezclar la lectura de entrada con la aplicación física.
+
+
+# Fundamentos (/docs/personaje/v1/fundamentos/index)
+
+
+
+<Cards>
+  <Card title="Arquitectura" href="/docs/personaje/v1/fundamentos/arquitectura">
+    Cómo se separan control, locomoción, sensores y presentación.
+  </Card>
+
+  <Card title="Controladores" href="/docs/personaje/v1/fundamentos/controladores">
+    Diferencias entre `Personaje` y `Jugador`.
+  </Card>
+
+  <Card title="Locomoción y sensores" href="/docs/personaje/v1/fundamentos/locomocion-y-sensores">
+    Movimiento físico y detección del entorno.
+  </Card>
+
+  <Card title="Entrada del jugador" href="/docs/personaje/v1/fundamentos/entrada-del-jugador">
+    Separación entre input e implementación del movimiento.
+  </Card>
+
+  <Card title="Animación y audio" href="/docs/personaje/v1/fundamentos/animacion-y-audio">
+    Presentación basada en el estado del controlador.
+  </Card>
+
+  <Card title="Suavizado" href="/docs/personaje/v1/fundamentos/suavizado">
+    Transiciones visuales de posición y rotación.
+  </Card>
+</Cards>
+
+
+# Locomoción y sensores (/docs/personaje/v1/fundamentos/locomocion-y-sensores)
+
+
+
+`Locomocion` es la capa que recibe la velocidad calculada por el controlador y se encarga de afinar y aplicar el movimiento sobre el GameObject.
+
+## Flujo [#flujo]
+
+```text
+Controlador
+  ↓ velocidad
+Locomocion
+  ↓
+Sensor
+  ↓
+Estado físico
+  ↓
+Movimiento aplicado
+```
+
+## Sensor [#sensor]
+
+El sensor comprueba información del entorno necesaria para saber si el personaje está sobre una superficie, cómo responde a pendientes y cuándo deben actualizarse sus comprobaciones.
+
+Los controladores utilizan métodos como `ComprobarSuelo`, `EnSuelo`, `RangoExtendidoSensor` y `ActualizarSensor` para coordinar estas comprobaciones con el ciclo físico.
+
+## Jugador y pendientes [#jugador-y-pendientes]
+
+`Jugador` añade `limitePendiente` y `gravedadPendiente`. El estado puede pasar a `Deslizando` cuando la superficie excede el límite configurado.
+
+## DetectorTecho [#detectortecho]
+
+`DetectorTecho` es una capa específica del jugador que registra colisiones que representan un techo y permite reaccionar ante golpes verticales durante el salto.
+
+## Por qué no mover todo a un Rigidbody [#por-qué-no-mover-todo-a-un-rigidbody]
+
+La arquitectura mantiene el cálculo de movimiento en los controladores y centraliza la aplicación física en `Locomocion`, lo que facilita reutilizar la misma infraestructura entre distintos tipos de personaje.
+
+
+# Suavizado (/docs/personaje/v1/fundamentos/suavizado)
+
+
+
+El módulo incluye `SuavizadoPosicion` y `SuavizadoRotacion` para evitar transiciones bruscas entre estados de transform.
+
+## Cuándo utilizarlo [#cuándo-utilizarlo]
+
+Es útil cuando una posición o rotación cambia por una fuente discreta: red, teletransporte, cambio de objetivo o actualización externa.
+
+## Qué no hace [#qué-no-hace]
+
+El suavizado no resuelve la autoridad, la predicción ni la sincronización. Sólo decide cómo llegar visualmente de un estado a otro.
+
+```text
+Estado recibido
+     ↓
+Suavizado
+     ↓
+Transform visual
+```
+
+En un juego en red puede utilizarse junto a Eco, pero debe permanecer separado del estado autoritativo que se sincroniza.
 
 
 # Configurar la entrada (/docs/personaje/v1/guias/configurar-entrada)
@@ -13748,238 +13980,6 @@ El modelo corresponde al de los protocolos TCP y UDP de TNet, pero Eco utiliza `
 <Card title="TNet" href="https://github.com/tasharen/tnet">
   Repositorio upstream.
 </Card>
-
-
-# Animación y audio (/docs/personaje/v1/fundamentos/animacion-y-audio)
-
-
-
-`AnimacionPersonaje` y `AudioPersonaje` son capas de presentación. El controlador no necesita conocer los clips concretos para resolver su movimiento.
-
-## Animación [#animación]
-
-`AnimacionPersonaje` recibe referencias del controlador y del `Animator` y actualiza sus variables críticas desde el estado de movimiento.
-
-```text
-Jugador / Personaje
-       ↓
-estado + velocidad
-       ↓
-AnimacionPersonaje
-       ↓
-Animator
-```
-
-## Audio [#audio]
-
-`AudioPersonaje` utiliza el movimiento, locomoción y eventos del personaje para reproducir pasos, salto y otros efectos.
-
-## Recomendación [#recomendación]
-
-Mantén las reglas de gameplay fuera de estas capas. Una animación puede cambiar sin alterar la forma en que `Jugador` calcula su velocidad.
-
-## Eventos [#eventos]
-
-El controlador puede notificar eventos como el aterrizaje. La presentación puede reaccionar a ellos para reproducir sonido o modificar animaciones sin convertirlos en parte del cálculo de locomoción.
-
-
-# Arquitectura (/docs/personaje/v1/fundamentos/arquitectura)
-
-
-
-El módulo está organizado por responsabilidades. El controlador calcula la intención y el estado de movimiento; `Locomocion` encapsula el movimiento físico; los sensores proporcionan información del entorno; animación y audio presentan el resultado.
-
-```text
-Entrada / Ruta
-      ↓
-Controlador
-      ↓
-Locomocion ← Sensores
-      ↓
-Transform
-      ↓
-Animación / Audio
-```
-
-## Capas principales [#capas-principales]
-
-| Capa                 | Responsabilidad                                   |
-| -------------------- | ------------------------------------------------- |
-| `Jugador`            | Control humano, salto, aire y estados del jugador |
-| `Personaje`          | Movimiento por ruta y gravedad                    |
-| `Locomocion`         | Aplicación y ajuste del movimiento físico         |
-| `Sensor`             | Detección de suelo, superficies y entorno         |
-| `DetectorTecho`      | Detección específica de techos para el jugador    |
-| `AnimacionPersonaje` | Traducción de estado a Animator                   |
-| `AudioPersonaje`     | Pasos, salto y eventos de movimiento              |
-| `SuavizadoPosicion`  | Transición visual de posición                     |
-| `SuavizadoRotacion`  | Transición visual de rotación                     |
-
-## Ciclo de actualización [#ciclo-de-actualización]
-
-`Jugador` y `Personaje` separan trabajo entre `Update`, `FixedUpdate` y `LateUpdate`. La entrada y presentación se actualizan en el ciclo de frame; la resolución del movimiento y gravedad utiliza `FixedUpdate`; los sensores se actualizan después del movimiento cuando corresponde.
-
-## Por qué está separado [#por-qué-está-separado]
-
-La separación permite sustituir una fuente de movimiento sin reescribir la presentación. Un NPC puede utilizar una ruta mientras un jugador utiliza entrada humana y ambos reutilizan la misma locomoción, sensores y animación.
-
-
-# Controladores (/docs/personaje/v1/fundamentos/controladores)
-
-
-
-## Personaje [#personaje]
-
-`Personaje` está orientado a personajes que reciben posiciones objetivo mediante `camino`, representado por una lista de `PuntoRuta`.
-
-Su responsabilidad principal es calcular el vector hacia el punto actual, aplicar velocidad de movimiento y procesar gravedad.
-
-## Jugador [#jugador]
-
-`Jugador` añade control directo mediante `ControladorEntradaJugador`. Además incorpora salto, control aéreo, fricción, pendientes y estados como suelo, deslizamiento, ascenso, descenso y salto.
-
-## Comparación [#comparación]
-
-| Característica     | Personaje                     | Jugador                      |
-| ------------------ | ----------------------------- | ---------------------------- |
-| Ruta por puntos    | Sí                            | No es su mecanismo principal |
-| Entrada humana     | No                            | Sí                           |
-| Salto              | No es el foco                 | Sí                           |
-| Control aéreo      | Básico/no específico          | Sí                           |
-| Cámara relativa    | No                            | Sí, mediante `trCamara`      |
-| Detección de techo | No                            | Sí                           |
-| Animación          | Sí                            | Sí                           |
-| Audio              | Puede reutilizar presentación | Sí, integrado en `Jugador`   |
-
-## Elección recomendada [#elección-recomendada]
-
-Usa `Jugador` para el personaje controlado directamente por el usuario. Usa `Personaje` para actores que siguen rutas o para una base sencilla de movimiento que después sea especializada por otro controlador.
-
-
-# Entrada del jugador (/docs/personaje/v1/fundamentos/entrada-del-jugador)
-
-
-
-`Jugador` no acopla la lógica de movimiento a una acción concreta del teclado o mando. Utiliza `ControladorEntradaJugador` como capa intermedia.
-
-```text
-Input del usuario
-      ↓
-ControladorEntradaJugador
-      ↓
-Jugador
-      ↓
-Movimiento / salto
-```
-
-## Ventajas [#ventajas]
-
-* permite cambiar el backend de entrada sin reescribir el controlador;
-* separa intención de resolución física;
-* facilita pruebas del movimiento sin depender directamente de UI o dispositivos.
-
-## Movimiento relativo a cámara [#movimiento-relativo-a-cámara]
-
-`Jugador.trCamara` puede definir una referencia para calcular el movimiento respecto a la orientación de la cámara. Si no se asigna, el controlador utiliza sus propios ejes.
-
-## Salto [#salto]
-
-`Jugador` distingue entre salto pulsado, mantenido y soltado y utiliza `velSalto` y `duracionSalto` para controlar la respuesta. Esto permite implementar saltos variables sin mezclar la lectura de entrada con la aplicación física.
-
-
-# Fundamentos (/docs/personaje/v1/fundamentos/index)
-
-
-
-<Cards>
-  <Card title="Arquitectura" href="/docs/personaje/v1/fundamentos/arquitectura">
-    Cómo se separan control, locomoción, sensores y presentación.
-  </Card>
-
-  <Card title="Controladores" href="/docs/personaje/v1/fundamentos/controladores">
-    Diferencias entre `Personaje` y `Jugador`.
-  </Card>
-
-  <Card title="Locomoción y sensores" href="/docs/personaje/v1/fundamentos/locomocion-y-sensores">
-    Movimiento físico y detección del entorno.
-  </Card>
-
-  <Card title="Entrada del jugador" href="/docs/personaje/v1/fundamentos/entrada-del-jugador">
-    Separación entre input e implementación del movimiento.
-  </Card>
-
-  <Card title="Animación y audio" href="/docs/personaje/v1/fundamentos/animacion-y-audio">
-    Presentación basada en el estado del controlador.
-  </Card>
-
-  <Card title="Suavizado" href="/docs/personaje/v1/fundamentos/suavizado">
-    Transiciones visuales de posición y rotación.
-  </Card>
-</Cards>
-
-
-# Locomoción y sensores (/docs/personaje/v1/fundamentos/locomocion-y-sensores)
-
-
-
-`Locomocion` es la capa que recibe la velocidad calculada por el controlador y se encarga de afinar y aplicar el movimiento sobre el GameObject.
-
-## Flujo [#flujo]
-
-```text
-Controlador
-  ↓ velocidad
-Locomocion
-  ↓
-Sensor
-  ↓
-Estado físico
-  ↓
-Movimiento aplicado
-```
-
-## Sensor [#sensor]
-
-El sensor comprueba información del entorno necesaria para saber si el personaje está sobre una superficie, cómo responde a pendientes y cuándo deben actualizarse sus comprobaciones.
-
-Los controladores utilizan métodos como `ComprobarSuelo`, `EnSuelo`, `RangoExtendidoSensor` y `ActualizarSensor` para coordinar estas comprobaciones con el ciclo físico.
-
-## Jugador y pendientes [#jugador-y-pendientes]
-
-`Jugador` añade `limitePendiente` y `gravedadPendiente`. El estado puede pasar a `Deslizando` cuando la superficie excede el límite configurado.
-
-## DetectorTecho [#detectortecho]
-
-`DetectorTecho` es una capa específica del jugador que registra colisiones que representan un techo y permite reaccionar ante golpes verticales durante el salto.
-
-## Por qué no mover todo a un Rigidbody [#por-qué-no-mover-todo-a-un-rigidbody]
-
-La arquitectura mantiene el cálculo de movimiento en los controladores y centraliza la aplicación física en `Locomocion`, lo que facilita reutilizar la misma infraestructura entre distintos tipos de personaje.
-
-
-# Suavizado (/docs/personaje/v1/fundamentos/suavizado)
-
-
-
-El módulo incluye `SuavizadoPosicion` y `SuavizadoRotacion` para evitar transiciones bruscas entre estados de transform.
-
-## Cuándo utilizarlo [#cuándo-utilizarlo]
-
-Es útil cuando una posición o rotación cambia por una fuente discreta: red, teletransporte, cambio de objetivo o actualización externa.
-
-## Qué no hace [#qué-no-hace]
-
-El suavizado no resuelve la autoridad, la predicción ni la sincronización. Sólo decide cómo llegar visualmente de un estado a otro.
-
-```text
-Estado recibido
-     ↓
-Suavizado
-     ↓
-Transform visual
-```
-
-En un juego en red puede utilizarse junto a Eco, pero debe permanecer separado del estado autoritativo que se sincroniza.
 
 
 # APIs de bajo nivel (/docs/red/v1/referencia/api/bajo-nivel)
